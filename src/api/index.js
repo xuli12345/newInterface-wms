@@ -255,7 +255,7 @@ function getOrderNo(str) {
  *
  */
 function addformSaveData(data) {
-  // console.log(JSON.stringify(data[0]),"请求的数据");
+  console.log(JSON.stringify(data[0]),"请求的数据");
   let obj = {
     UserID: data[1].userId,
     SqlConn: sqlConn,

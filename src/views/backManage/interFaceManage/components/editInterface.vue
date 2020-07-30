@@ -24,7 +24,7 @@
     </div>
     <el-scrollbar style="min-height: 180px;" :native="true">
       <el-form
-        :label-position="labelPosition"
+        label-position="right"
         label-width="125px"
         :model="editForm"
         :rules="rules"
@@ -177,10 +177,9 @@
     </div>
     <!-- 新增侧滑框 -->
     <el-drawer
-      title="新增子表资料"
       :append-to-body="true"
       :visible.sync="drawer"
-      :direction="direction"
+      direction="rtl"
       :before-close="handleClose"
     >
       <addItemInterface
@@ -197,27 +196,23 @@ import {
   addformSaveData,
   ItemTableHeadData,
   tableBodyData,
-  getInterfaceItemData,
+  getInterfaceItemData
 } from "@/api/index";
 import HcTitle from "@/components/HcTitle";
 import addItemInterface from "../components/addItemInterface";
-import { addParams, batchDelete } from "@/utils/common";
+import { addParams, batchDelete, creatRules, compare } from "@/utils/common";
 export default {
   name: "editInterface",
   props: ["tableHead", "rowData"],
   components: {
     HcTitle,
-    addItemInterface,
+    addItemInterface
   },
   data() {
     return {
       //查询从表需要的字段
       ViewData: "",
       drawer: false,
-      //表单域标签的位置
-      //控制侧滑框的方向
-      direction: "rtl",
-      labelPosition: "right",
       fTableViewData: "",
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
@@ -238,7 +233,6 @@ export default {
       //字表table数据
       tableData: [],
       getRowKeys(row) {
-        // console.log(row)
         return row.fTableView;
       },
       //批量删除选中索引值
@@ -252,7 +246,7 @@ export default {
         { label: "小数", value: "decimal" },
         { label: "布尔值", value: "bit" },
         { label: "数组", value: "bytes" },
-        { label: "日期与时间", value: "datetime" },
+        { label: "日期与时间", value: "datetime" }
       ],
       //条件运算符
       selectOpts: [
@@ -266,7 +260,7 @@ export default {
         { label: "between", value: "string" },
         { label: "_like_", value: "string" },
         { label: "_like", value: "string" },
-        { label: "like_", value: "string" },
+        { label: "like_", value: "string" }
       ],
       //字表修改的数据
       editRow: [],
@@ -277,26 +271,26 @@ export default {
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),
-      nullTable: [],
+      nullTable: []
     };
   },
   methods: {
     submitForm(formName) {
-      this.$refs[formName].validate(async (valid) => {
+      this.$refs[formName].validate(async valid => {
         if (valid) {
           this.updateRow = [];
           this.columns = this.tableHead.map((item, index) => {
             return {
               ColumnName: item.fColumn,
-              ColumnType: item.fDataType,
+              ColumnType: item.fDataType
             };
           });
-          this.columns.forEach((element) => {
+          this.columns.forEach(element => {
             for (const key in this.editForm) {
               if (element.ColumnName == key) {
                 let obj = {
                   Key: element.ColumnName,
-                  Value: this.editForm[key],
+                  Value: this.editForm[key]
                 };
                 this.updateRow.push(obj);
               }
@@ -308,7 +302,7 @@ export default {
             // console.log(item);
             return {
               ColumnName: item.fColumn,
-              ColumnType: item.fDataType,
+              ColumnType: item.fDataType
             };
           });
 
@@ -326,14 +320,14 @@ export default {
           }
 
           function a(oriArr, newArr, sequence) {
-            oriArr.forEach((item) => {
+            oriArr.forEach(item => {
               let itemArr = [];
-              sequence.forEach((element) => {
+              sequence.forEach(element => {
                 for (const key in item) {
                   if (element.ColumnName == key) {
                     let obj = {
                       Key: element.ColumnName,
-                      Value: item[key],
+                      Value: item[key]
                     };
                     itemArr.push(obj);
                   }
@@ -352,7 +346,7 @@ export default {
                   DeleteRow: null,
                   InsertRow: null,
                   UpdateRow: [this.updateRow],
-                  Columns: this.columns,
+                  Columns: this.columns
                 },
                 {
                   TableName: "t_Interface_Item",
@@ -360,22 +354,21 @@ export default {
                   DeleteRow: deleteRowArr.length > 0 ? deleteRowArr : null,
                   InsertRow: insertRowArr.length > 0 ? insertRowArr : null,
                   UpdateRow: editRowArr.length > 0 ? editRowArr : null,
-                  Columns: itemColumns,
-                },
-              ],
+                  Columns: itemColumns
+                }
+              ]
             },
-            { userDes: this.userDes, userId: this.userId },
+            { userDes: this.userDes, userId: this.userId }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          console.log(res);
           if (res.state) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.editForm)));
             this.$refs[formName].resetFields();
             this.updateRow = [];
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
             this.updateRow = [];
           }
         } else {
@@ -386,86 +379,7 @@ export default {
     resetForm(formName) {
       this.$emit("closeBox");
     },
-    creatRules(data) {
-      let rules = {};
-      data.forEach((item, index) => {
-        let rulesArr = [];
-        if (item.fNotNull == 1) {
-          switch (item.fDataType) {
-            case "string":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                  trigger: "blur",
-                },
-                { type: "string", message: "请输入字符串" },
-                {
-                  max: item.fLength,
-                  message: "长度不能大于" + item.fLength,
-                },
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-            case "datetime":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                },
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-            case "int":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                },
-                { type: "number", message: "请输入数字" },
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-            case "bit":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                },
-              ];
-              rules[item.fColumn] = rulesArr;
-          }
-        } else if (item.fNotNull == 0) {
-          switch (item.fDataType) {
-            case "string":
-              rulesArr = [
-                { type: "string", message: "请输入字符串", trigger: "blur" },
-                {
-                  max: item.fLength,
-                  message: "长度不能大于" + item.fLength,
-                  trigger: "blur",
-                },
-              ];
-              if (
-                item.fColumn == "fCreater" ||
-                "fCreaterCode" ||
-                "fModifier" ||
-                "fModifierCode"
-              ) {
-              } else {
-                rules[item.fColumn] = rulesArr;
-              }
-              break;
-            case "int":
-              rulesArr = [
-                { type: "number", message: "请输入数字", trigger: "blur" },
-              ];
-              rules[item.fColumn] = rulesArr;
-          }
-        }
-      });
-      this.rules = rules;
-    },
+
     changeA(item, val) {
       if (item[val] == 0) {
         item[val] = 1;
@@ -474,7 +388,7 @@ export default {
       }
     },
     selectDataType(row, val) {
-      let isNullData = this.nullTable.some((item) => {
+      let isNullData = this.nullTable.some(item => {
         return row.fColumn == item.fColumn;
       });
       if (isNullData) {
@@ -489,7 +403,7 @@ export default {
       }
     },
     selectfComputer(row, val) {
-      let isNullData = this.nullTable.some((item) => {
+      let isNullData = this.nullTable.some(item => {
         return row.fColumn == item.fColumn;
       });
       if (isNullData) {
@@ -551,16 +465,13 @@ export default {
     async getTableHeadData() {
       let res = await ItemTableHeadData([
         {
-          fTableView: '["t_Interface_Item"]',
+          fTableView: '["t_Interface_Item"]'
         },
-        { userDes: this.userDes, userId: this.userId },
+        { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
-        this.itemTableHead = res.lstRet.sort(this.compare);
-        console.log(this.itemTableHead);
+        this.itemTableHead = res.lstRet.sort(compare);
         this.allLength = this.itemTableHead.length;
         //查询从表需要的字段
         this.ViewData = res.fTableViewData;
@@ -569,23 +480,12 @@ export default {
         this.$message.error(res.Message);
       }
     },
-    //排序
-    compare(obj1, obj2) {
-      let val1 = obj1.fSort;
-      let val2 = obj2.fSort;
-      if (val1 < val2) {
-        return -1;
-      } else if (val1 > val2) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
+
     //数据改变之后重新获取表格内容数据
     async getTableBodyData() {
       let res = await getInterfaceItemData([
         [this.editForm.fTableView, this.editForm.fDataTableView],
-        { userDes: this.userDes, userId: this.userId },
+        { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(
         decryptDesCbc(res.qureyInterfaceItemDataResult, String(this.userDes))
@@ -600,7 +500,7 @@ export default {
         });
         this.tableData = JSON.parse(res.Data);
         // console.log(this.tableData, "表体内容");
-        this.tableData.forEach((item) => {
+        this.tableData.forEach(item => {
           for (const key in item) {
             if (
               (key === "fNeedSave" ||
@@ -608,11 +508,11 @@ export default {
                 key === "fKey" ||
                 key === "fDecimal" ||
                 key === "fNotNull" ||
-                 key === "fIdentity" ||
+                key === "fIdentity" ||
                 key === "fQureyCol" ||
                 key === "fIsNo" ||
                 key === "fNeedOnly" ||
-                key === "fLoadData"||
+                key === "fLoadData" ||
                 key === "fReadOnly") &&
               item[key] == null
             ) {
@@ -653,7 +553,6 @@ export default {
     },
     //表格数据发生变化时
     handleSelectionChange(val, old) {
-      // console.log("2", val, old);
       if (val == null) {
       } else {
         let inserIdx = this.insertRow.indexOf(val);
@@ -695,8 +594,8 @@ export default {
         {
           Computer: "=",
           DataFile: "fTableView",
-          Value: this.editForm.fTableView,
-        },
+          Value: this.editForm.fTableView
+        }
       ];
       let res = await tableBodyData([
         {
@@ -704,34 +603,26 @@ export default {
           OrderBy: "",
           SqlConn: this.sqlConn,
           TableView: this.ViewData,
-          Where: searchWhereObj,
+          Where: searchWhereObj
         },
-        { userDes: this.userDes, userId: this.userId },
+        { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         let resultData = JSON.parse(res.Data);
         this.tableData = resultData;
         console.log(this.tableData);
       }
-    },
+    }
   },
   computed: {
-    tableDataPage: function () {
+    tableDataPage: function() {
       return this.tableData.slice(
         (this.pageNum - 1) * this.pageSize,
         this.pageSize * this.pageNum
       );
-    },
-
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      },
-    },
+    }
   },
   watch: {
     rowData(newVal, oldVal) {
@@ -747,10 +638,11 @@ export default {
     },
     tableData(newval, oldval) {
       this.total = newval.length;
-    },
+    }
   },
   created() {
     this.getTableHeadData();
+    this.rules = creatRules(this.tableHead);
     this.editForm = JSON.parse(JSON.stringify(this.rowData));
     this.fTableViewData = this.editForm.fDataTableView;
     this.editForm.fModifier = JSON.parse(sessionStorage.getItem("user")).userId;
@@ -758,17 +650,10 @@ export default {
       sessionStorage.getItem("user")
     ).usercode;
     this.editForm.fModifyDate = new Date();
-  },
-  mounted() {
-    this.creatRules(this.tableHead);
-  },
+  }
 };
 </script>
 <style lang="scss" scoped>
-/deep/ .el-drawer__open .el-drawer.rtl {
-  width: 70% !important;
-}
-
 .table-wrapper .el-input {
   margin-left: 0;
 }

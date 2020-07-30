@@ -19,7 +19,7 @@
 
     <el-scrollbar style="min-height: 180px;" :native="true">
       <el-form
-        :label-position="labelPosition"
+        label-position="right"
         label-width="125px"
         :model="ruleForm"
         :rules="rules"
@@ -162,7 +162,7 @@ import {
 } from "@/api/index";
 import { chunk } from "@/utils/index";
 import HcTitle from "@/components/HcTitle";
-import { compare } from "@/utils/common";
+import { compare, defaultForm, creatRules } from "@/utils/common";
 export default {
   name: "addInterface",
   props: ["tableHead"],
@@ -171,8 +171,6 @@ export default {
   },
   data() {
     return {
-      //表单域标签的位置
-      labelPosition: "right",
       userDes: this.$store.state.user.userInfo.userDes,
       //表单数据
       ruleForm: {},
@@ -301,16 +299,14 @@ export default {
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          // console.log(res);
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          console.log(res);
           if (res.state) {
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
             this.$refs[formName].resetFields();
             this.$message.success("新增成功!");
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
             this.InsertRow = [];
           }
         } else {
@@ -333,70 +329,9 @@ export default {
           //不在
           this.itemData.push(val);
         }
-        // console.log(this.itemData, "this.itemData");
       }
     },
 
-    //创建动态表单验证规则
-    creatRules(data) {
-      let rules = {};
-      data.forEach((item, index) => {
-        let rulesArr = [];
-        if (item.fNotNull == 1) {
-          switch (item.fDataType) {
-            case "string":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                  trigger: "blur"
-                },
-                { type: "string", message: "请输入字符串", trigger: "blur" },
-                {
-                  max: item.fLength,
-                  message: "长度不能大于" + item.fLength,
-                  trigger: "blur"
-                }
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-            case "datetime":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                  trigger: "blur"
-                },
-                { type: "date", message: "请输入时间", trigger: "blur" }
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-            case "int":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                  trigger: "blur"
-                },
-                { type: "number", message: "请输入数字" }
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-            case "bit":
-              rulesArr = [
-                {
-                  required: true,
-                  message: item.fColumnDes + "不能为空",
-                  trigger: "blur"
-                }
-              ];
-              rules[item.fColumn] = rulesArr;
-              break;
-          }
-        }
-      });
-      this.rules = rules;
-    },
     //获取子表内容
     async getItemData(val) {
       this.fTableViewData = val;
@@ -405,15 +340,10 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyInterfaceItemDataResult, String(this.userDes))
-      );
-      console.log(res, JSON.parse(res.Data));
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-   console.log(this.tableData,"eieo")
         this.tableData.forEach(item => {
-       
           for (const key in item) {
             if (
               (key === "fNeedSave" ||
@@ -457,6 +387,7 @@ export default {
         return (item.fTableView = val);
       });
     },
+
     async getTableHeadData() {
       let res = await ItemTableHeadData([
         {
@@ -464,9 +395,7 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.itemTableHead = res.lstRet.sort(compare);
         this.allLength = this.itemTableHead.length;
@@ -476,8 +405,6 @@ export default {
     },
 
     changeA(item, val) {
-      // console.log(item);
-      // console.log(val);
       if (item[val] == 0) {
         item[val] = 1;
       } else if (item[val] == 1) {
@@ -513,30 +440,12 @@ export default {
       if (editIdx != -1) {
         this.itemData.splice(editIdx, 1);
       }
-      
     }
   },
   created() {
+    this.rules = creatRules(this.tableHead);
+    this.ruleForm = defaultForm(this.tableHead);
     this.getTableHeadData();
-    var obj = {};
-    let userInfo = JSON.parse(sessionStorage.getItem("user"));
-    this.tableHead.forEach(element => {
-      if (element.fDataType == "datetime") {
-        obj[element.fColumn] = new Date();
-      } else if (element.fDataType == "bit") {
-        obj[element.fColumn] = true;
-      } else if (element.fColumn == "fCreaterCode") {
-        obj[element.fColumn] = userInfo.usercode;
-      } else if (element.fColumn == "fCreater") {
-        obj[element.fColumn] = userInfo.userId;
-      } else {
-        // obj[element.fColumn] = userInfo.userId;
-      }
-    });
-    this.ruleForm = obj;
-  },
-  mounted() {
-    this.creatRules(this.tableHead);
   },
   computed: {
     tableDataPage: function() {
@@ -544,12 +453,6 @@ export default {
         (this.pageNum - 1) * this.pageSize,
         this.pageSize * this.pageNum
       );
-    },
-
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
     }
   },
   watch: {

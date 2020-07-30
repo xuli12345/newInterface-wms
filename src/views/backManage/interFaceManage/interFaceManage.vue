@@ -225,7 +225,6 @@ export default {
     };
   },
   computed: {
- 
     tableDataPage: {
       get: function() {
         return this.tableDataBackups.slice(
@@ -289,9 +288,7 @@ export default {
       }
 
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -356,10 +353,9 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
-      // console.log(res);
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -370,13 +366,10 @@ export default {
             }
           }
         });
-        console.log(this.tableData, "筛选表体内容");
+        // console.log(this.tableData, "筛选表体内容");
       }
     },
-    // filtersF(val, row, column) {
-    //   const property = column["property"];
-    //   return row[property] === val;
-    // },
+
     screenFuction(val) {
       let copyTable = this.tableData;
       //筛选的条件数组
@@ -400,11 +393,11 @@ export default {
         {
           MstItemKey: this.batchDelTableName,
           MstKeyValue: objectArr,
-
           MstTableView: "t_Interface_Mst"
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
+      console.log(res);
       res = JSON.parse(
         decryptDesCbc(res.deleteDataResult, String(this.userDes))
       );
@@ -553,9 +546,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
@@ -594,7 +585,7 @@ export default {
     userLimit(val) {
       let a = userLimit(val);
       return a;
-    },
+    }
     //表格拖拽
     // setSort() {
     //   const el = this.$refs.singleTable.$el.querySelectorAll(
