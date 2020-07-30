@@ -114,9 +114,9 @@ export default {
           ]);
 
           res = JSON.parse(
-            decryptDesCbc(res.saveStockAdjustDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          console.log(res);
+          console.log('123',res);
           if (res.state === true) {
             this.$message.success("保存成功!");
             this.$emit("closeBox", res.state);

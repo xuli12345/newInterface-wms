@@ -50,7 +50,7 @@
               ></el-option>
             </el-select>
           </template>
-  
+
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
@@ -109,9 +109,7 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
@@ -124,10 +122,7 @@ export default {
     //获取入库单号
     async getOrderNoData() {
       let res = await getOrderNo(this.fTableViewHead);
-
-      res = JSON.parse(
-        decryptDesCbc(res.getOrderNoResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         for (const key in this.ruleForm) {
           if (
@@ -255,9 +250,7 @@ export default {
       let arr = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
-        res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段

@@ -392,8 +392,9 @@ export default {
       let res = await getTableHeadData(this.fTableView);
 
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
+      console.log('home',res)
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(this.compare);
@@ -476,9 +477,9 @@ export default {
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
-      // console.log(res);
+      console.log('home2',res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -571,9 +572,9 @@ export default {
       //  console.log(res,"加密")
       // console.log(decryptDesCbc(res.qureyDataResult, String(this.userDes)),"解密")
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
-
+      console.log('home3',res)
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -648,9 +649,9 @@ export default {
           { userDes: this.userDes, userId: this.userId }
         ]);
         res = JSON.parse(
-          decryptDesCbc(res.saveDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
-        // console.log(res);
+        console.log('home4',res);
         if (res.state) {
           this.$message.success("审核成功!");
           this.getTableData();
@@ -698,9 +699,9 @@ export default {
               { userDes: this.userDes, userId: this.userId }
             ]);
             res = JSON.parse(
-              decryptDesCbc(res.saveDataResult, String(this.userDes))
+              decryptDesCbc(res, String(this.userDes))
             );
-            // console.log(res);
+            console.log('home5',res);
             if (res.state) {
               this.$message.success("删除成功!");
               this.getTableData();
@@ -755,9 +756,9 @@ export default {
             //   )
             // );
             res = JSON.parse(
-              decryptDesCbc(res.deleteDataResult, String(this.userDes))
+              decryptDesCbc(res, String(this.userDes))
             );
-
+            console.log('home6',res)
             if (res.state) {
               this.$message.success("删除成功!");
               this.getTableData();
@@ -809,8 +810,9 @@ export default {
           ]);
 
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
+          console.log('home7',res)
           if (res.state) {
             this.$message.success("删除成功!");
             this.getTableData();
@@ -852,13 +854,13 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.deleteDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
           if (res.state) {
             this.$message.success("删除成功!");
             this.getTableData();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         })
         .catch(() => {
@@ -896,7 +898,7 @@ export default {
     async getPrintHeadData() {
       let res = await getTableHeadData(this.printView[0]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.printHeadData = res.lstRet.sort(this.compare);
@@ -915,7 +917,7 @@ export default {
     async getPrintItemHeadData() {
       let res = await getTableHeadData(this.printView[3]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.ItemTableHeadData = res.lstRet.sort(this.compare);
@@ -943,7 +945,7 @@ export default {
         let res = await queryViewData(this.printView[1], searchWhere);
 
         res = JSON.parse(
-          decryptDesCbc(res.queryViewDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           this.dataCode = JSON.parse(res.Data);
@@ -989,7 +991,7 @@ export default {
       ]);
 
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
@@ -1098,7 +1100,7 @@ export default {
         strFileName: fileName
       });
       res = JSON.parse(
-        decryptDesCbc(res.ImportExcelResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       console.log(res);
       if (res.State) {

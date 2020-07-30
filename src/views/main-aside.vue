@@ -140,7 +140,7 @@ export default {
       // return true
     },
     getChangeMenus() {
-      console.log("woshijiaole");
+      // console.log("woshijiaole");
       // this.searchMenus();
     },
     //搜索菜单
@@ -245,7 +245,7 @@ export default {
       sessionStorage.getItem("dynamicMenuRoutes") || "[]"
     );
     this.routeHandle(this.$route);
-    console.log(this.menuList);
+    // console.log(this.menuList);
   }
 };
 </script>

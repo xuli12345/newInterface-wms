@@ -152,14 +152,14 @@ export default {
     let res = await companyList();
     if (res.state) {
       let resCom = res.lstRet;
-      console.log(resCom);
+      // console.log(resCom);
       this.options = resCom;
       this.value = resCom[0].fCompanyName;
       sessionStorage.setItem("sqlConn", JSON.stringify(resCom[0].fSqlConn));
       sessionStorage.setItem("requestUrl", resCom[0].fServiceUrl);
       this.fCompanyId = resCom[0].fID;
     } else {
-      console.log(res);
+      // console.log(res);
     }
   }
 };
