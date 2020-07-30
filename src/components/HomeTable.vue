@@ -394,7 +394,6 @@ export default {
       res = JSON.parse(
         decryptDesCbc(res, String(this.userDes))
       );
-      console.log('home',res)
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(this.compare);
@@ -479,7 +478,6 @@ export default {
       res = JSON.parse(
         decryptDesCbc(res, String(this.userDes))
       );
-      console.log('home2',res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -574,7 +572,6 @@ export default {
       res = JSON.parse(
         decryptDesCbc(res, String(this.userDes))
       );
-      console.log('home3',res)
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
