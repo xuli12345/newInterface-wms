@@ -90,9 +90,9 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead[0]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
-      //   console.log(res)
+        console.log('res1',res)
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
       } else {
@@ -103,9 +103,9 @@ export default {
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
-      //   console.log(res);
+        console.log('res2',res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
       } else {
@@ -132,15 +132,15 @@ export default {
             }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          console.log(res);
+          console.log('res3',res);
           if (res.state === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         }
       });

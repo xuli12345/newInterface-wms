@@ -47,7 +47,7 @@ import HomeTable from "./components/HomeTable";
 import editCreatFrom from "@/components/editCreatFrom";
 import CreatFrom from "@/components/CreatFrom";
 import StockAdjust from "./components/StockAdjust";
-import { getTableBodyData, getTableHeadData } from "@/api/index";
+import {  getTableHeadData } from "@/api/index";
 import { compare } from "@/utils/common";
 export default {
   components: {
@@ -112,7 +112,7 @@ export default {
       let res = await getTableHeadData("t_Stock_Adjust");
 
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
