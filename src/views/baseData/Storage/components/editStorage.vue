@@ -210,7 +210,7 @@ export default {
             ]
           );
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
           if (res.state === true) {
             this.$message.success("新增成功!");
@@ -274,7 +274,7 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
@@ -295,7 +295,7 @@ export default {
       ];
       let res = await getTableBodyData("t_Storage_Range_Item", searchWhere);
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {

@@ -129,7 +129,7 @@ export default {
       // console.log(this.fTableViewHead)
       let res = await getTableHeadData(this.fTableViewHead[0]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       //   console.log(res)
       if (res.State) {
@@ -143,7 +143,7 @@ export default {
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       //   console.log(res);
       if (res.State) {
@@ -175,15 +175,15 @@ export default {
           ]);
           //   console.log(res)
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
           console.log(res);
-          if (res.state === true) {
+          if (res.State === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         }
       });

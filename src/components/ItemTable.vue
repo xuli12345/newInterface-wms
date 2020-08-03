@@ -194,7 +194,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
@@ -232,7 +232,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
@@ -263,7 +263,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       console.log(res);
       if (res.State) {
@@ -286,7 +286,7 @@ export default {
       ]);
 
       res = JSON.parse(
-        decryptDesCbc(res.getModLimitDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);

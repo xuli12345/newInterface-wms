@@ -150,15 +150,15 @@ export default {
           //   )
           // );
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          if (res.state === true) {
+          if (res.State === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", res.state, res.Identity);
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -182,7 +182,7 @@ export default {
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl,searchWhere);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

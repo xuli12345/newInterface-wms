@@ -164,7 +164,7 @@ export default {
         let res = await getTableBodyData(this.selectArr[i].fUrl,searchWhere);
 
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         // console.log(res)
         if (res.State) {

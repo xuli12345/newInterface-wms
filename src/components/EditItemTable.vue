@@ -82,7 +82,6 @@ import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { addParams, batchDelete } from "@/utils/common";
 import {
   tableBodyData,
-  addformSaveData,
   ItemTableHeadData,
   GroupLimitData,
   GetUserLimitData
@@ -220,7 +219,7 @@ export default {
       ]);
 
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
@@ -268,7 +267,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
@@ -292,7 +291,7 @@ export default {
       ]);
 
       res = JSON.parse(
-        decryptDesCbc(res.getModLimitDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
@@ -314,7 +313,7 @@ export default {
     async getGroupLimitData2() {
       let res = await GetUserLimitData([this.fID, this.userId]);
       res = JSON.parse(
-        decryptDesCbc(res.getUserLimitDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
@@ -347,7 +346,7 @@ export default {
       ]);
 
       res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       // console.log(res);
       if (res.State) {

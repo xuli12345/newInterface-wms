@@ -133,15 +133,16 @@ export default {
             }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          if (res.state === true) {
+          console.log('123',res)
+          if (res.State === true) {
             this.$message.success("修改成功!");
 
             this.$emit("closeBox", res.state);
             this.$refs[formName].resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -164,7 +165,7 @@ export default {
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

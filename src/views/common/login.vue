@@ -120,7 +120,7 @@ export default {
             let user2 = this.$store.state.user.userInfo;
             let res3 = await menus(user2);
             res3 = JSON.parse(
-              decryptDesCbc(res3.urlMenuResult, String(user.userDes))
+              decryptDesCbc(res3, String(user.userDes))
             );
             if (res3.State) {
               this.$store.commit("common/updateMenuList", res3.Menuurl.Child);

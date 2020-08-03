@@ -28,6 +28,13 @@
               :value="scope.row[item.fColumn] == 0 ? false : true"
               :disabled="item.fReadOnly == 0 ? false : true"
             ></el-checkbox>
+            <el-date-picker
+              v-else-if="item.fDataType == 'datetime'"
+              v-model="scope.row[item.fColumn]"
+              type="datetime"
+              placeholder="选择日期时间"
+              :disabled="item.fReadOnly == 0 ? false : true"
+            ></el-date-picker>
             <el-select
               @change="
                 selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
@@ -65,8 +72,7 @@
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
-              >删除</el-button
-            >
+            >删除</el-button>
           </div>
         </template>
       </el-table-column>
@@ -159,9 +165,7 @@ export default {
     //获取表格表头数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView[0]);
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res);
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
@@ -182,9 +186,7 @@ export default {
         }
       ];
       let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         //原来的数据
@@ -196,9 +198,9 @@ export default {
             }
           }
         });
-       
+
         this.backData = JSON.parse(JSON.stringify(this.tableData));
-         console.log(this.backData,"回显的数据");
+        console.log(this.backData, "回显的数据");
         this.total = this.tableData.length;
       } else {
         this.$message.error(res.Message);
@@ -218,18 +220,16 @@ export default {
       this.tableData.splice(index, 1);
     },
     //获取类型
-    async getType(fTableView, fColumnType,value) {
-      let res = await getTableBodyData(fTableView,[
-       {
+    async getType(fTableView, fColumnType, value) {
+      let res = await getTableBodyData(fTableView, [
+        {
           Computer: "=",
           DataFile: "fUnitType",
           Value: value
         }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         let result = JSON.parse(res.Data);
         let arr = [];
@@ -242,7 +242,6 @@ export default {
         });
 
         this.selectOptions = [...this.selData, ...arr];
-      
       }
     }
   },
@@ -256,8 +255,8 @@ export default {
 
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName",10);
-    this.getType("v_Unit", "fBoxNumUniName",10);
+    this.getType("v_Unit", "fNumUnitName", 10);
+    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>

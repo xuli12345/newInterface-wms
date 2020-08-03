@@ -648,12 +648,11 @@ export default {
         res = JSON.parse(
           decryptDesCbc(res, String(this.userDes))
         );
-        console.log('home4',res);
-        if (res.state) {
+        if (res.State) {
           this.$message.success("审核成功!");
           this.getTableData();
         } else {
-          this.$message.error(res.errstr);
+          this.$message.error(res.Message);
         }
       }
     },
