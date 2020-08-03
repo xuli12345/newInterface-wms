@@ -149,7 +149,7 @@ export default {
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;

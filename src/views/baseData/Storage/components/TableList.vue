@@ -201,7 +201,9 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
 
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
@@ -292,7 +294,9 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
       // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -384,7 +388,9 @@ export default {
         this.searchWhere.push(...arr);
       }
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -461,7 +467,7 @@ export default {
     async getPrintHeadData() {
       let res = await getTableHeadData(this.printView[0]);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         this.printHeadData = res.lstRet;

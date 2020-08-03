@@ -193,9 +193,9 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
         this.fTableViewData = res.fTableViewData;
@@ -228,8 +228,10 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-   
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
+
       if (res.State) {
         let resultData = JSON.parse(res.Data);
         this.tableData = resultData.map((item, index) => {
@@ -281,7 +283,7 @@ export default {
       ]);
 
       res = JSON.parse(
-        decryptDesCbc(res.getModLimitDataResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       console.log(res);
       if (res.State) {

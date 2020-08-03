@@ -134,8 +134,7 @@ export default {
           res = JSON.parse(
             decryptDesCbc(res, String(this.userDes))
           );
-          console.log('res3',res);
-          if (res.state === true) {
+          if (res.State === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();

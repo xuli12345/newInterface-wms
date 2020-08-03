@@ -116,7 +116,7 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
@@ -258,7 +258,7 @@ export default {
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         }
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

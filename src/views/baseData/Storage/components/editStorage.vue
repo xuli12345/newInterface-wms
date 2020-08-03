@@ -271,7 +271,9 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
         // console.log(this.tableHeadData, "表头");
@@ -290,7 +292,9 @@ export default {
         }
       ];
       let res = await getTableBodyData("t_Storage_Range_Item", searchWhere);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);

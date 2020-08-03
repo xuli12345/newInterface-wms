@@ -110,7 +110,7 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       // console.log(res);
       if (res.State) {
@@ -126,7 +126,7 @@ export default {
       let res = await getOrderNo(this.fTableViewHead);
 
       res = JSON.parse(
-        decryptDesCbc(res.getOrderNoResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
       if (res.State) {
         for (const key in this.ruleForm) {
@@ -256,7 +256,7 @@ export default {
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

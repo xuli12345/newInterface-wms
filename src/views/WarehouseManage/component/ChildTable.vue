@@ -94,12 +94,7 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { addParams, batchDelete,compare } from "@/utils/common";
 import {
-  tableBodyData,
-  addformSaveData,
-  ItemTableHeadData,
-  GroupLimitData,
-  getTableHeadData,
-  getTableBodyData
+  getTableHeadData
 } from "@/api/index";
 export default {
   props: [
@@ -196,7 +191,7 @@ export default {
       let res = await getTableHeadData(this.fTableView);
       let userDes = JSON.parse(sessionStorage.getItem('user')).userDes
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(userDes))
+        decryptDesCbc(res, String(userDes))
       );
     
       if (res.State) {

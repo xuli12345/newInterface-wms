@@ -200,9 +200,9 @@ export default {
           );
 
           res = JSON.parse(
-            decryptDesCbc(res.saveStorageDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-
+console.log(res)
           if (res.state === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", res.state);
@@ -250,8 +250,10 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
+
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
       } else {
