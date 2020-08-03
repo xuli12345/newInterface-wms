@@ -237,7 +237,11 @@ export default {
     handleClose(done) {
       this.drawer = false;
     },
-
+    //tabs
+    handleClick(activeName) {
+      if (activeName == "second") {
+      }
+    },
     //新增
     addPopRight() {
       this.ItemTableData.forEach(ele => {

@@ -317,7 +317,7 @@ export default {
     //关闭新增弹窗
     closeBox(value) {
       if (value) {
-        this.tableData.unshift(value);
+        this.tableData.shift(value);
         value.fMstID = this.fID;
         this.insertRow.push(value);
         this.tableData.forEach((item, index) => {

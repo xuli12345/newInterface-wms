@@ -225,13 +225,10 @@ export default {
     //关闭新增弹窗
     closeBox(value) {
       if (value) {
-        // console.log(value);
-        this.tableData.unshift(value);
-
+        this.tableData.shift(value);
         this.tableData.forEach((item, index) => {
           this.$set(item, "fSort", index + 1);
         });
-        // console.log(this.tableData);
       }
       this.drawer = false;
     }

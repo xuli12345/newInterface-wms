@@ -198,13 +198,7 @@ export default {
       newArr: []
     };
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   methods: {
     clickTabs(tab, event) {
       // console.log(tab.name);
@@ -354,7 +348,6 @@ export default {
             }
           }
         });
-        console.log(this.tableData, "过滤表体内容");
       }
     },
 
@@ -415,7 +408,7 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        // console.log(this.tableData, "表体内容");
+        console.log(this.tableData, "表体内容");
         this.copyData = JSON.parse(JSON.stringify(this.tableData));
         // console.log(this.tableData);
         //fType:1 为模块分类   fType:0 为模块程序 this.tableData:为模块分类数据
@@ -573,11 +566,11 @@ export default {
   },
   created() {
     this.getTableHeadData();
-    this.getMenuList();
+    // this.getMenuList();
   },
   mounted() {
     setTimeout(() => {
-      // this.getTableData();
+      this.getTableData();
     }, 200);
   }
 };

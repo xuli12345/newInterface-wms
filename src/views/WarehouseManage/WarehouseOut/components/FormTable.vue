@@ -30,7 +30,7 @@
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
-        >{{strType=="Outbound"? '货品新增' :"新增"}}</el-button
+        >{{ strType == "Outbound" ? "货品新增" : "新增" }}</el-button
       >
       <el-button
         type="primary"
@@ -39,7 +39,7 @@
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao"    size="mini" @click="resetForm()"
+      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -126,9 +126,7 @@ export default {
     async getTableHeadData() {
       // console.log(this.fTableViewHead)
       let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res)
       if (res.State) {
         // this.fTableView = res.fTableViewData;
@@ -140,9 +138,7 @@ export default {
     //获取表格的表头
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res);
       if (res.State) {
         // this.fTableView = res.fTableViewData;
@@ -172,9 +168,7 @@ export default {
             }
           ]);
           //   console.log(res)
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           console.log(res);
           if (res.State === true) {
             this.$message.success("新增成功!");
@@ -201,17 +195,13 @@ export default {
     },
     //关闭字表新增弹窗
     closeItemBox(value) {
-      console.log(value);
       if (value) {
         this.tableData.unshift(value);
-        // this.insertRow.push(value);
-        // console.log(this.insertRow, "新增");
       }
       this.drawer = false;
     },
     // excel导入
     handleChange(file, fileList) {
-      // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
         //xlsx
@@ -311,13 +301,7 @@ export default {
       }
     }
   },
-   computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   created() {
     this.getTableHeadData();
     this.getTableHead();

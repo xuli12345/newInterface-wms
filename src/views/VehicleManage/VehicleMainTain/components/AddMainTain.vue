@@ -248,7 +248,6 @@ export default {
     },
     //关闭字表新增弹窗
     closeItemBox(value, fTableView) {
-      // console.log(value, fTableView);
       if (value && fTableView == this.fTableViewItem[0]) {
         value.fSort = this.tableData.length + 1;
         this.tableData.unshift(value);

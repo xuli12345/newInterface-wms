@@ -116,7 +116,7 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
@@ -180,7 +180,7 @@ export default {
     },
     //下拉选择框选择的值
     selectVal(v) {
-      // console.log(this.selectArr)
+      
       let str = "";
       this.selectArr.forEach(element => {
         if (element.fName == v) {
@@ -205,7 +205,7 @@ export default {
           data = el;
         }
       });
-      // console.log(data);
+   
       this.selectArr.forEach(ele => {
         if (ele.fName == n && ele.fAuto) {
           ele.fAuto.forEach(item => {
@@ -258,7 +258,7 @@ export default {
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         }
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {
