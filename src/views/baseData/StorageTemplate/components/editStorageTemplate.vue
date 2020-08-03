@@ -82,7 +82,11 @@
 
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import { getTableHeadData, getTableBodyData,collectionData } from "@/api/index";
+import {
+  getTableHeadData,
+  getTableBodyData,
+  collectionData
+} from "@/api/index";
 import EditHeadForm from "@/components/EditHeadForm";
 import HcTitle from "@/components/HcTitle";
 import CreatFrom from "./CreatFrom";
@@ -157,12 +161,10 @@ export default {
               }
             ]
           );
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          if (res.state === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
             this.$message.error(res.errstr);
@@ -221,14 +223,9 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
-
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "表头");
         this.getTableBodyData();
       } else {
         this.$message.error(res.Message);
@@ -248,9 +245,7 @@ export default {
         searchWhere
       );
       // console.log(res);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         // console.log(this.tableData, "回显的数据");

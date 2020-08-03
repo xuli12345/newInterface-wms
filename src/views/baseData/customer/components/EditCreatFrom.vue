@@ -154,7 +154,7 @@ export default {
       default: () => []
     }
   },
-   computed: {
+  computed: {
     sidebarLayoutSkin: {
       get() {
         return this.$store.state.common.sidebarLayoutSkin;
@@ -185,16 +185,8 @@ export default {
     },
 
     submitForm(formName) {
-      // console.log("保存");
       this.$refs[formName].validate(async valid => {
         if (valid) {
-       
-          for (const key in this.ruleForm) {
-            if (this.ruleForm[key] == null) {
-              this.$set(this.ruleForm, key, 0);
-            }
-          }
-          // console.log(this.ruleForm)
           let res = await collectionData([
             {
               headData: this.tableHead,
@@ -203,12 +195,12 @@ export default {
             }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          if (res.state === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.changeColumn();
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
           } else {
             this.$message.error(res.errstr);
@@ -224,7 +216,7 @@ export default {
       this.changeColumn();
     },
     changeColumn() {
-      this.tableHead.splice(10,1);
+      this.tableHead.splice(10, 1);
       this.fVisibleColumn.forEach(item => {
         this.tableHead.forEach(ele => {
           if (item == ele.fColumn) {
@@ -305,7 +297,7 @@ export default {
     this.$set(this.ruleForm, "fModifierCode", userInfo.usercode);
     this.$set(this.ruleForm, "fModifier", userInfo.userId);
     this.ruleForm.fModifyDate = new Date();
-     this.tableHead.splice(10,0,this.obj);
+    this.tableHead.splice(10, 0, this.obj);
     this.fVisibleColumn.forEach(item => {
       this.tableHead.forEach(ele => {
         if (item == ele.fColumn) {
@@ -322,7 +314,7 @@ export default {
       // console.log(this.ruleForm);
       this.selGetArea();
       this.changeBool();
-       this.tableHead.splice(3,0,this.obj);
+      this.tableHead.splice(3, 0, this.obj);
       this.fVisibleColumn.forEach(item => {
         this.tableHead.forEach(ele => {
           if (item == ele.fColumn) {

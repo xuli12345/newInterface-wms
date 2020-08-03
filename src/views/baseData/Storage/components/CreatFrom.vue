@@ -43,11 +43,9 @@
             :disabled="item.fReadOnly == 0 ? false : true"
           ></el-input>
           <el-checkbox
-           
             v-else-if="item.fDataType == 'bit'"
             v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
-          
           ></el-checkbox>
           <el-input
             v-else
@@ -80,20 +78,13 @@ export default {
     tableHead: {
       type: Array,
       default: () => []
-    },
-  },
-   computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
     }
   },
+
   methods: {
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          console.log(this.ruleForm);
           this.$message.success("新增成功!");
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
           this.$refs[formName].resetFields();
@@ -106,13 +97,11 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
-    },
-
+    }
   },
   created() {
     this.ruleForm = defaultForm(this.tableHead);
     this.rules = creatRules(this.tableHead);
-    console.log(this.ruleForm);
   }
 };
 </script>

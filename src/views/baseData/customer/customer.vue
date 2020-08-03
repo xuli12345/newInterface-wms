@@ -76,7 +76,6 @@ export default {
       //当前行的数据
       editForm: {},
       fTableView: "t_Customer",
-      // searchParams: ["fCustomerCode", "fCustomerName"],
       //是否新增成功
       isSaveSuccess: false,
       userDes: this.$store.state.user.userInfo.userDes,
@@ -144,17 +143,12 @@ export default {
     //获取客户类型名称
     async getCustomerType() {
       let res = await getTableBodyData("v_Type_Customer");
-
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
-
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         let result = JSON.parse(res.Data);
         let CustomerType = [];
         let data = [];
         result.forEach(element => {
-          // console.log(element)
           let parmsObj = {
             fType: element.fID,
             fColumnDes: element.fTypeName
@@ -167,16 +161,13 @@ export default {
         };
         CustomerType.push(object);
         this.selData = [...this.selData, ...CustomerType];
-        // console.log(this.selData);
       }
     },
     //获取发票类型
     async getInvoiceType() {
       let res = await getTableBodyData("v_Type_CustomerInvoice");
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let result = JSON.parse(res.Data);
@@ -202,9 +193,7 @@ export default {
     async CustomerPayment() {
       let res = await getTableBodyData("v_Type_CustomerPayment");
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let result = JSON.parse(res.Data);

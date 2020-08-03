@@ -25,7 +25,7 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
-           <template
+          <template
             v-if="
               selectArr && selectArr.length > 0 && selectFunction(item.fColumn)
             "
@@ -118,8 +118,8 @@ export default {
         fTableView: "t_AddressBook",
         fVisible: 1
       },
-        //需要下拉选择的所有数据
-      selectAllData: [],
+      //需要下拉选择的所有数据
+      selectAllData: []
     };
   },
   props: {
@@ -169,20 +169,12 @@ export default {
       if (obj.fDistrict == undefined) {
         obj.fDistrict = "";
       }
-      // console.log(obj);
       this.ruleForm = Object.assign(this.ruleForm, obj);
     },
 
     submitForm(formName) {
-      // console.log("保存");
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          for (const key in this.ruleForm) {
-            if (this.ruleForm[key] == null) {
-              this.$set(this.ruleForm, key, 0);
-            }
-          }
-          // console.log(this.ruleForm)
           let res = await collectionData([
             {
               headData: this.tableHead,
@@ -190,13 +182,11 @@ export default {
               TableName: this.tableName
             }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          if (res.state === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
             this.$message.success("修改成功!");
             this.changeColumn();
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
           } else {
             this.$message.error(res.errstr);
@@ -221,20 +211,18 @@ export default {
         });
       });
     },
-      // 获取所有需要下拉选择的内容
+    // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
-      let searchWhere=[];
+      let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
-           if (this.selectArr[i].searchWhere) {
+        if (this.selectArr[i].searchWhere) {
           searchWhere = this.selectArr[i].searchWhere;
         } else {
           searchWhere = [];
         }
-        let res = await getTableBodyData(this.selectArr[i].fUrl,searchWhere);
-        res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
-        );
+        let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段

@@ -60,7 +60,7 @@
             v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
           ></el-input>
-         
+
           <el-input
             v-else-if="item.fColumn == 'fPassWord'"
             v-model="ruleForm[item.fColumn]"
@@ -113,15 +113,9 @@ export default {
     selectArr: {
       type: Array,
       default: () => []
-    },
-  },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
     }
   },
+
   methods: {
     // 基础资料生成容器号保存
     submitForm(formName) {
@@ -134,11 +128,11 @@ export default {
               insertData: [this.ruleForm]
             }
           ]);
-
+          console.log(res, "saveContainerCode保存");
           res = JSON.parse(
             decryptDesCbc(res.saveContainerCodeDataResult, String(this.userDes))
           );
-          // console.log(res, "saveContainerCode保存");
+
           if (res.State) {
             // this.$message.success("新增成功!");
             let tableData = JSON.parse(res.Data);
@@ -162,9 +156,7 @@ export default {
       let arr = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
-        res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段
@@ -260,9 +252,7 @@ export default {
           });
         }
       });
-    },
-   
-   
+    }
   },
   created() {
     this.ruleForm = defaultForm(this.tableHead);

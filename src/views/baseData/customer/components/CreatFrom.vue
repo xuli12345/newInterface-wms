@@ -159,13 +159,7 @@ export default {
       default: () => []
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+ 
   methods: {
     handleChange() {
       var loc = "";
@@ -203,12 +197,10 @@ export default {
               insertData: [this.ruleForm]
             }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          if (res.state === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state, res.Identity);
+            this.$emit("closeBox", res.State, res.Identity);
             this.changeColumn();
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);

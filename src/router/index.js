@@ -44,8 +44,7 @@ var mainRoutes = {
         isTab: true
       },
       component: () => import("@/views/common/home")
-    },
-   
+    }
   ],
   beforeEnter(to, from, next) {
     let user = store.state.user.userInfo;
@@ -93,14 +92,10 @@ router.beforeEach(async (to, from, next) => {
     next();
   } else {
     //获取菜单列表 动态路由
-  
+
     try {
       let res = await menus(user);
-  
-      let resultData = JSON.parse(
-        decryptDesCbc(res, String(user.userDes))
-      );
-      console.log(resultData);
+      let resultData = JSON.parse(decryptDesCbc(res, String(user.userDes)));
       if (resultData.State) {
         fnAddDynamicMenuRoutes(resultData.Menuurl.Child);
         router.options.isAddDynamicMenuRoutes = true;
@@ -147,7 +142,7 @@ function fnCurrentRouteType(route, globalRoutes = []) {
  */
 function fnAddDynamicMenuRoutes(menuList = [], routes = []) {
   var temp = [];
-  let _userLimit = JSON.parse(sessionStorage.getItem('userLimit'))
+  let _userLimit = JSON.parse(sessionStorage.getItem("userLimit"));
   scoure();
   function scoure() {
     for (let i = 0; i < menuList.length; i++) {
@@ -166,9 +161,9 @@ function fnAddDynamicMenuRoutes(menuList = [], routes = []) {
             });
           }
           if (item.Type == 1) {
-            temp = temp.concat(item)
+            temp = temp.concat(item);
           } else if (show) {
-            temp = temp.concat(item)
+            temp = temp.concat(item);
           }
         }
         return temp;

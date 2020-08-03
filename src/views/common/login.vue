@@ -95,7 +95,7 @@ export default {
               usercode: res.userCode,
               userDes: decryptDesCbc(res.desCode, "d#s87@28se45&i(p")
             };
-    
+
             window.sessionStorage.setItem("user", JSON.stringify(user));
             this.$store.commit("user/updataUser", user);
             this.$message.success("登录成功!");
@@ -115,13 +115,12 @@ export default {
               fSqlConn
             );
             res1 = JSON.parse(decryptDesCbc(res1, String(userDes)));
+            // console.log(res1,"res1")
             sessionStorage.setItem("userLimit", res1.Data);
             this.$router.replace({ name: "home" });
             let user2 = this.$store.state.user.userInfo;
             let res3 = await menus(user2);
-            res3 = JSON.parse(
-              decryptDesCbc(res3.urlMenuResult, String(user.userDes))
-            );
+            res3 = JSON.parse(decryptDesCbc(res3, String(user.userDes)));
             if (res3.State) {
               this.$store.commit("common/updateMenuList", res3.Menuurl.Child);
             }
@@ -150,9 +149,9 @@ export default {
 
   async created() {
     let res = await companyList();
+    // console.log(res);
     if (res.state) {
       let resCom = res.lstRet;
-      // console.log(resCom);
       this.options = resCom;
       this.value = resCom[0].fCompanyName;
       sessionStorage.setItem("sqlConn", JSON.stringify(resCom[0].fSqlConn));

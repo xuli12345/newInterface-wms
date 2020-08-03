@@ -124,7 +124,6 @@ export default {
             this.$set(this.ruleForm, "fPassWord", md5(this.newPassword));
           }
 
-          console.log(this.ruleForm);
           let res = await collectionData([
             {
               headData: this.tableHead,
@@ -132,13 +131,10 @@ export default {
               TableName: this.tableName
             }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          if (res.state === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
             this.$message.success("修改成功!");
-
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
           } else {
             this.$message.error(res.errstr);
@@ -164,7 +160,7 @@ export default {
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

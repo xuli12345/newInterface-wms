@@ -124,7 +124,6 @@ export default {
   },
   methods: {
     submitForm(formName) {
-      // console.log(this.ruleForm);
       this.$refs[formName].validate(async valid => {
         if (valid) {
           if (this.ruleForm.fPassWord != undefined) {
@@ -141,20 +140,12 @@ export default {
               insertData: [this.ruleForm]
             }
           ]);
-          // console.log(res, "保存的结果");
-          // console.log(
-          //   decryptDesCbc(
-          //     res.saveDataResult,
-          //     String(this.userDes),
-          //     "保存解密的结果"
-          //   )
-          // );
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          if (res.state === true) {
+
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state, res.Identity);
+            this.$emit("closeBox", res.State, res.Identity);
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {
@@ -173,16 +164,16 @@ export default {
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
-      let searchWhere=[];
+      let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
-          if (this.selectArr[i].searchWhere) {
+        if (this.selectArr[i].searchWhere) {
           searchWhere = this.selectArr[i].searchWhere;
         } else {
           searchWhere = [];
         }
-        let res = await getTableBodyData(this.selectArr[i].fUrl,searchWhere);
+        let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

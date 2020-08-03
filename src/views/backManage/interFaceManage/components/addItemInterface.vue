@@ -112,11 +112,8 @@ export default {
     }
   },
   created() {
-    console.log(this.tableHead)
-    this.rules = creatRules(this.tableHead);
-
+    this.rules = creatRules(this.tableHead); 
     this.ruleForm = defaultForm(this.tableHead);
   }
 };
 </script>
-

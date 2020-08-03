@@ -102,7 +102,7 @@
           @click="handleCarton"
           >装箱信息</el-button
         >
-  <el-button
+        <el-button
           v-if="product"
           type="primary"
           size="mini"
@@ -312,9 +312,7 @@ import {
   getTableHeadData,
   BathcDeleteData,
   queryViewData,
-  imPortExcel,
-  importExcelTypeXls,
-  importExcelTypeXlsx
+  imPortExcel
 } from "@/api/index";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
@@ -381,25 +379,18 @@ export default {
       newList: [],
       newArr: [],
       //excel
-      fileTemp: null,
-      file: null,
-      fileName: ""
+      fileTemp: null
     };
   },
   methods: {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      console.log('home',res)
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(this.compare);
-        console.log(this.tableHeadData, "表头");
-
+        this.tableHeadData = res.lstRet.sort(compare);
+        // console.log(this.tableHeadData, "表头");
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
           return element.fQureyCol == 1;
@@ -476,24 +467,32 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      console.log('home2',res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
+        // this.tableData.forEach(element => {
+        //   for (const key in element) {
+        //     if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
+        //       element[key] = timeCycle(element[key]);
+        //     }
+        //   }
+        // });
         console.log(this.tableData, "过滤表体内容");
       }
     },
-  
+
     //筛选的条件数组
     screenFuction(val) {
       let copyTable = this.tableData;
@@ -570,11 +569,9 @@ export default {
 
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
       //  console.log(res,"加密")
-      // console.log(decryptDesCbc(res.qureyDataResult, String(this.userDes)),"解密")
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      console.log('home3',res)
+      // console.log(decryptDesCbc(res, String(this.userDes)),"解密")
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      // console.log('home3',res)
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -583,10 +580,14 @@ export default {
         this.$nextTick(() => {
           // this.setSort();
         });
+
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -615,9 +616,9 @@ export default {
     handleContainer() {
       this.$emit("openContainer");
     },
-       //上架拣货设置
-    handleSeq(){
-       this.$emit("openSeq");
+    //上架拣货设置
+    handleSeq() {
+      this.$emit("openSeq");
     },
     //查询导出库位条码
     handleStorage() {
@@ -625,7 +626,6 @@ export default {
     },
     //已审查
     async handleCheck() {
-      // console.log(this.isCheck[1]);
       if (this.BatchList.length == 0) {
         this.$message.warning("请选择要审核的数据!");
       } else {
@@ -648,11 +648,9 @@ export default {
           },
           { userDes: this.userDes, userId: this.userId }
         ]);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
-        console.log('home4',res);
-        if (res.state) {
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        console.log(res);
+        if (res.State) {
           this.$message.success("审核成功!");
           this.getTableData();
         } else {
@@ -666,16 +664,10 @@ export default {
     },
     //批量删除
     BatchDelete() {
+      console.log(111)
       if (this.BatchList.length == 0) {
         this.$message.warning("请选择要删除的数据!");
       } else {
-        // this.BatchList.forEach(item => {
-        //   for (const key in item) {
-        //     if (item[key] == null) {
-        //       this.$set(item, key, 0);
-        //     }
-        //   }
-        // });
         let result = batchDelete(this.tableHeadData, this.BatchList);
         this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
           confirmButtonText: "确定",
@@ -698,11 +690,9 @@ export default {
               },
               { userDes: this.userDes, userId: this.userId }
             ]);
-            res = JSON.parse(
-              decryptDesCbc(res, String(this.userDes))
-            );
-            console.log('home5',res);
-            if (res.state) {
+            res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+            console.log(res);
+            if (res.State) {
               this.$message.success("删除成功!");
               this.getTableData();
             } else {
@@ -755,10 +745,8 @@ export default {
             //     "批量删除解密的结果"
             //   )
             // );
-            res = JSON.parse(
-              decryptDesCbc(res, String(this.userDes))
-            );
-            console.log('home6',res)
+            res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
             if (res.state) {
               this.$message.success("删除成功!");
               this.getTableData();
@@ -781,11 +769,11 @@ export default {
     //删除
     handleDelete(row, index) {
       let currentRow = JSON.parse(JSON.stringify(row));
-      for (const key in currentRow) {
-        if (currentRow[key] == null) {
-          this.$set(currentRow, key, 0);
-        }
-      }
+      // for (const key in currentRow) {
+      //   if (currentRow[key] == null) {
+      //     this.$set(currentRow, key, 0);
+      //   }
+      // }
       let resultData = addParams(this.tableHeadData, row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -809,11 +797,8 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
 
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
-          console.log('home7',res)
-          if (res.state) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
           } else {
@@ -853,9 +838,7 @@ export default {
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           if (res.state) {
             this.$message.success("删除成功!");
             this.getTableData();
@@ -878,18 +861,7 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val;
     },
-    //排序
-    compare(obj1, obj2) {
-      let val1 = obj1.fSort;
-      let val2 = obj2.fSort;
-      if (val1 < val2) {
-        return -1;
-      } else if (val1 > val2) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
+
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       return userLimit(val);
@@ -897,11 +869,9 @@ export default {
     //获取打印表头的数据
     async getPrintHeadData() {
       let res = await getTableHeadData(this.printView[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
-        this.printHeadData = res.lstRet.sort(this.compare);
+        this.printHeadData = res.lstRet.sort(compare);
         console.log(this.printHeadData, "printHeadData");
         this.printHeadData = this.printHeadData.filter(item => {
           return item.fVisible == 1;
@@ -916,11 +886,9 @@ export default {
     //获取打印字表表头的数据
     async getPrintItemHeadData() {
       let res = await getTableHeadData(this.printView[3]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
-        this.ItemTableHeadData = res.lstRet.sort(this.compare);
+        this.ItemTableHeadData = res.lstRet.sort(compare);
         // console.log(this.ItemTableHeadData, "打印字表的表头");
       }
     },
@@ -944,9 +912,7 @@ export default {
         }
         let res = await queryViewData(this.printView[1], searchWhere);
 
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           this.dataCode = JSON.parse(res.Data);
           console.log(this.dataCode, "AHIW");
@@ -990,9 +956,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let data = JSON.parse(res.Data);
@@ -1028,18 +992,14 @@ export default {
     },
     // excel导入
     handleChange(file, fileList) {
-      // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
-        //xlsx
         if (
           this.fileTemp.type ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
         ) {
-          this.importExcelTypeXlsx(this.fileTemp);
-        } else if (this.fileTemp.type == "application/vnd.ms-excel") {
-          //.xls
-          this.importExcelTypeXls(this.fileTemp);
+          this.importFile(this.strType, this.fileTemp);
         } else {
           this.$message({
             type: "warning",
@@ -1052,7 +1012,6 @@ export default {
           message: "请上传附件！"
         });
       }
-      // this.importFile(this.fileTemp);
     },
 
     handleRemove(file, fileList) {
@@ -1066,50 +1025,20 @@ export default {
       }
     },
 
-    async importExcelTypeXls(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXls(this.file);
-      // console.log(res, "xls");
-      let xlsFileName = res.ImPortExcel_xlsResult.strFileName;
-      if (res.ImPortExcel_xlsResult.State) {
-        this.importFile(this.strType, xlsFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsResult.Message);
-      }
-    },
-    async importExcelTypeXlsx(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXlsx(this.file);
-      // console.log(res, "xlsx");
-      let xlsxFileName = res.ImPortExcel_xlsxResult.strFileName;
-      if (res.ImPortExcel_xlsxResult.State) {
-        this.importFile(this.strType, xlsxFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsxResult.Message);
-      }
-    },
-    async importFile(strType, fileName) {
+    async importFile(strType, file) {
       let res = await imPortExcel({
         strType: strType,
-        strFileName: fileName
+        file: file
       });
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+
       console.log(res);
-      if (res.State) {
+      if (res.state) {
         this.$message.success("导入成功!");
       } else {
         if (res.Message == null) {
           this.$message.error("上传失败!");
         } else {
-          this.$message.error(res.Message);
+          this.$message.error(res.message);
         }
       }
     }
@@ -1121,13 +1050,7 @@ export default {
       }
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   created() {
     this.getTableHeadData();
     if (this.isPrint) {

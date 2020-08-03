@@ -172,7 +172,6 @@ export default {
       this.ruleForm = Object.assign(this.ruleForm, this.Areaobj);
     },
     submitForm(formName) {
-      // console.log(this.ruleForm);
       if (JSON.stringify(this.Areaobj) == "{}") {
         this.$message.warning("请选择地址!");
         return;
@@ -187,11 +186,11 @@ export default {
             }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          if (res.state === true) {
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state, res.Identity);
+            this.$emit("closeBox", res.State, res.Identity);
             this.changeColumn();
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
@@ -225,7 +224,7 @@ export default {
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

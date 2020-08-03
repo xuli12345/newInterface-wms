@@ -250,13 +250,10 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
-
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      // console.log(res);
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "表头");
       } else {
         this.$message.error(res.Message);
       }
@@ -278,13 +275,11 @@ export default {
     //关闭新增弹窗
     closeBox(value) {
       if (value) {
-        // console.log(value);
         this.tableData.unshift(value);
         this.tableData.forEach((item, index) => {
           this.$set(item, "fSort", index + 1);
         });
         this.total = this.tableData.length;
-        // console.log(this.tableData);
       }
       this.drawer = false;
     },

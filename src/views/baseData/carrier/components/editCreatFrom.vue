@@ -25,7 +25,7 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
-           <template
+          <template
             v-if="
               selectArr && selectArr.length > 0 && selectFunction(item.fColumn)
             "
@@ -118,8 +118,8 @@ export default {
         fTableView: "t_AddressBook",
         fVisible: 1
       },
-        //需要下拉选择的所有数据
-      selectAllData: [],
+      //需要下拉选择的所有数据
+      selectAllData: []
     };
   },
   props: {
@@ -169,20 +169,13 @@ export default {
       if (obj.fDistrict == undefined) {
         obj.fDistrict = "";
       }
-      // console.log(obj);
+
       this.ruleForm = Object.assign(this.ruleForm, obj);
     },
 
     submitForm(formName) {
-      // console.log("保存");
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          for (const key in this.ruleForm) {
-            if (this.ruleForm[key] == null) {
-              this.$set(this.ruleForm, key, 0);
-            }
-          }
-          // console.log(this.ruleForm)
           let res = await collectionData([
             {
               headData: this.tableHead,
@@ -191,12 +184,12 @@ export default {
             }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          if (res.state === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.changeColumn();
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
           } else {
             this.$message.error(res.errstr);
@@ -221,13 +214,13 @@ export default {
         });
       });
     },
-      // 获取所有需要下拉选择的内容
+    // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
         res = JSON.parse(
-          decryptDesCbc(res.qureyDataResult, String(this.userDes))
+          decryptDesCbc(res, String(this.userDes))
         );
         if (res.State) {
           let obj = {

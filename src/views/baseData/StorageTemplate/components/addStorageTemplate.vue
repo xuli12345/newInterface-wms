@@ -128,7 +128,6 @@ export default {
   },
   methods: {
     submitForm(formName) {
-      //ruleForm的值
       let ruleFormData = this.$refs.formBox.ruleForm;
       this.$refs.formBox.$refs.ruleForm.validate(async valid => {
         if (valid) {
@@ -151,12 +150,10 @@ export default {
               }
             ]
           );
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          if (res.state === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
             this.$message.error(res.errstr);
@@ -197,24 +194,12 @@ export default {
       });
       return newData;
     },
-    compare(obj1, obj2) {
-      let val1 = obj1.fSort;
-      let val2 = obj2.fSort;
-      if (val1 < val2) {
-        return -1;
-      } else if (val1 > val2) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
+
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
 
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);

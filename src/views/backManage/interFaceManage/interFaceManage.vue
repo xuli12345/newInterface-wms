@@ -148,7 +148,6 @@ import { compare } from "@/utils/common";
 import {
   ItemTableHeadData,
   tableBodyData,
-  addformSaveData,
   getTableBodyData,
   BathcDeleteData
 } from "@/api/index";
@@ -277,7 +276,6 @@ export default {
               result = 1;
             }
             let obj = {
-              // Computer: "=",
               Computer: element.fComputer,
               DataFile: element.fColumn,
               Value: result
@@ -300,12 +298,11 @@ export default {
         // });
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (key.indexOf("Date") != -1 && element[key] != null) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
-        // console.log(this.tableData, "表体内容");
       }
     },
     //修改
@@ -397,11 +394,9 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      console.log(res);
-      res = JSON.parse(
-        decryptDesCbc(res.deleteDataResult, String(this.userDes))
-      );
-      if (res.state) {
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
         this.$message.success("删除成功!");
         let oriIdx = this.tableData.indexOf(row);
         this.tableData.splice(oriIdx, 1);
@@ -551,7 +546,6 @@ export default {
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHead = res.lstRet.sort(compare);
-        // console.log(this.tableHead, "表头");
         let searchArr = [];
         searchArr = this.tableHead.filter(element => {
           return element.fQureyCol == 1;

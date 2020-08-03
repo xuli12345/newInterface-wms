@@ -146,7 +146,7 @@ export default {
               DataFile: "fUnitType",
               Value: 5
             }
-           ]
+          ]
         },
         {
           fName: "fVolumetUnitName",
@@ -161,7 +161,7 @@ export default {
               DataFile: "fUnitType",
               Value: 7
             }
-           ]
+          ]
         },
         {
           fName: "fWeightUnitName",
@@ -170,13 +170,13 @@ export default {
           fID: "fID",
           fAuto: ["fWeightUnit"],
           fAutoID: ["fWeightUnit"],
-           searchWhere: [
+          searchWhere: [
             {
               Computer: "=",
               DataFile: "fUnitType",
               Value: 9
             }
-           ]
+          ]
         }
       ]
     };
@@ -197,12 +197,9 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData("t_ContainerCode_Mst");
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.containerData = res.lstRet.sort(compare);
-        // console.log(this.containerData, "表头");
       } else {
         this.$message.error(res.Message);
       }
@@ -210,11 +207,6 @@ export default {
     //关闭字表新增弹窗
     closeItemBox(value) {
       this.dialogFormVisible = false;
-      if (value) {
-        // this.tableData.unshift(value);
-        // console.log('保存')
-        // this.tableData.concat(value);
-      }
     },
     //新增
     openDrawer(headData) {

@@ -361,8 +361,8 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          console.log(res);
-          if (res.state) {
+          // console.log(res);
+          if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.editForm)));
             this.$refs[formName].resetFields();

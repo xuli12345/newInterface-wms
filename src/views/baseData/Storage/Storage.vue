@@ -21,7 +21,7 @@
       v-if="newisDestory"
     >
       <addStorage
-        @closeBox="closeBox"
+        @closeBox="closeBox" 
         :tableHead="tableHeadData"
         :tableName="'t_Storage_Mst'"
         :selectArr="selectArr"

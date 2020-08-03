@@ -201,13 +201,11 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
 
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "表头");
+
         let newArr = [];
         newArr = this.tableHeadData.filter(element => {
           return element.fKey == 1;
@@ -223,12 +221,11 @@ export default {
         searchArr = this.tableHeadData.filter(element => {
           return element.fQureyCol == 1;
         });
-        // console.log(searchArr)
+
         let ColumnArr = [];
         searchArr.forEach(item => {
           ColumnArr.push(item.fColumn);
         });
-        // console.log(ColumnArr, "搜索的字段");
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
@@ -295,21 +292,21 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
-        console.log(this.tableData, "过滤表体内容");
       }
     },
 
@@ -346,7 +343,6 @@ export default {
 
             if (result instanceof Date) {
               result = timeCycle(result);
-              // console.log(result);
             }
             if (result.constructor == Boolean && result == true) {
               result = 1;
@@ -383,28 +379,31 @@ export default {
           }
         }
       }
-      // console.log(arr);
+
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        // console.log(this.tableData)
         this.total = this.tableData.length;
         this.oldList = this.tableData.map(v => v.fID);
         this.newList = this.oldList.slice();
         this.$nextTick(() => {
-         // this.setSort();
+          // this.setSort();
         });
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            // if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
+            //   element[key] = timeCycle(element[key]);
+            // }
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
             if (key === "fIsTemporaryStorage" && element[key] == null) {
               this.$set(element, "fIsTemporaryStorage", 0);

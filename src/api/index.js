@@ -12,7 +12,7 @@ let sqlConn, userDes, userId;
  */
 
 function menus(obj) {
-  sqlConn =Number(sessionStorage.getItem("sqlConn")) ;
+  sqlConn = Number(sessionStorage.getItem("sqlConn"));
   let arr = [];
   let object = {
     UserID: obj.userId,
@@ -54,7 +54,7 @@ function getItemMenus(data) {
  * @param {*} param
  */
 function ItemTableHeadData(data) {
-  // console.log(data[0].fTableView);
+  console.log(data[0].fTableView);
   let obj = {
     UserID: data[1].userId,
     SqlConn: sqlConn,
@@ -73,7 +73,7 @@ function ItemTableHeadData(data) {
  * @param {*} param
  */
 function BathcDeleteData(data) {
-  // console.log(JSON.stringify(data[0]),"请求批量删除");
+  console.log(data[0],"请求批量删除");
   let obj = {
     UserID: data[1].userId,
     SqlConn: sqlConn,
@@ -255,7 +255,7 @@ function getOrderNo(str) {
  *
  */
 function addformSaveData(data) {
-  console.log(JSON.stringify(data[0]),"请求的数据");
+  console.log(data[0], "请求的数据");
   let obj = {
     UserID: data[1].userId,
     SqlConn: sqlConn,
@@ -325,7 +325,7 @@ function collectionData(data) {
   let savaData = {
     lstSaveData: saveObj
   };
-  console.log(savaData);
+  // console.log(savaData);
   console.log(JSON.stringify(savaData), "请求保存的数据");
   let obj = {
     UserID: userId,
@@ -532,17 +532,17 @@ function imPortExcel(data) {
   console.log(data);
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
+  let formData = new FormData();
+  formData.append("UserID", userId);
+  formData.append("SqlConn", sqlConn);
+  formData.append("IndexSheet", 0);
+  formData.append("ImportType", data.strType);
+  formData.append("file", data.file);
 
-  let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
-    ParameterDes: encryptDesCbc(JSON.stringify(data), String(userDes))
-    // ParameterStream: encryptDesCbc(JSON.stringify(data), String(userDes))
-  };
   return http({
-    url: "/ImPortExcel",
+    url: "/InportExcel",
     method: "POST",
-    data: JSON.stringify(obj)
+    data: formData
   });
 }
 /**

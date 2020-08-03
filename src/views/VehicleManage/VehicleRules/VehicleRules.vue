@@ -2,7 +2,7 @@
   <div>
     <HomeTable
       :fTableView="fTableView"
-      :tableName="'t_Type_VehcileState'"
+      :tableName="'t_Vehicle_Rules'"
       :isSaveSuccess="isSaveSuccess"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
@@ -19,7 +19,8 @@
       <CreatFrom
         @closeBox="closeBox"
         :tableHead="tableHeadData"
-        :tableName="'t_Type_VehcileState'"
+        :tableName="'t_Vehicle_Rules'"
+        :selectArr="selectArr"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -32,16 +33,20 @@
       <editCreatFrom
         @closeBox="closeEditBox"
         :tableHead="tableHeadData"
-        :tableName="'t_Type_VehcileState'"
+        :tableName="'t_Vehicle_Rules'"
         :rowData="editForm"
+        :selectArr="selectArr"
       ></editCreatFrom>
     </el-drawer>
   </div>
 </template>
 <script>
+import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
+import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import HomeTable from "@/components/HomeTable";
 import CreatFrom from "@/components/CreatFrom";
 import editCreatFrom from "@/components/editCreatFrom";
+import { getTableBodyData } from "@/api/index";
 export default {
   components: {
     CreatFrom,
@@ -63,9 +68,27 @@ export default {
       tableData: [],
       //当前行的数据
       editForm: {},
-      fTableView: "t_Type_VehcileState",
+      fTableView: "t_Vehicle_Rules",
       //是否新增成功
-      isSaveSuccess: false
+      isSaveSuccess: false,
+      userDes: this.$store.state.user.userInfo.userDes,
+    selectArr: [
+        {
+          fName: "fSubjectName",
+          fUrl: "v_CostSubject",
+          fDes: "fSubjectName",
+          fID: "fID",
+          fAuto: ["fCostSubjectID"],
+          fAutoID: ["fCostSubjectID"]
+        },
+        {
+          fName: "fLicenseNo",
+          fUrl: "v_Vehcile_Driver",
+          fDes: "fLicenseNo",
+          fID: "fID",
+          fAuto: ["fVehicleID"],
+          fAutoID: ["fVehicleID"]
+        }]
     };
   },
   watch: {
@@ -117,7 +140,39 @@ export default {
         this.isSaveSuccess = true;
       }
       this.drawer = false;
+    },
+    //获取类型
+    async getType(fTableView, fColumnType) {
+      let res = await getTableBodyData(fTableView);
+
+      res = JSON.parse(
+        decryptDesCbc(res.qureyDataResult, String(this.userDes))
+      );
+      if (res.State) {
+        let result = JSON.parse(res.Data);
+        let arr = [];
+        let asData = [];
+        let fID;
+        result.forEach(element => {
+          //   console.log(element);
+          let obj = {
+            fType: element.fID,
+            fColumnDes: element.fSubjectName || element.fLicenseNo
+          };
+          arr.push(obj);
+        });
+        let object = {
+          name: fColumnType,
+          data: arr
+        };
+        asData.push(object);
+        this.selData = [...this.selData, ...asData];
+      }
     }
+  },
+  created() {
+    this.getType("v_CostSubject", "fSubjectName");
+    this.getType("v_Vehcile_Driver", "fLicenseNo");
   }
 };
 </script>

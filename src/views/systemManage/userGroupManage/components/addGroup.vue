@@ -180,7 +180,7 @@ export default {
     //tabs
     handleClick(activeName) {
       if (activeName == "second") {
-        this.getMenuList();
+        // this.getMenuList();
       }
     },
     changeColor(index) {
@@ -200,8 +200,9 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
+       console.log(res);
       res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
-      // console.log(res);
+     
       if (res.State) {
         this.menuList = res.Menuurl.Child;
       }

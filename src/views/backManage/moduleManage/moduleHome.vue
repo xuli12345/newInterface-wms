@@ -152,7 +152,7 @@
 
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
-import { addParams, batchDelete, userLimit } from "@/utils/common";
+import { addParams, batchDelete, userLimit, compare } from "@/utils/common";
 import {
   tableBodyData,
   addformSaveData,
@@ -255,7 +255,8 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      console.log(res);
       if (res.State) {
         this.menuList = res.Menuurl.Child;
       }
@@ -269,13 +270,11 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(this.compare);
+        this.tableHeadData = res.lstRet.sort(compare);
 
         //过滤搜索的字段
         let searchArr = [];
@@ -344,10 +343,7 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
-      // console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -361,10 +357,7 @@ export default {
         console.log(this.tableData, "过滤表体内容");
       }
     },
-    // filtersF(val, row, column) {
-    //   const property = column["property"];
-    //   return row[property] === val;
-    // },
+
     //筛选的条件数组
     screenFuction(val) {
       let copyTable = this.tableData;
@@ -397,7 +390,6 @@ export default {
         this.searchData.forEach(element => {
           if (this.asData[element.fColumn]) {
             let obj = {
-              // Computer: "=",
               Computer: element.fComputer,
               DataFile: element.fColumn,
               Value: this.asData[element.fColumn]
@@ -413,20 +405,17 @@ export default {
           OrderBy: "",
           SqlConn: this.sqlConn,
           TableView: this.fTableViewData,
-          // TableView: "v_User_Mst",
           Where: this.searchWhere
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        console.log(this.tableData, "表体内容");
+        // console.log(this.tableData, "表体内容");
         this.copyData = JSON.parse(JSON.stringify(this.tableData));
         // console.log(this.tableData);
         //fType:1 为模块分类   fType:0 为模块程序 this.tableData:为模块分类数据
@@ -452,13 +441,6 @@ export default {
       if (this.BatchList.length == 0) {
         this.$message.warning("请选择要删除的数据!");
       } else {
-        // this.BatchList.forEach(item => {
-        //   for (const key in item) {
-        //     if (item[key] == null) {
-        //       this.$set(item, key, 0);
-        //     }
-        //   }
-        // });
         let result = batchDelete(this.tableHeadData, this.BatchList);
         this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
           confirmButtonText: "确定",
@@ -481,9 +463,7 @@ export default {
               },
               { userDes: this.userDes, userId: this.userId }
             ]);
-            res = JSON.parse(
-              decryptDesCbc(res.saveDataResult, String(this.userDes))
-            );
+            res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
             // console.log(res);
             if (res.state) {
               this.$message.success("删除成功!");
@@ -504,14 +484,10 @@ export default {
     //修改
     handleEdit(row, index) {
       this.$emit("openEditDrawer", row, this.tableHeadData);
-      //   this.editForm = row;
-      //   this.drawerValue = true;
     },
     //删除
     handleDelete(row, index) {
       let currentRow = JSON.parse(JSON.stringify(row));
-      // console.log(currentRow);
-
       if (currentRow["fType"].includes("模块程序")) {
         this.$set(currentRow, "fType", 0);
       } else if (currentRow["fType"].includes("模块分类")) {
@@ -572,18 +548,7 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val;
     },
-    //排序
-    compare(obj1, obj2) {
-      let val1 = obj1.fSort;
-      let val2 = obj2.fSort;
-      if (val1 < val2) {
-        return -1;
-      } else if (val1 > val2) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
+
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       let a = userLimit(val);
@@ -612,7 +577,7 @@ export default {
   },
   mounted() {
     setTimeout(() => {
-      this.getTableData();
+      // this.getTableData();
     }, 200);
   }
 };
@@ -641,7 +606,7 @@ export default {
     margin: 0 15px 0 5px;
     border: 1px solid #ebeef5;
     padding-top: 10px;
-    .el-tabs{
+    .el-tabs {
       width: 250px;
     }
   }

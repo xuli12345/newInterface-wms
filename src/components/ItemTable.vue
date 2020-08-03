@@ -193,18 +193,15 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData)
-        // console.log(this.fTableView)
         this.fTableViewData = res.fTableViewData;
         if (this.isAuthority) {
           this.$emit("update:isSave", this.tableHeadData);
         }
-        // console.log(this.tableHeadData, "权限公司表头数据");
         if (this.isCompany) {
           this.$emit("update:isSave", this.tableHeadData);
           this.getModData();
@@ -231,13 +228,10 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
-
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+   
       if (res.State) {
         let resultData = JSON.parse(res.Data);
-        // console.log(resultData,'123')
         this.tableData = resultData.map((item, index) => {
           return {
             fGroupID: 0, //用户组ID
@@ -262,10 +256,11 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
       console.log(res);
+      res = JSON.parse(
+        decryptDesCbc(res, String(this.userDes))
+      );
+      
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.tableData = this.tableData.map(element => {
@@ -288,6 +283,7 @@ export default {
       res = JSON.parse(
         decryptDesCbc(res.getModLimitDataResult, String(this.userDes))
       );
+      console.log(res);
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
         this.OrignData.forEach(element => {
@@ -319,7 +315,7 @@ export default {
 
   created() {
     this.getTableHead();
-    this.getGroupLimitData();
+    // this.getGroupLimitData();
   }
 };
 </script>
