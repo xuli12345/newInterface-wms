@@ -128,15 +128,13 @@ export default {
               insertData: [this.ruleForm]
             }
           ]);
-          console.log(res, "saveContainerCode保存");
-          res = JSON.parse(
-            decryptDesCbc(res.saveContainerCodeDataResult, String(this.userDes))
-          );
+          // console.log(res, "saveContainerCode保存");
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
           if (res.State) {
             // this.$message.success("新增成功!");
             let tableData = JSON.parse(res.Data);
-            this.$emit("closeBox", res.state, tableData);
+            this.$emit("closeBox", res.State, tableData);
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {

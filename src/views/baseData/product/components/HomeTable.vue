@@ -76,7 +76,7 @@
           :disabled="userLimit('fDel')"
           >批量删除</el-button
         >
-        <!-- v-print="'#toPrint'" -->
+
         <el-button
           v-if="isPrint"
           type="primary"
@@ -317,8 +317,7 @@ import {
   getTableHeadData,
   BathcDeleteData,
   imPortExcel,
-  importExcelTypeXls,
-  importExcelTypeXlsx
+
 } from "@/api/index";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
@@ -398,11 +397,11 @@ export default {
       let res = await getTableHeadData(this.fTableView);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      
+
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "表头");
+        console.log(this.tableHeadData, "表头");
 
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
@@ -416,8 +415,6 @@ export default {
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
-            // if (item.fColumn.includes(element)) {
-            //这里用相等 当勾选的字段名相近时就会把没勾选的值给添加进来
             if (item.fColumn == element) {
               let obj = {
                 fColumnDes: item.fColumnDes,
@@ -480,16 +477,19 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      
+
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-    
+
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -571,9 +571,7 @@ export default {
         this.searchWhere.push(...arr);
       }
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -585,8 +583,11 @@ export default {
         });
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -727,10 +728,8 @@ export default {
               },
               { userDes: this.userDes, userId: this.userId }
             ]);
-            res = JSON.parse(
-              decryptDesCbc(res, String(this.userDes))
-            );
-           
+            res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
             if (res.State) {
               this.$message.success("删除成功!");
               this.getTableData();
@@ -801,7 +800,7 @@ export default {
     //删除
     handleDelete(row, index) {
       let currentRow = JSON.parse(JSON.stringify(row));
-   
+
       let resultData = addParams(this.tableHeadData, row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -824,9 +823,7 @@ export default {
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
@@ -868,7 +865,7 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          console.log(res);
+
           if (res.state) {
             this.$message.success("删除成功!");
             this.getTableData();
@@ -975,16 +972,12 @@ export default {
       // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
-        //xlsx
         if (
           this.fileTemp.type ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
         ) {
-          this.importFile(this.strType);
-          // this.importExcelTypeXlsx(this.fileTemp);
-        } else if (this.fileTemp.type == "application/vnd.ms-excel") {
-          //.xls
-          // this.importExcelTypeXls(this.fileTemp);
+          this.importFile(this.strType, this.fileTemp);
         } else {
           this.$message({
             type: "warning",
@@ -997,7 +990,6 @@ export default {
           message: "请上传附件！"
         });
       }
-      // this.importFile(this.fileTemp);
     },
 
     handleRemove(file, fileList) {
@@ -1011,52 +1003,16 @@ export default {
       }
     },
 
-    async importExcelTypeXls(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXls(this.file);
-      // console.log(res, "xls");
-      let xlsFileName = res.ImPortExcel_xlsResult.strFileName;
-      if (res.ImPortExcel_xlsResult.State) {
-        this.importFile(this.strType, xlsFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsResult.Message);
-      }
-    },
-    async importExcelTypeXlsx(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-
-      let res = await importExcelTypeXlsx(this.file);
-      // console.log(res, "xlsx");
-      let xlsxFileName = res.ImPortExcel_xlsxResult.strFileName;
-      if (res.ImPortExcel_xlsxResult.State) {
-        this.importFile(this.strType, xlsxFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsxResult.Message);
-      }
-    },
-    async importFile(strType, fileName) {
+    async importFile(strType, file) {
       let res = await imPortExcel({
         strType: strType,
-        strFileName: fileName
+        file: file
       });
-      res = JSON.parse(
-        decryptDesCbc(res.ImportExcelResult, String(this.userDes))
-      );
-      // console.log(res);
-      if (res.State) {
+
+      if (res.state) {
         this.$message.success("导入成功!");
       } else {
-        if (res.Message == null) {
-          this.$message.error("上传失败!");
-        } else {
-          this.$message.error(res.Message);
-        }
+        this.$message.error(res.message);
       }
     }
   },

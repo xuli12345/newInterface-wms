@@ -218,9 +218,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(this.compare);
@@ -266,9 +264,7 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let resultData = JSON.parse(res.Data);
@@ -290,12 +286,10 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
-        console.log(this.OrignData, "123");
+
         this.$emit("update:backData", this.OrignData);
         this.OrignData.forEach(element => {
           for (const key in element) {
@@ -312,9 +306,7 @@ export default {
     },
     async getGroupLimitData2() {
       let res = await GetUserLimitData([this.fID, this.userId]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
         this.$emit("update:backData", this.OrignData);
@@ -345,9 +337,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.resultData = JSON.parse(res.Data);
@@ -390,9 +380,9 @@ export default {
   mounted() {
     setTimeout(() => {
       if (this.UserLimit) {
-        // this.getGroupLimitData2();
+        this.getGroupLimitData2();
       } else {
-        // this.getGroupLimitData();
+        this.getGroupLimitData();
       }
     }, 1000);
   }

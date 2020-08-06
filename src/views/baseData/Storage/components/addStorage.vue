@@ -202,13 +202,13 @@ export default {
           res = JSON.parse(
             decryptDesCbc(res, String(this.userDes))
           );
-console.log(res)
-          if (res.state === true) {
+
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -277,7 +277,7 @@ console.log(res)
     //关闭新增弹窗
     closeBox(value) {
       if (value) {
-        this.tableData.shift(value);
+        this.tableData.push(value);
         this.tableData.forEach((item, index) => {
           this.$set(item, "fSort", index + 1);
         });

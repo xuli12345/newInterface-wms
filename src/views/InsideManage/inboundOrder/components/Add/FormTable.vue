@@ -39,7 +39,7 @@
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao"    size="mini" @click="resetForm()"
+      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -78,13 +78,7 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
-import {
-  getTableHeadData,
-  collectionData,
-  imPortExcel,
-  importExcelTypeXls,
-  importExcelTypeXlsx
-} from "@/api/index";
+import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
 import ChildTable from "./ChildTable";
@@ -116,7 +110,7 @@ export default {
       fileTemp: null,
       file: null,
       fileName: "",
-      fCustomerID:null
+      fCustomerID: null
     };
   },
   methods: {
@@ -128,9 +122,7 @@ export default {
     async getTableHeadData() {
       // console.log(this.fTableViewHead)
       let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res)
       if (res.State) {
         // this.fTableView = res.fTableViewData;
@@ -142,9 +134,7 @@ export default {
     //获取表格的表头
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res);
       if (res.State) {
         // this.fTableView = res.fTableViewData;
@@ -174,9 +164,7 @@ export default {
             }
           ]);
           //   console.log(res)
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           console.log(res);
           if (res.State === true) {
             this.$message.success("新增成功!");
@@ -196,11 +184,11 @@ export default {
     //新增按钮
     addPopRight() {
       let formData = this.$refs.ruleForm.ruleForm;
-      if(formData.fCustomerName){
-        this.fCustomerID = formData.fCustomerID
+      if (formData.fCustomerName) {
+        this.fCustomerID = formData.fCustomerID;
         this.drawer = true;
-      }else{
-        this.$message.warning('请先选择所属客户')
+      } else {
+        this.$message.warning("请先选择所属客户");
       }
     },
     //点击x关闭弹窗
@@ -209,11 +197,8 @@ export default {
     },
     //关闭字表新增弹窗
     closeItemBox(value) {
-      console.log(value);
       if (value) {
         this.tableData.unshift(value);
-        // this.insertRow.push(value);
-        // console.log(this.insertRow, "新增");
       }
       this.drawer = false;
     },
@@ -222,15 +207,12 @@ export default {
       // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
-        //xlsx
         if (
           this.fileTemp.type ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
         ) {
-          this.importExcelTypeXlsx(this.fileTemp);
-        } else if (this.fileTemp.type == "application/vnd.ms-excel") {
-          //.xls
-          this.importExcelTypeXls(this.fileTemp);
+          this.importFile(this.strType, this.fileTemp);
         } else {
           this.$message({
             type: "warning",
@@ -243,7 +225,6 @@ export default {
           message: "请上传附件！"
         });
       }
-      // this.importFile(this.fileTemp);
     },
 
     handleRemove(file, fileList) {
@@ -260,66 +241,34 @@ export default {
       }
     },
 
-    async importExcelTypeXls(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXls(this.file);
-      // console.log(res, "xls");
-      let xlsFileName = res.ImPortExcel_xlsResult.strFileName;
-      if (res.ImPortExcel_xlsResult.State) {
-        this.importFile(this.strType, xlsFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsResult.Message);
-      }
-    },
-    async importExcelTypeXlsx(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXlsx(this.file);
-      console.log(res, "xlsx");
-      let xlsxFileName = res.ImPortExcel_xlsxResult.strFileName;
-
-      if (res.ImPortExcel_xlsxResult.State) {
-        this.importFile(this.strType, xlsxFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsxResult.Message);
-      }
-    },
-    async importFile(strType, fileName) {
+    async importFile(strType, file) {
       let res = await imPortExcel({
         strType: strType,
-        strFileName: fileName
+        file: file
       });
-      res = JSON.parse(
-        decryptDesCbc(res.ImportExcelResult, String(this.userDes))
-      );
-      
-      if (res.State) {
+      // console.log(res)
+      if (res.state) {
         this.$message.success("导入成功!");
-        let tableData = JSON.parse(res.Data).sort(compare);
-        tableData.forEach(element => {
+        let tableData = JSON.parse(res.resultString).sort(compare);
+        this.tableData = [...tableData, ...this.tableData];
+        this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
-        this.tableData = [...tableData, ...this.tableData];
-        // console.log(this.tableData);
       } else {
-        if (res.Message == null) {
-          this.$message.error("上传失败!");
-        } else {
-          this.$message.error(res.Message);
-        }
+        this.$message.error(res.message);
       }
     }
   },
-  
+
   created() {
     this.getTableHeadData();
     this.getTableHead();

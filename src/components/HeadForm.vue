@@ -166,7 +166,7 @@ export default {
         res = JSON.parse(
           decryptDesCbc(res, String(this.userDes))
         );
-        // console.log(res)
+        
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段
@@ -178,7 +178,7 @@ export default {
         }
       }
       this.selectAllData = arr;
-      // console.log(this.selectAllData);
+
     },
     //判断当前字段是否需要做下拉框
     //v表头所有的字段

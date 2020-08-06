@@ -61,7 +61,6 @@
   </div>
 </template>
 <script>
-
 import HomeTable from "@/components/HomeTable";
 import CreatFrom from "./components/FormTable";
 import EditFormTable from "./components/EditFormTable";
@@ -85,17 +84,17 @@ export default {
       isDestory: false,
       newisDestory: false,
       fTableView: "t_OutboundOrder_Mst",
-        //审核的数据
-      checkData:[true,3],
-        //单据关闭的数据
-      closeData:[true,4],
+      //审核的数据
+      checkData: [true, 3],
+      //单据关闭的数据
+      closeData: [true, 4],
       printView: [
         "t_OutboundOrderData",
         "v_OutboundOrderData",
         "v_OutboundOrder_Item",
         "t_OutboundOrder_Item"
       ],
-      title: [],
+      title: ["知行易通(厦门)信息科技有限公司", "商品出仓单"],
       //是否新增成功
       isSaveSuccess: false,
       //表头的字段，以及自增长字段
@@ -170,13 +169,13 @@ export default {
           fID: "fID",
           fAuto: ["fOutboundNumUnit"],
           fAutoID: ["fOutboundNumUnit"],
-           searchWhere: [
+          searchWhere: [
             {
               Computer: "=",
               DataFile: "fUnitType",
               Value: 10
             }
-           ]
+          ]
         },
         {
           fName: "fBoxNumUniName",
@@ -185,13 +184,13 @@ export default {
           fID: "fID",
           fAuto: ["fOutboundBoxNumUnit"],
           fAutoID: ["fOutboundBoxNumUnit"],
-           searchWhere: [
+          searchWhere: [
             {
               Computer: "=",
               DataFile: "fUnitType",
               Value: 10
             }
-           ]
+          ]
         },
         {
           fName: "fVolumetUnitName",
@@ -227,7 +226,8 @@ export default {
       // key:需要做下拉框的字段名  fKey:需要装换的id值
       changeData: [
         { key: "fNumUnitName", fKey: "fOutboundNumUnit" },
-        { key: "fBoxNumUniName", fKey: "fOutboundBoxNumUnit" }
+        { key: "fBoxNumUniName", fKey: "fOutboundBoxNumUnit" },
+        { key: "fVolumetUnitName", fKey: "fVolumetUnit" }
       ]
     };
   },
@@ -290,28 +290,28 @@ export default {
         }, 500);
       }
     }
-  },
-   created() {
-    console.log(process.env.BASE_API);
-    if (
-      process.env.BASE_API &&
-      process.env.BASE_API == "http://39.99.185.176:8001/Service.svc"
-    ) {
-      this.title = ["山东齐畅冷链物流股份有限公司", "商品出仓单"];
-    } else if (
-      process.env.BASE_API &&
-      process.env.BASE_API == "http://192.168.137.1:8001/Service.svc"
-    ) {
-      this.title = ["广州恒嘉电子科技有限公司", "商品出仓单"];
-    } else if (
-      process.env.BASE_API &&
-      process.env.BASE_API == "http://8.129.208.95:8001/Service.svc"
-    ) {
-      this.title = ["知行易通(厦门)信息科技有限公司", "商品出仓单"];
-    }else{
-
-    }
   }
+  //  created() {
+  //   console.log(process.env.BASE_API);
+  //   if (
+  //     process.env.BASE_API &&
+  //     process.env.BASE_API == "http://39.99.185.176:8001/Service.svc"
+  //   ) {
+  //     this.title = ["山东齐畅冷链物流股份有限公司", "商品出仓单"];
+  //   } else if (
+  //     process.env.BASE_API &&
+  //     process.env.BASE_API == "http://192.168.137.1:8001/Service.svc"
+  //   ) {
+  //     this.title = ["广州恒嘉电子科技有限公司", "商品出仓单"];
+  //   } else if (
+  //     process.env.BASE_API &&
+  //     process.env.BASE_API == "http://8.129.208.95:8004/api"
+  //   ) {
+  //     this.title = ["知行易通(厦门)信息科技有限公司", "商品出仓单"];
+  //   }else{
+
+  //   }
+  // }
 };
 </script>
 <style lang="scss"></style>

@@ -76,16 +76,16 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductCode",
           fID: "fID",
-          fAuto: ["fProductID"],
-          fAutoID: ["fProductID"]
+          fAuto: ["fProductName","fProductID"],
+          fAutoID: ["fProductName","fProductID"]
         },
         {
           fName: "fProductName",
           fUrl: "v_Product",
           fDes: "fProductName",
           fID: "fID",
-          fAuto: ["fProductID"],
-          fAutoID: ["fProductID"]
+       fAuto: ["fProductCode","fProductID"],
+          fAutoID: ["fProductCode","fProductID"]
         },
         {
           fName: "fContainerTypeName",

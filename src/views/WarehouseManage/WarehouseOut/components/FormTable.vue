@@ -81,8 +81,7 @@ import {
   getTableHeadData,
   collectionData,
   imPortExcel,
-  importExcelTypeXls,
-  importExcelTypeXlsx
+  
 } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "../../component/ChildFormHead";
@@ -207,12 +206,10 @@ export default {
         //xlsx
         if (
           this.fileTemp.type ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
         ) {
-          this.importExcelTypeXlsx(this.fileTemp);
-        } else if (this.fileTemp.type == "application/vnd.ms-excel") {
-          //.xls
-          this.importExcelTypeXls(this.fileTemp);
+          this.importFile(this.strType, this.fileTemp);
         } else {
           this.$message({
             type: "warning",
@@ -225,7 +222,6 @@ export default {
           message: "请上传附件！"
         });
       }
-      // this.importFile(this.fileTemp);
     },
 
     handleRemove(file, fileList) {
@@ -242,62 +238,30 @@ export default {
       }
     },
 
-    async importExcelTypeXls(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXls(this.file);
-      // console.log(res, "xls");
-      let xlsFileName = res.ImPortExcel_xlsResult.strFileName;
-      if (res.ImPortExcel_xlsResult.State) {
-        this.importFile(this.strType, xlsFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsResult.Message);
-      }
-    },
-    async importExcelTypeXlsx(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXlsx(this.file);
-      console.log(res, "xlsx");
-      let xlsxFileName = res.ImPortExcel_xlsxResult.strFileName;
-
-      if (res.ImPortExcel_xlsxResult.State) {
-        this.importFile(this.strType, xlsxFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsxResult.Message);
-      }
-    },
-    async importFile(strType, fileName) {
+    async importFile(strType, file) {
       let res = await imPortExcel({
         strType: strType,
-        strFileName: fileName
+        file: file
       });
-      res = JSON.parse(
-        decryptDesCbc(res.ImportExcelResult, String(this.userDes))
-      );
-      console.log(res);
-      if (res.State) {
+
+      if (res.state) {
         this.$message.success("导入成功!");
         let tableData = JSON.parse(res.Data).sort(compare);
         tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
         this.tableData = [...tableData, ...this.tableData];
-        // console.log(this.tableData);
       } else {
-        if (res.Message == null) {
-          this.$message.error("上传失败!");
-        } else {
-          this.$message.error(res.Message);
-        }
+        this.$message.error(res.message);
       }
     }
   },

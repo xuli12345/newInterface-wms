@@ -31,7 +31,8 @@ function menus(obj) {
  * 用户组权限表菜单
  */
 function getItemMenus(data) {
-  sqlConn = sessionStorage.getItem("sqlConn");
+  console.log(data[0]);
+  sqlConn = Number(sessionStorage.getItem("sqlConn"));
   let object = {
     UserID: data[1].userId,
     SqlConn: sqlConn,
@@ -73,7 +74,7 @@ function ItemTableHeadData(data) {
  * @param {*} param
  */
 function BathcDeleteData(data) {
-  console.log(data[0],"请求批量删除");
+  console.log(data[0], "请求批量删除");
   let obj = {
     UserID: data[1].userId,
     SqlConn: sqlConn,
@@ -185,7 +186,7 @@ function getTableBodyData(str, condition = []) {
     TableView: str,
     Where: condition
   };
-  // console.log(JSON.stringify(obj1), "获取表格内容");
+  console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
     UserID: userId,
     SqlConn: sqlConn,
@@ -242,7 +243,7 @@ function getOrderNo(str) {
     SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
-  console.log(JSON.stringify(object));
+  // console.log(JSON.stringify(object));
   return http({
     url: "/getOrderNo",
     method: "POST",
@@ -325,14 +326,14 @@ function collectionData(data) {
   let savaData = {
     lstSaveData: saveObj
   };
-  // console.log(savaData);
-  console.log(JSON.stringify(savaData), "请求保存的数据");
+  console.log(savaData);
+  // console.log(JSON.stringify(savaData), "请求保存的数据");
   let obj = {
     UserID: userId,
     SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
   };
-  console.log(JSON.stringify(obj), "请求保存加密的数据");
+  // console.log(JSON.stringify(obj), "请求保存加密的数据");
   return http({
     url: "/SaveData",
     method: "POST",
@@ -497,39 +498,14 @@ function getInterfaceItemData(data) {
     data: JSON.stringify(obj)
   });
 }
-/**
- *
- * 导入excel类型为xls
- */
 
-function importExcelTypeXls(files) {
-  console.log(files);
-  return http({
-    url: "/ImPortExcel_xls",
-    method: "POST",
-    data: files
-  });
-}
-/**
- *
- * 导入excel类型为xlsx
- */
-
-function importExcelTypeXlsx(files) {
-  console.log(files);
-  return http({
-    url: "/ImPortExcel_xlsx",
-    method: "POST",
-    data: files
-  });
-}
 /**
  *
  * 导入excel
  */
 
 function imPortExcel(data) {
-  console.log(data);
+ 
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let formData = new FormData();
@@ -538,7 +514,7 @@ function imPortExcel(data) {
   formData.append("IndexSheet", 0);
   formData.append("ImportType", data.strType);
   formData.append("file", data.file);
-
+  console.log(data.file);
   return http({
     url: "/InportExcel",
     method: "POST",
@@ -595,7 +571,5 @@ export {
   saveContainerCode,
   queryViewData,
   saveStockAdjust,
-  importExcelTypeXls,
-  importExcelTypeXlsx,
   imPortExcel
 };

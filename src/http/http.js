@@ -3,16 +3,16 @@ import axios from "axios";
 import store from "@/store/store";
 
 // let url = window.sessionStorage.getItem("requestUrl");
-// console.log(url,"00000")
+// 设置基地址
+// const url = process.env.BASE_API;
+// console.log(process.env)
 
-//let url = "http://8.129.208.95:8001/Service.svc"; //知行易通
+
 //let url = "http://39.99.185.176:8001/Service.svc"; //齐畅
 //let url = "http://192.168.137.1:8001/Service.svc"; //恒嘉客户地址
 let url = "http://8.129.208.95:8004/api";
 
-// 设置基地址
-// const url = process.env.BASE_API;
-// console.log(process.env)
+
 
 const request = axios.create({
   baseURL: url

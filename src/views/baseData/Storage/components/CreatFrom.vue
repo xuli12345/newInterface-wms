@@ -59,7 +59,6 @@
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import { collectionData } from "@/api/index";
 import { creatRules, defaultForm } from "@/utils/common";
 
 export default {

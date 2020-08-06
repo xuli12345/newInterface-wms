@@ -18,7 +18,11 @@
       :before-close="handleClose"
       v-if="newisDestory"
     >
-      <addGroup @closeBox="closeBox" :tableHead="tableHeadData" :tableName="'t_UserGroup_Mst'"></addGroup>
+      <addGroup
+        @closeBox="closeBox"
+        :tableHead="tableHeadData"
+        :tableName="'t_UserGroup_Mst'"
+      ></addGroup>
     </el-drawer>
     <!-- 修改 -->
     <el-drawer
@@ -40,7 +44,7 @@
 <script>
 import { timeCycle } from "@/utils/updateTime";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import { tableBodyData, addformSaveData, ItemTableHeadData ,menus,getUserLimitMenu} from "@/api/index";
+import { menus, getUserLimitMenu } from "@/api/index";
 import { addParams, batchDelete } from "@/utils/common";
 import HomeTable from "@/components/HomeTable";
 import addGroup from "./components/addGroup";
@@ -127,8 +131,8 @@ export default {
     async getMenus() {
       let user = this.$store.state.user.userInfo;
       let res = await menus(user);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(user.userDes)));
-      console.log(res)
+      res = JSON.parse(decryptDesCbc(res, String(user.userDes)));
+
       if (res.State) {
         this.$store.commit("common/updateMenuList", res.Menuurl.Child);
       }
@@ -138,9 +142,7 @@ export default {
       let userId = JSON.parse(sessionStorage.getItem("user")).userId;
       let userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
       let res1 = await getUserLimitMenu([fCompanyId, userId]);
-      res1 = JSON.parse(
-        decryptDesCbc(res1.getModUserLimitDataResult, String(userDes))
-      );
+      res1 = JSON.parse(decryptDesCbc(res1, String(userDes)));
       sessionStorage.setItem("userLimit", res1.Data);
     }
   },

@@ -81,13 +81,7 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
-import {
-  getTableHeadData,
-  collectionData,
-  imPortExcel,
-  importExcelTypeXls,
-  importExcelTypeXlsx
-} from "@/api/index";
+import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
@@ -123,9 +117,7 @@ export default {
     async getTableHeadData() {
       // console.log(this.fTableViewHead)
       let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res)
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
@@ -136,9 +128,7 @@ export default {
     //获取表格的表头，保存的时候需要用到
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
@@ -201,20 +191,7 @@ export default {
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
 
-      backData.forEach(element => {
-        for (const key in element) {
-          if (element[key] == null) {
-            this.$set(element, key, 0);
-          }
-        }
-      });
-      tableData.forEach(element => {
-        for (const key in element) {
-          if (element[key] == null) {
-            this.$set(element, key, 0);
-          }
-        }
-      });
+    
       let wantData = this.handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
@@ -236,10 +213,8 @@ export default {
             }
           ]);
           //   console.log(res)
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
-          console.log(res);
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
           if (res.State === true) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
@@ -285,15 +260,12 @@ export default {
       // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
-        //xlsx
         if (
           this.fileTemp.type ==
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
         ) {
-          this.importExcelTypeXlsx(this.fileTemp);
-        } else if (this.fileTemp.type == "application/vnd.ms-excel") {
-          //.xls
-          this.importExcelTypeXls(this.fileTemp);
+          this.importFile(this.strType, this.fileTemp);
         } else {
           this.$message({
             type: "warning",
@@ -306,67 +278,45 @@ export default {
           message: "请上传附件！"
         });
       }
-      // this.importFile(this.fileTemp);
     },
 
     handleRemove(file, fileList) {
       this.fileTemp = null;
     },
+
     //下载模板
     downloadTemp() {
-      window.location.href = "http://www.域名/template.xlsx(文件名)";
-    },
-
-    async importExcelTypeXls(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXls(this.file);
-      // console.log(res, "xls");
-      let xlsFileName = res.ImPortExcel_xlsResult.strFileName;
-      if (res.ImPortExcel_xlsResult.State) {
-        this.importFile(this.strType, xlsFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsResult.Message);
+      if (this.strType.includes("Inbound")) {
+        window.location.href =
+          "http://8.129.208.95:8001/ImportTempModFile/入库单导入模板.xlsx";
+      } else if (this.strType.includes("Outbound")) {
+        window.location.href =
+          "http://8.129.208.95:8001/ImportTempModFile/出库单导入模板.xlsx";
       }
     },
-    async importExcelTypeXlsx(obj) {
-      let _this = this;
-      let inputDOM = this.$refs.inputer;
-      // 通过DOM取文件数据
-      this.file = event.currentTarget.files[0];
-      let res = await importExcelTypeXlsx(this.file);
-      console.log(res, "xlsx");
-      let xlsxFileName = res.ImPortExcel_xlsxResult.strFileName;
 
-      if (res.ImPortExcel_xlsxResult.State) {
-        this.importFile(this.strType, xlsxFileName);
-      } else {
-        this.$message.error(res.ImPortExcel_xlsxResult.Message);
-      }
-    },
-    async importFile(strType, fileName) {
+    async importFile(strType, file) {
       let res = await imPortExcel({
         strType: strType,
-        strFileName: fileName
+        file: file
       });
-      res = JSON.parse(
-        decryptDesCbc(res.ImportExcelResult, String(this.userDes))
-      );
-      console.log(res);
-      if (res.State) {
+
+      if (res.state) {
         this.$message.success("导入成功!");
-        let tableData = JSON.parse(res.Data).sort(compare);
+        let tableData = JSON.parse(res.resultString).sort(compare);
         tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+           if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
         this.insertData = [...tableData, ...this.insertData];
-        // console.log(this.insertData);
       } else {
         this.$message.error(res.Message);
       }
@@ -376,7 +326,6 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
-    // console.log(this.rowData,'rowData')
   }
 };
 </script>

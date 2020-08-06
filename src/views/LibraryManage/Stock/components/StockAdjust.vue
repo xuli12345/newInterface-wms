@@ -4,7 +4,7 @@
       <el-button type="primary" size="mini" @click="submitForm('ruleForm')">
         <i class="iconfont icon-baocun"></i>保存
       </el-button>
-      <el-button size="mini"  @click="resetForm('ruleForm')">
+      <el-button size="mini" @click="resetForm('ruleForm')">
         <i class="iconfont icon-quxiao"></i>
         取消
       </el-button>
@@ -25,8 +25,6 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
-         
-
           <el-date-picker
             v-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
@@ -82,8 +80,7 @@ export default {
     tableName: {
       type: String,
       default: () => ""
-    },
- 
+    }
   },
   methods: {
     submitForm(formName) {
@@ -113,16 +110,14 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
 
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
-          console.log('123',res);
-          if (res.state === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+          if (res.State) {
             this.$message.success("保存成功!");
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -132,8 +127,7 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
-    },
-
+    }
   },
   created() {
     this.rules = creatRules(this.tableHead);
@@ -144,7 +138,6 @@ export default {
     this.$set(this.ruleForm, "fOriginalNum", this.ruleForm.fStockNum);
     this.$set(this.ruleForm, "fStockID", this.ruleForm.fID);
     this.$set(this.ruleForm, "fID", 0);
-    // this.ruleForm.fModifyDate = new Date();
   },
   watch: {
     rowData(newVal, oldVal) {
@@ -154,17 +147,11 @@ export default {
       this.$set(this.ruleForm, "fModifierCode", userInfo.usercode);
       this.$set(this.ruleForm, "fOriginalNum", this.ruleForm.fStockNum);
       this.$set(this.ruleForm, "fStockID", this.ruleForm.fID);
-       this.$set(this.ruleForm, "fID", 0);
-    //   this.ruleForm.fModifyDate = new Date();
+      this.$set(this.ruleForm, "fID", 0);
+      //   this.ruleForm.fModifyDate = new Date();
     }
   },
-   computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
 };
 </script>
 <style lang="scss" scoped></style>

@@ -192,7 +192,7 @@ export default {
             this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;

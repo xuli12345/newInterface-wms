@@ -128,7 +128,7 @@ export default {
         this.editTableData.push(...val);
         this.editTableData = Array.from(new Set(this.editTableData));
         this.$emit("update:selBatchList", this.editTableData);
-        // console.log(this.editTableData);
+        
       }
       if (this.isCompany) {
         this.$emit("update:selBatchList", this.BatchList);

@@ -387,13 +387,11 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "表头");
+        console.log(this.tableHeadData, "表头");
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
           return element.fQureyCol == 1;
@@ -435,7 +433,6 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
-      // console.log(filters);
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -470,29 +467,21 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         this.tableData.forEach(element => {
           for (const key in element) {
             if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
+              (key.indexOf("Date") != -1 || key.indexOf("time") != -1|| key.indexOf("LifeDays") != -1) &&
               element[key] != null
             ) {
               element[key] = element[key].replace(/T/, " ");
             }
           }
         });
-        // this.tableData.forEach(element => {
-        //   for (const key in element) {
-        //     if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-        //       element[key] = timeCycle(element[key]);
-        //     }
-        //   }
-        // });
+
         console.log(this.tableData, "过滤表体内容");
       }
     },
@@ -535,7 +524,6 @@ export default {
               result = 1;
             }
             let obj = {
-              // Computer: "=",
               Computer: element.fComputer,
               DataFile: element.fColumn,
               Value: result
@@ -566,16 +554,14 @@ export default {
           }
         }
       }
-      // console.log(arr);
+
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
 
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
@@ -652,9 +638,7 @@ export default {
           },
           { userDes: this.userDes, userId: this.userId }
         ]);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           this.$message.success("审核成功!");
           this.getTableData();
@@ -669,7 +653,6 @@ export default {
     },
     //批量删除
     BatchDelete() {
-      console.log(111)
       if (this.BatchList.length == 0) {
         this.$message.warning("请选择要删除的数据!");
       } else {
@@ -696,7 +679,7 @@ export default {
               { userDes: this.userDes, userId: this.userId }
             ]);
             res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-            console.log(res);
+          
             if (res.State) {
               this.$message.success("删除成功!");
               this.getTableData();
@@ -733,7 +716,7 @@ export default {
               ];
               objectArr.push(obj);
             });
-            // console.log(objectArr);
+
             let res = await BathcDeleteData([
               {
                 MstItemKey: this.batchDelTableName,
@@ -742,17 +725,10 @@ export default {
               },
               { userDes: this.userDes, userId: this.userId }
             ]);
-            // console.log(res, "评量删除的结果");
-            // console.log(
-            //   decryptDesCbc(
-            //     res.deleteDataResult,
-            //     String(this.userDes),
-            //     "批量删除解密的结果"
-            //   )
-            // );
+
             res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-            if (res.state) {
+            if (res.State) {
               this.$message.success("删除成功!");
               this.getTableData();
             } else {
@@ -774,11 +750,6 @@ export default {
     //删除
     handleDelete(row, index) {
       let currentRow = JSON.parse(JSON.stringify(row));
-      // for (const key in currentRow) {
-      //   if (currentRow[key] == null) {
-      //     this.$set(currentRow, key, 0);
-      //   }
-      // }
       let resultData = addParams(this.tableHeadData, row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -844,11 +815,12 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          if (res.state) {
+
+          if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
           } else {
-            this.$message.error(res.Message);
+            this.$message.error(res.errstr);
           }
         })
         .catch(() => {
@@ -1036,15 +1008,12 @@ export default {
         file: file
       });
 
-      console.log(res);
+      // console.log(res,"xu");
       if (res.state) {
         this.$message.success("导入成功!");
+        this.getTableData()
       } else {
-        if (res.Message == null) {
-          this.$message.error("上传失败!");
-        } else {
-          this.$message.error(res.message);
-        }
+        this.$message.error(res.message);
       }
     }
   },
@@ -1059,7 +1028,6 @@ export default {
   created() {
     this.getTableHeadData();
     if (this.isPrint) {
-      console.log(11, "isPrint");
       this.getPrintHeadData();
       this.getPrintItemHeadData();
     }
@@ -1073,7 +1041,5 @@ export default {
 .table-wrapper /deep/.el-input__inner {
   border: none !important;
 }
-// .el-input {
-//   min-width: 250px;
-// }
+
 </style>
