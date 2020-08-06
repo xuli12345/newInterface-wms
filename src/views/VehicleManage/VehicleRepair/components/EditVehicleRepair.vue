@@ -237,7 +237,11 @@ export default {
     handleClose(done) {
       this.drawer = false;
     },
-
+     //tabs
+    handleClick(activeName) {
+      if (activeName == "second") {
+      }
+    },
     //新增
     addPopRight() {
       this.ItemTableData.forEach(ele => {
@@ -251,7 +255,7 @@ export default {
     closeItemBox(value) {
       if (value) {
         value.fSort = this.$refs[this.activeName][0].tableData.length + 1;
-        this.$refs[this.activeName][0].tableData.unshift(value);
+        this.$refs[this.activeName][0].tableData.push(value);
       }
       this.drawer = false;
     }
