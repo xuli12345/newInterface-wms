@@ -124,7 +124,6 @@ export default {
     // 手动选中Checkbox
     handleSelectionChange(val) {
       this.BatchList = val;
-
       if (this.isAuthority) {
         this.editTableData.push(...val);
         this.editTableData = Array.from(new Set(this.editTableData));
@@ -193,9 +192,7 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
         this.fTableViewData = res.fTableViewData;
@@ -228,9 +225,7 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let resultData = JSON.parse(res.Data);
@@ -258,11 +253,9 @@ export default {
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-      console.log(res);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.tableData = this.tableData.map(element => {
@@ -282,10 +275,8 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      // console.log(res);
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
         this.OrignData.forEach(element => {
@@ -299,7 +290,7 @@ export default {
         });
         this.tableData = this.OrignData;
         this.total = this.tableData.length;
-        console.log(this.tableData, "权限表数据");
+        // console.log(this.tableData, "权限表数据");
       }
     }
   },
@@ -317,7 +308,7 @@ export default {
 
   created() {
     this.getTableHead();
-    // this.getGroupLimitData();
+    this.getGroupLimitData();
   }
 };
 </script>

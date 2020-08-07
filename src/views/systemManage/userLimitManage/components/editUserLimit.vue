@@ -463,11 +463,9 @@ export default {
         ];
         if (valid) {
           let res = await collectionData(saveParams);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           // console.log(res);
-          if (res.state === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
             this.$refs[formName].resetFields();
@@ -505,7 +503,7 @@ export default {
       }
       //点击权限表
       if (activeName == "third") {
-        this.getMenuList();
+        // this.getMenuList();
       }
     },
 
@@ -513,19 +511,15 @@ export default {
       this.editTableData.push(item);
       this.editTableData = Array.from(new Set(this.editTableData));
       if (item[val] == 0) {
-        // item[val] = 1;
         this.$set(item, val, 1);
       } else if (item[val] == 1) {
-        // item[val] = 0;
         this.$set(item, val, 0);
       }
     },
     //获取权限组的表头数据
     async getTableHeadData() {
       let res = await getTableHeadData("t_UserLimit_Group");
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res, "权限组表头数据");
       if (res.State) {
         this.itemTableHead = res.lstRet.sort(compare);
@@ -539,9 +533,7 @@ export default {
     //获取权限组表格内容
     async getGroupLimitData() {
       let res = await getTableBodyData("v_UserGroup_Mst");
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res, "权限组");
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -561,9 +553,7 @@ export default {
     //获取权限公司表头数据
     async getSecondTableHead() {
       let res = await getTableHeadData("t_UserLimit_Company");
-      res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       // console.log(res, "公司表头数据");
       if (res.State) {
@@ -579,9 +569,7 @@ export default {
     //获取权限公司表格内容
     async getModData() {
       let res = await getTableBodyData("v_Company_Mst");
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let resultData = JSON.parse(res.Data);
@@ -608,9 +596,7 @@ export default {
       ];
 
       let res = await getTableBodyData(this.TableView, searchWhereObj);
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(JSON.parse(res.Data));
       if (res.State) {
         let resultData = JSON.parse(res.Data);
@@ -650,8 +636,8 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
-      // console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.menuList = res.Menuurl.Child;
       }
@@ -684,7 +670,7 @@ export default {
   async mounted() {
     this.fID = this.ruleForm.fID;
     let res = await getTableBodyData("t_User_Mst");
-    res = JSON.parse(decryptDesCbc(res.qureyDataResult, String(this.userDes)));
+    res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
     if (res.State) {
       this.UserArr = JSON.parse(res.Data);
     }

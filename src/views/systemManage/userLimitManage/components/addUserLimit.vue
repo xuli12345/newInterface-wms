@@ -218,15 +218,15 @@ export default {
             }
           ]);
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
           // console.log(res);
-          if (res.state === true) {
+          if (res.State === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
             this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -248,7 +248,7 @@ export default {
     //current的tabs
     handleClick(activeName) {
       if (activeName == "third") {
-        this.getMenuList();
+        // this.getMenuList();
       }
     },
 
@@ -271,7 +271,7 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.menuList = res.Menuurl.Child;
@@ -288,7 +288,7 @@ export default {
   },
   async mounted() {
     let res = await getTableBodyData("t_User_Mst");
-    res = JSON.parse(decryptDesCbc(res.qureyDataResult, String(this.userDes)));
+    res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
     if (res.State) {
       this.UserArr = JSON.parse(res.Data);
     }

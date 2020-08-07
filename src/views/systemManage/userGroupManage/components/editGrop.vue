@@ -271,7 +271,7 @@ export default {
     handleClick(activeName) {
       if (activeName == "second") {
         this.isHandleTabs = true;
-        this.getMenuList();
+        // this.getMenuList();
       }
     },
     changeColor(index) {

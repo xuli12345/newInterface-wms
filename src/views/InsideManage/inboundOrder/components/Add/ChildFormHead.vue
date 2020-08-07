@@ -6,8 +6,14 @@
         size="mini"
         class="iconfont icon-baocun"
         @click="submitForm('ruleForm')"
-      >保存</el-button>
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm('ruleForm')">取消</el-button>
+        >保存</el-button
+      >
+      <el-button
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm('ruleForm')"
+        >取消</el-button
+      >
     </div>
     <el-form
       :label-position="labelPosition"
@@ -95,7 +101,6 @@ export default {
   created() {
     this.getTableHeadData();
 
-
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
@@ -109,9 +114,7 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
@@ -125,9 +128,7 @@ export default {
     async getOrderNoData() {
       let res = await getOrderNo(this.fTableViewHead);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         for (const key in this.ruleForm) {
           if (
@@ -161,7 +162,6 @@ export default {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
       // this.$destroy();
-
     },
     //判断当前字段是否需要做下拉框
     //v表头所有的字段
@@ -265,7 +265,7 @@ export default {
           }
         ];
       }
-       let searchWhere = [];
+      let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res;
         if (
@@ -273,16 +273,14 @@ export default {
           this.selectArr[i].fName == "fProductCode"
         ) {
           res = await getTableBodyData(this.selectArr[i].fUrl, where);
-        } else if(this.selectArr[i].searchWhere) {
-           searchWhere = this.selectArr[i].searchWhere;
-           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
-        }else {
-           searchWhere = [];
+        } else if (this.selectArr[i].searchWhere) {
+          searchWhere = this.selectArr[i].searchWhere;
+          res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
+        } else {
+          searchWhere = [];
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         }
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段

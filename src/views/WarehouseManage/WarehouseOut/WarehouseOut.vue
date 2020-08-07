@@ -194,6 +194,21 @@ export default {
            ]
         },
         {
+          fName: "fVolumetUnitName",
+          fUrl: "v_Unit",
+          fDes: "fUnitName",
+          fID: "fID",
+          fAuto: ["fVolumetUnit"],
+          fAutoID: ["fVolumetUnit"],
+          searchWhere: [
+            {
+              Computer: "=",
+              DataFile: "fUnitType",
+              Value: 7
+            }
+          ]
+        },
+        {
           fName: "fItemStateName",
           fUrl: "v_Type_OutboundItemState",
           fDes: "fTypeName",

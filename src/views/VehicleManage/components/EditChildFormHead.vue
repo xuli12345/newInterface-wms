@@ -180,7 +180,7 @@ export default {
     },
     //下拉选择框选择的值
     selectVal(v) {
-      // console.log(this.selectArr)
+      
       let str = "";
       this.selectArr.forEach(element => {
         if (element.fName == v) {
@@ -205,7 +205,7 @@ export default {
           data = el;
         }
       });
-      // console.log(data);
+   
       this.selectArr.forEach(ele => {
         if (ele.fName == n && ele.fAuto) {
           ele.fAuto.forEach(item => {

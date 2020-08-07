@@ -135,6 +135,7 @@ export default {
     async getMenus() {
       let user = this.$store.state.user.userInfo;
       let res = await menus(user);
+      console.log(res);
       res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(user.userDes)));
       if (res.State) {
         this.$store.commit("common/updateMenuList", res.Menuurl.Child);
@@ -146,8 +147,9 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
+      console.log(res);
       res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
-      // console.log(res);
+
       if (res.State) {
         let menus = [];
         let result = res.Menuurl.Child;
@@ -166,10 +168,8 @@ export default {
           fColumnDes: "顶级模块"
         };
         data.unshift(obj);
-        // console.log(data);
         menus.push(object);
         this.selData = [...this.selData, ...menus];
-        console.log(this.selData);
       }
     },
     //下拉框数据
@@ -180,7 +180,6 @@ export default {
           OrderBy: "",
           SqlConn: this.sqlConn,
           TableView: "t_Mod_Mst",
-
           Where: [
             {
               Computer: "=",
@@ -192,12 +191,10 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      // console.log(res)
       if (res.State) {
         let result = JSON.parse(res.Data);
-        // console.log(result)
         let menus = [];
         let data = result.map((item, index) => {
           return {
@@ -214,10 +211,8 @@ export default {
           fColumnDes: "顶级模块"
         };
         data.unshift(obj);
-        // console.log(data);
         menus.push(object);
         this.selData = [...this.selData, ...menus];
-        console.log(this.selData);
       }
     }
   },

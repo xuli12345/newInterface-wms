@@ -6,8 +6,14 @@
         size="mini"
         class="iconfont icon-baocun"
         @click="submitForm('ruleForm')"
-      >保存</el-button>
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm('ruleForm')">取消</el-button>
+        >保存</el-button
+      >
+      <el-button
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm('ruleForm')"
+        >取消</el-button
+      >
     </div>
     <el-form
       :label-position="labelPosition"
@@ -50,7 +56,7 @@
               ></el-option>
             </el-select>
           </template>
-  
+
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
@@ -109,9 +115,7 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
@@ -125,9 +129,7 @@ export default {
     async getOrderNoData() {
       let res = await getOrderNo(this.fTableViewHead);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         for (const key in this.ruleForm) {
           if (
@@ -253,11 +255,15 @@ export default {
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
+       let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
-        let res = await getTableBodyData(this.selectArr[i].fUrl);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+          if (this.selectArr[i].searchWhere) {
+          searchWhere = this.selectArr[i].searchWhere;
+        } else {
+          searchWhere = [];
+        }
+        let res = await getTableBodyData(this.selectArr[i].fUrl,searchWhere);
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段
@@ -268,18 +274,10 @@ export default {
           this.$message.error(res.Message);
         }
       }
-      //   console.log(arr);
       this.selectAllData = arr;
-      // console.log(this.selectAllData, 11);
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   watch: {
     ruleForm: function(val) {
       this.ruleForm.fID = 0;

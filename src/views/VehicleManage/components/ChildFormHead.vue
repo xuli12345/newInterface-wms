@@ -6,8 +6,14 @@
         size="mini"
         class="iconfont icon-baocun"
         @click="submitForm('ruleForm')"
-      >保存</el-button>
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm('ruleForm')">取消</el-button>
+        >保存</el-button
+      >
+      <el-button
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm('ruleForm')"
+        >取消</el-button
+      >
     </div>
     <el-form
       :label-position="labelPosition"
@@ -95,7 +101,6 @@ export default {
   created() {
     this.getTableHeadData();
 
-
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
@@ -112,7 +117,7 @@ export default {
       res = JSON.parse(
         decryptDesCbc(res, String(this.userDes))
       );
-      // console.log(res);
+     
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.ruleForm = defaultForm(this.tableHead);
@@ -143,7 +148,7 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          // this.$message.success("添加成功!");
+         
           this.$notify({
             title: "新增",
             message: "新增成功",
@@ -160,8 +165,7 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
-      // this.$destroy();
-
+    
     },
     //判断当前字段是否需要做下拉框
     //v表头所有的字段
@@ -191,8 +195,6 @@ export default {
     selectStr(v) {
       let str = "";
       this.selectArr.forEach(element => {
-        // console.log(element)
-        // console.log(element.fDes)
         if (element.fName == v) {
           str = element.fDes;
         }
@@ -201,7 +203,6 @@ export default {
     },
     //下拉选择框选择的值
     selectVal(v) {
-      // console.log(this.selectArr)
       let str = "";
       this.selectArr.forEach(element => {
         if (element.fName == v) {
@@ -265,7 +266,7 @@ export default {
           }
         ];
       }
-       let searchWhere = [];
+      let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res;
         if (
@@ -273,16 +274,14 @@ export default {
           this.selectArr[i].fName == "fProductCode"
         ) {
           res = await getTableBodyData(this.selectArr[i].fUrl, where);
-        } else if(this.selectArr[i].searchWhere) {
-           searchWhere = this.selectArr[i].searchWhere;
-           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
-        }else {
-           searchWhere = [];
+        } else if (this.selectArr[i].searchWhere) {
+          searchWhere = this.selectArr[i].searchWhere;
+          res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
+        } else {
+          searchWhere = [];
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         }
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段
@@ -293,18 +292,11 @@ export default {
           this.$message.error(res.Message);
         }
       }
-      //   console.log(arr);
+
       this.selectAllData = arr;
-      // console.log(this.selectAllData, 11);
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   watch: {
     ruleForm: function(val) {
       this.ruleForm.fID = 0;
