@@ -136,6 +136,23 @@
           >审核</el-button
         >
         <el-button
+          v-if="isClose"
+          type="primary"
+          size="mini"
+          class="el-icon-circle-close"
+          @click="colseOrder"
+          >关闭</el-button
+        >
+        <el-button
+          v-if="putawayData"
+          type="primary"
+          size="mini"
+          class="el-icon-s-claim"
+          @click="handleInboundFinsh"
+          :disabled="userLimit('fApp')"
+          >入库完成</el-button
+        >
+        <el-button
           v-if="product"
           type="primary"
           class="el-icon-bottom"
@@ -317,6 +334,7 @@ import {
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
   //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:已审核  strType:导入excel类型字段
+  //putawayData:是否已上架完成   //isClose:单据关闭(入库,盘点,出库)
   props: [
     "fTableView",
     "tableName",
@@ -331,7 +349,9 @@ export default {
     "title",
     "storage",
     "isCheck",
-    "strType"
+    "strType",
+    "isClose",
+    "putawayData"
   ],
   components: {
     PrintTable
@@ -474,7 +494,9 @@ export default {
         this.tableData.forEach(element => {
           for (const key in element) {
             if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1|| key.indexOf("LifeDays") != -1) &&
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
               element[key] != null
             ) {
               element[key] = element[key].replace(/T/, " ");
@@ -614,13 +636,14 @@ export default {
     handleStorage() {
       this.$emit("openStorageCode");
     },
-    //已审查
-    async handleCheck() {
+
+    //已审查,单据关闭,入库完成共用方法
+    async billsFn(status, msg) {
       if (this.BatchList.length == 0) {
-        this.$message.warning("请选择要审核的数据!");
+        this.$message.warning(`请选择要${msg}的数据!`);
       } else {
         this.BatchList.forEach(item => {
-          this.$set(item, "fMstState", this.isCheck[1]);
+          this.$set(item, "fMstState", status);
         });
         let result = batchDelete(this.tableHeadData, this.BatchList);
         let res = await addformSaveData([
@@ -640,12 +663,24 @@ export default {
         ]);
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
-          this.$message.success("审核成功!");
+          this.$message.success(`${msg}成功!`);
           this.getTableData();
         } else {
           this.$message.error(res.Message);
         }
       }
+    },
+    //已审查,
+    handleCheck() {
+      this.billsFn(this.isCheck[1], "审核");
+    },
+    //单据关闭
+    colseOrder() {
+      this.billsFn(this.isClose[1], "关闭");
+    },
+    //入库完成
+    async handleInboundFinsh() {
+      this.billsFn(this.putawayData[1], "入库");
     },
     // 手动选中Checkbox
     handleSelectionChange(val) {
@@ -679,7 +714,7 @@ export default {
               { userDes: this.userDes, userId: this.userId }
             ]);
             res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          
+
             if (res.State) {
               this.$message.success("删除成功!");
               this.getTableData();
@@ -778,7 +813,7 @@ export default {
             this.$message.success("删除成功!");
             this.getTableData();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         })
         .catch(() => {
@@ -1011,7 +1046,7 @@ export default {
       // console.log(res,"xu");
       if (res.state) {
         this.$message.success("导入成功!");
-        this.getTableData()
+        this.getTableData();
       } else {
         this.$message.error(res.message);
       }
@@ -1041,5 +1076,4 @@ export default {
 .table-wrapper /deep/.el-input__inner {
   border: none !important;
 }
-
 </style>

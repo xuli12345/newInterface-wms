@@ -13,6 +13,7 @@
       :title="title"
       :isCheck="checkData"
       :isClose="closeData"
+      :putawayData="putawayData"
     ></HomeTable>
     <el-drawer
       :modal-append-to-body="false"
@@ -82,6 +83,8 @@ export default {
       checkData: [true, 7],
       //单据关闭的数据
       closeData: [true, 8],
+      //已上架的数据
+      putawayData: [true, 6],
       printView: [
         "t_InboundOrderData",
         "v_InboundOrderData",
@@ -109,7 +112,7 @@ export default {
       //fAutoID 需要转换使用fID的值
       //fEdit  需要转换使用的当前页面显示的字段名fInboundOrdeTypeName fInboundOrdeType
       selectArr: [
-        {  
+        {
           fName: "fMstStateName",
           fUrl: "v_Type_InboundState",
           fDes: "fTypeName",
@@ -176,7 +179,7 @@ export default {
               DataFile: "fUnitType",
               Value: 10
             }
-           ]
+          ]
         },
         {
           fName: "fBoxNumUniName",
@@ -191,7 +194,7 @@ export default {
               DataFile: "fUnitType",
               Value: 10
             }
-           ]
+          ]
         },
         {
           fName: "fVolumetUnitName",
@@ -293,7 +296,7 @@ export default {
       }
       this.drawer = false;
     }
-  },
+  }
   //  created() {
   //   console.log(process.env.BASE_API)
   //   if (

@@ -1,20 +1,28 @@
 <template>
   <div>
-    <!--
-      :tableName="'t_Route_System_Mst'"
-    :isSaveSuccess="isSaveSuccess"
+    <HomeTable
+      :fTableView="fTableView"
+      :tableName="'t_Shop'"
+      :isSaveSuccess="isSaveSuccess"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
-      :batchDelTableName="batchDelTableName" -->
-    <HomeRoute :selectArr="selectArr" :fTableView="fTableView" @input="$emit('input', event.target.value)"></HomeRoute>
+    ></HomeTable>
 
-    <!-- <el-drawer
+    <!-- 新增侧滑框 -->
+    <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawer"
       :direction="direction"
       :before-close="handleClose"
       v-if="newisDestory"
     >
+      <CreatFrom
+        @closeBox="closeBox"
+        :tableHead="tableHeadData"
+        :tableName="'t_Shop'"
+        :selectArr="selectArr"
+          :fVisibleColumn="fVisibleColumn"
+      ></CreatFrom>
     </el-drawer>
     <el-drawer
       :modal-append-to-body="false"
@@ -23,14 +31,28 @@
       :before-close="handleEditClose"
       v-if="isDestory"
     >
-    </el-drawer> -->
+      <editCreatFrom
+        @closeBox="closeEditBox"
+        :tableHead="tableHeadData"
+        :tableName="'t_Shop'"
+        :rowData="editForm"
+        :selectArr="selectArr"
+        :selectParams="selectParams"
+        :fVisibleColumn="fVisibleColumn"
+      ></editCreatFrom>
+    </el-drawer>
   </div>
 </template>
 <script>
-import HomeRoute from "./components/RouteHome";
+import HomeTable from "@/components/HomeTable";
+import editCreatFrom from "./components/EditCreatFrom";
+import CreatFrom from "./components/CreatFrom";
+
 export default {
   components: {
-    HomeRoute
+    CreatFrom,
+    editCreatFrom,
+    HomeTable
   },
   data() {
     return {
@@ -47,42 +69,35 @@ export default {
       tableData: [],
       //当前行的数据
       editForm: {},
-      fTableView: "t_Route_System_Mst",
+      fTableView: "t_Shop",
       //是否新增成功
       isSaveSuccess: false,
-      //批量删除的数据
-      batchDelTableName: [
-        {
-          Key: "t_CodeRules_Template_Item",
-          Value: [{ Key: "fID", Value: "fMstID" }]
-        }
-      ],
       userDes: this.$store.state.user.userInfo.userDes,
+  //回显省事联动配的字段
+      selectParams: ["fProvince", "fCity", "fDistrict"],
+      //需要隐藏的字段
+      fVisibleColumn: ["fProvince", "fCity", "fDistrict"],
+      //表单需要下拉选择的数据
+      //fName 需要做下拉的字段，fUrl 下拉选择的数据的接口，fDes 下拉选择的label值 ,fID选择绑定的值
+      //fAuto 需要自动带出的值
+      //fAutoID 需要转换使用fID的值
       selectArr: [
         {
-          fName: "fCustomerName",
-          fUrl: "v_Customer",
-          fDes: "fCustomerName",
+          fName: "fWarehouseName",
+          fUrl: "v_Warehouse_Mst",
+          fDes: "fWarehouseName",
           fID: "fID",
-          fAuto: ["fCustomerID"],
-          fAutoID: ["fCustomerID"]
-        },
-
-        {
-          fName: "fLoadGradeName",
-          fUrl: "v_Type_LoadGrade",
-          fDes: "fTypeName",
-          fID: "fID",
-          fAuto: ["fLoadGradeID"],
-          fAutoID: ["fLoadGradeID"]
+          fAuto: ["fWarehouseID"],
+          fAutoID: ["fWarehouseID"]
+          // fEdit: [{ key: "fMstStateName", value: "TypeName" }]
         },
         {
-          fName: "fRouteTypeName",
-          fUrl: "v_Type_Route_System",
+          fName: "fAreaTypeName",
+          fUrl: "v_Type_Area",
           fDes: "fTypeName",
           fID: "fID",
-          fAuto: ["fRouteType"],
-          fAutoID: ["fRouteType"]
+          fAuto: ["fAreaType"],
+          fAutoID: ["fAreaType"]
         }
       ]
     };
@@ -100,9 +115,6 @@ export default {
     }
   },
   methods: {
-    input(e){
-      console.log(e,"e")
-    },
     //新增
     openDrawer(headData) {
       this.tableHeadData = headData;
@@ -116,14 +128,25 @@ export default {
       this.drawerValue = true;
       this.isSaveSuccess = false;
     },
-
+   changeColumn() {
+      this.tableHeadData.shift();
+      this.fVisibleColumn.forEach(item => {
+        this.tableHeadData.forEach(ele => {
+          if (item == ele.fColumn) {
+            this.$set(ele, "fVisible", 1);
+          }
+        });
+      });
+    },
     //点击x关闭弹窗
     handleClose(done) {
       this.drawer = false;
+      this.changeColumn();
     },
     //点击x关闭弹窗
     handleEditClose(done) {
       this.drawerValue = false;
+        this.changeColumn();
     },
     //关闭修改弹窗
     closeEditBox(val) {

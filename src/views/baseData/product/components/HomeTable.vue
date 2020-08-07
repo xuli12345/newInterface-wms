@@ -139,14 +139,6 @@
         >
 
         <el-button
-          v-if="isClose"
-          type="primary"
-          size="mini"
-          class="iconfont icon-guanbi"
-          @click="colseOrder"
-          >关闭</el-button
-        >
-        <el-button
           v-if="product"
           type="primary"
           class="el-icon-bottom"
@@ -316,13 +308,12 @@ import {
   getTableBodyData,
   getTableHeadData,
   BathcDeleteData,
-  imPortExcel,
-
+  imPortExcel
 } from "@/api/index";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
   //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:审核(入库,盘点,出库)  strType:导入excel类型字段
-  //isClose:单据关闭(入库,盘点,出库)
+
   props: [
     "fTableView",
     "tableName",
@@ -337,8 +328,7 @@ export default {
     "title",
     "storage",
     "isCheck",
-    "strType",
-    "isClose"
+    "strType"
   ],
   components: {
     PrintTable
@@ -660,43 +650,7 @@ export default {
         }
       }
     },
-    //单据关闭
-    async colseOrder() {
-      console.log("单据关闭");
-      if (this.BatchList.length == 0) {
-        this.$message.warning("请选择要关闭的数据!");
-      } else {
-        this.BatchList.forEach(item => {
-          this.$set(item, "fMstState", this.isClose[1]);
-        });
-        let result = batchDelete(this.tableHeadData, this.BatchList);
-        let res = await addformSaveData([
-          {
-            lstSaveData: [
-              {
-                TableName: this.tableName,
-                IdentityColumn: null,
-                InsertRow: null,
-                UpdateRow: result.arr,
-                DeleteRow: null,
-                Columns: result.columns
-              }
-            ]
-          },
-          { userDes: this.userDes, userId: this.userId }
-        ]);
-        res = JSON.parse(
-          decryptDesCbc(res.saveDataResult, String(this.userDes))
-        );
-        // console.log(res);
-        if (res.state) {
-          this.$message.success("关闭成功!");
-          this.getTableData();
-        } else {
-          this.$message.error(res.errstr);
-        }
-      }
-    },
+
     // 手动选中Checkbox
     handleSelectionChange(val) {
       this.BatchList = val;

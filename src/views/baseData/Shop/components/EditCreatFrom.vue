@@ -2,12 +2,14 @@
   <div>
     <div class="btns">
       <el-button type="primary" size="mini" @click="submitForm('ruleForm')">
-        <i class="iconfont icon-baocun"></i>保存</el-button
-      >
+        <i class="iconfont icon-baocun"></i>保存
+      </el-button>
       <el-button size="mini" @click="resetForm('ruleForm')">
-        <i class="iconfont icon-quxiao"></i>取消</el-button
-      >
+        <i class="iconfont icon-quxiao"></i>
+        取消
+      </el-button>
     </div>
+
     <el-form
       label-position="right"
       label-width="180px"
@@ -40,7 +42,7 @@
               ></el-option>
             </el-select>
           </template>
-
+          <!-- 省市联动 -->
           <el-cascader
             v-else-if="item.fColumn == 'address'"
             size="large"
@@ -56,15 +58,9 @@
             placeholder="选择日期时间"
             :disabled="item.fReadOnly == 0 ? false : true"
           ></el-date-picker>
-
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
-          ></el-input>
-          <el-input
-            v-else-if="item.fDataType == 'decimal'"
-            v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
           ></el-input>
           <el-checkbox
@@ -86,7 +82,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { collectionData, getTableBodyData } from "@/api/index";
-import { creatRules, defaultForm } from "@/utils/common";
+import { creatRules } from "@/utils/common";
 import { regionData, CodeToText } from "element-china-area-data";
 export default {
   data() {
@@ -96,8 +92,6 @@ export default {
       //表单数据
       ruleForm: {},
       rules: {},
-      //需要下拉选择的所有数据
-      selectAllData: [],
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       obj: {
@@ -124,13 +118,18 @@ export default {
         fTableView: "t_AddressBook",
         fVisible: 1
       },
-      Areaobj: {}
+      //需要下拉选择的所有数据
+      selectAllData: []
     };
   },
   props: {
     tableHead: {
       type: Array,
       default: () => []
+    },
+    rowData: {
+      type: Object,
+      default: () => {}
     },
     tableName: {
       type: String,
@@ -141,8 +140,10 @@ export default {
       type: Array,
       default: () => []
     },
-
-    //不可见的字段(省市区字段)
+    selectParams: {
+      type: Array,
+      default: () => []
+    },
     fVisibleColumn: {
       type: Array,
       default: () => []
@@ -152,7 +153,7 @@ export default {
   methods: {
     handleChange() {
       var loc = "";
-      this.Areaobj = {};
+      let obj = {};
       for (let i = 0; i < this.selectedOptions.length; i++) {
         loc += CodeToText[this.selectedOptions[i]] + ",";
       }
@@ -162,36 +163,31 @@ export default {
       let newArr = ["fProvince", "fCity", "fDistrict"];
 
       for (let i = 0; i < newArr.length; i++) {
-        this.Areaobj[newArr[i]] = arr[i];
+        obj[newArr[i]] = arr[i];
       }
 
-      if (this.Areaobj.fDistrict == undefined) {
-        this.Areaobj.fDistrict = "";
+      if (obj.fDistrict == undefined) {
+        obj.fDistrict = "";
       }
-
-      this.ruleForm = Object.assign(this.ruleForm, this.Areaobj);
+      this.ruleForm = Object.assign(this.ruleForm, obj);
     },
+
     submitForm(formName) {
-      if (JSON.stringify(this.Areaobj) == "{}") {
-        this.$message.warning("请选择地址!");
-        return;
-      }
       this.$refs[formName].validate(async valid => {
         if (valid) {
           let res = await collectionData([
             {
-              TableName: this.tableName,
               headData: this.tableHead,
-              insertData: [this.ruleForm]
+              updateData: [this.ruleForm],
+              TableName: this.tableName
             }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           if (res.State) {
-            this.$message.success("新增成功!");
-            this.$emit("closeBox", res.State, res.Identity);
+            this.$message.success("修改成功!");
             this.changeColumn();
+            this.$emit("closeBox", res.State);
             this.$refs[formName].resetFields();
-            this.ruleForm = defaultForm(this.tableHead);
           } else {
             this.$message.error(res.Message);
           }
@@ -200,14 +196,13 @@ export default {
         }
       });
     },
-
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
       this.changeColumn();
     },
     changeColumn() {
-      this.tableHead.splice(3, 1);
+      this.tableHead.splice(7, 1);
       this.fVisibleColumn.forEach(item => {
         this.tableHead.forEach(ele => {
           if (item == ele.fColumn) {
@@ -238,7 +233,6 @@ export default {
           this.$message.error(res.Message);
         }
       }
-  
       this.selectAllData = arr;
     },
     //判断当前字段是否需要做下拉框
@@ -260,7 +254,7 @@ export default {
           arr = ele.data;
         }
       });
-    // console.log(arr,"arr")
+
       return arr;
     },
     //下拉选择框需要显示的label字段
@@ -324,12 +318,61 @@ export default {
           });
         }
       });
+    },
+    //回显省事联动
+    selGetArea() {
+      let str = [];
+      this.selectParams.forEach(item => {
+        for (const key in this.ruleForm) {
+          if (item == key) {
+            str.push(this.ruleForm[item]);
+          }
+        }
+      });
+
+      var temp = [];
+      let that = this;
+      scoure(str);
+      function scoure(str) {
+        for (let i = 0; i < that.options.length; i++) {
+          function getChildren(item) {
+            if (str.includes(item.label)) {
+              temp = temp.concat(item.value);
+              if (item.children && item.children.length > 0) {
+                item.children.forEach(v => {
+                  getChildren(v);
+                });
+              }
+            }
+            return temp;
+          }
+          getChildren(that.options[i]);
+        }
+      }
+      this.selectedOptions = temp;
+    },
+    //处理bit类型的回显
+    changeBool() {
+      this.tableHead.forEach(element => {
+        if (element.fDataType == "bit" && this.ruleForm[element.fColumn] == 1) {
+          this.$set(this.ruleForm, element.fColumn, true);
+        } else if (
+          element.fDataType == "bit" &&
+          this.ruleForm[element.fColumn] == 0
+        ) {
+          this.$set(this.ruleForm, element.fColumn, false);
+        }
+      });
     }
   },
   created() {
-    this.ruleForm = defaultForm(this.tableHead);
     this.rules = creatRules(this.tableHead);
-    this.tableHead.splice(3, 0, this.obj);
+    this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
+    let userInfo = JSON.parse(sessionStorage.getItem("user"));
+    this.$set(this.ruleForm, "fModifierCode", userInfo.usercode);
+    this.$set(this.ruleForm, "fModifier", userInfo.userId);
+    this.ruleForm.fModifyDate = new Date();
+    this.tableHead.splice(7, 0, this.obj);
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
@@ -340,6 +383,28 @@ export default {
         }
       });
     });
+    this.selGetArea();
+    this.changeBool();
+  },
+  watch: {
+    rowData(newVal, oldVal) {
+      this.ruleForm = JSON.parse(JSON.stringify(newVal));
+      this.selGetArea();
+      this.changeBool();
+      this.tableHead.splice(7, 0, this.obj);
+      this.fVisibleColumn.forEach(item => {
+        this.tableHead.forEach(ele => {
+          if (item == ele.fColumn) {
+            this.$set(ele, "fVisible", 0);
+          }
+        });
+      });
+
+      let userInfo = JSON.parse(sessionStorage.getItem("user"));
+      this.$set(this.ruleForm, "fModifier", userInfo.userId);
+      this.$set(this.ruleForm, "fModifierCode", userInfo.usercode);
+      this.ruleForm.fModifyDate = new Date();
+    }
   }
 };
 </script>

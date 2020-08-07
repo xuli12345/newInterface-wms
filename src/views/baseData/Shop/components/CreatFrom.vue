@@ -207,7 +207,7 @@ export default {
       this.changeColumn();
     },
     changeColumn() {
-      this.tableHead.splice(3, 1);
+      this.tableHead.splice(7, 1);
       this.fVisibleColumn.forEach(item => {
         this.tableHead.forEach(ele => {
           if (item == ele.fColumn) {
@@ -238,7 +238,6 @@ export default {
           this.$message.error(res.Message);
         }
       }
-  
       this.selectAllData = arr;
     },
     //判断当前字段是否需要做下拉框
@@ -260,7 +259,7 @@ export default {
           arr = ele.data;
         }
       });
-    // console.log(arr,"arr")
+
       return arr;
     },
     //下拉选择框需要显示的label字段
@@ -329,7 +328,7 @@ export default {
   created() {
     this.ruleForm = defaultForm(this.tableHead);
     this.rules = creatRules(this.tableHead);
-    this.tableHead.splice(3, 0, this.obj);
+    this.tableHead.splice(7, 0, this.obj);
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
