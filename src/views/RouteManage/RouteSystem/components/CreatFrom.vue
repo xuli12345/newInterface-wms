@@ -326,7 +326,7 @@ export default {
   padding: 0 !important;
 }
 
-.el-form-item {
+.ruleForm .el-form-item {
   width: 50%;
 }
 </style>

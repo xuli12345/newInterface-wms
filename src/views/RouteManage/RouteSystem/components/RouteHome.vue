@@ -5,7 +5,11 @@
 
       <div class="search-title flex-align-center">
         运输线路体系:
-        <el-select v-model="routeValue" placeholder="请选择">
+        <el-select
+          v-model="routeValue"
+          @change="ValChange"
+          placeholder="请选择"
+        >
           <el-option
             v-for="optionItem in selectOpts"
             :key="optionItem.fID"
@@ -85,7 +89,7 @@ export default {
   },
   data() {
     return {
-      routeValue: 2,
+      routeValue: this.$store.state.common.changeValue,
       //下拉框选项的值
       selectOpts: [],
       //新增
@@ -107,13 +111,18 @@ export default {
     }
   },
   methods: {
+    ValChange() {
+      //   console.log(this.routeValue);
+      this.$emit("input", this.routeValue);
+      this.$store.commit("common/updateRouteValue", this.routeValue);
+    },
     //新增线路体系
     handleAdd() {
       this.dialogFormVisible = true;
     },
     //修改线路体系
     async handleEdit() {
-      //   console.log(this.routeValue);
+        // console.log(this.routeValue,"www");
       if (!this.routeValue) {
         this.$message.warning("请选择运输线路!");
         return;
