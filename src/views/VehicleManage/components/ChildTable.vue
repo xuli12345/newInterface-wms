@@ -88,7 +88,7 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
-import { getTableHeadData, getTableBodyData } from "@/api/index";
+import { getTableHeadData} from "@/api/index";
 export default {
   props: [
     "fTableView",

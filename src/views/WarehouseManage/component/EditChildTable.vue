@@ -8,7 +8,6 @@
       :row-key="getRowKeys"
       style="width: 100%;"
     >
-      <!-- @selection-change="handleSelectionChange" -->
       <el-table-column type="index" width="50"></el-table-column>
       <template v-for="(item, index) in tableHeadData">
         <el-table-column
@@ -54,7 +53,23 @@
                 :value="optionItem.value"
               ></el-option>
             </el-select>
-
+            <!-- 体积单位 -->
+            <el-select
+              @change="
+                selectType(scope.row, scope.row[item.fColumn], item.fColumn)
+              "
+              v-else-if="item.fColumn == 'fVolumetUnitName'"
+              v-model="scope.row[item.fColumn]"
+              placeholder="请选择"
+              :disabled="item.fReadOnly == 0 ? false : true"
+            >
+              <el-option
+                v-for="optionItem in selectOpts"
+                :key="optionItem.value"
+                :label="optionItem.label"
+                :value="optionItem.value"
+              ></el-option>
+            </el-select>
             <el-input
               v-else
               v-model="scope.row[item.fColumn]"
@@ -65,14 +80,14 @@
         </el-table-column>
       </template>
       <el-table-column fixed="right" label="操作" align="center" width="120">
-        <!-- v-if="tableDataPage.length > 0" -->
         <template slot-scope="scope">
           <div class="operation">
             <el-button
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
-            >删除</el-button>
+              >删除</el-button
+            >
           </div>
         </template>
       </el-table-column>
@@ -118,6 +133,7 @@ export default {
       fTableViewll: "",
       backData: [],
       selectOptions: [],
+      selectOpts: [],
       selData: []
     };
   },
@@ -215,7 +231,15 @@ export default {
         }
       });
     },
-
+    //下拉选择框
+    selectType(row, val, key) {
+      // console.log(row, val, key);
+      this.changeData.forEach(item => {
+        if (item.key == key) {
+          row[item.fKey] = val;
+        }
+      });
+    },
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
     },
@@ -241,22 +265,28 @@ export default {
           arr.push(obj);
         });
 
-        this.selectOptions = [...this.selData, ...arr];
+        // this.selectOptions = [...this.selData, ...arr];
+        let selData = [...this.selData, ...arr];
+        return selData;
       }
     }
   },
   watch: {
     insertData(n, o) {
       this.insertData[this.fTableView[1]] = this.fID;
-      this.tableData = this.tableData.concat(this.insertData);
+      this.tableData = this.tableData.concat(
+        JSON.parse(JSON.stringify(this.insertData))
+      );
       this.total = this.tableData.length;
     }
   },
 
-  created() {
+  async created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName", 10);
-    this.getType("v_Unit", "fBoxNumUniName", 10);
+    this.selectOptions = await this.getType("v_Unit", "fNumUnitName", 10);
+    // console.log(res);
+    // this.getType("v_Unit", "fBoxNumUniName", 10);
+    this.selectOpts = await this.getType("v_Unit", "fVolumetUnitName", 7);
   }
 };
 </script>

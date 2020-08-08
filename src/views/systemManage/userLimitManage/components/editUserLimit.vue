@@ -464,14 +464,14 @@ export default {
         if (valid) {
           let res = await collectionData(saveParams);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          // console.log(res);
+          console.log(res);
           if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -503,7 +503,7 @@ export default {
       }
       //点击权限表
       if (activeName == "third") {
-        // this.getMenuList();
+        this.getMenuList();
       }
     },
 
@@ -534,7 +534,6 @@ export default {
     async getGroupLimitData() {
       let res = await getTableBodyData("v_UserGroup_Mst");
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res, "权限组");
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.tableData.forEach(element => {

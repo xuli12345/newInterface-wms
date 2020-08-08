@@ -140,13 +140,13 @@ export default {
     async getHeadData() {
       let res = await getTableHeadData(this.fTableView);
       res = JSON.parse(
-        decryptDesCbc(res.getInterfaceEntityResult, String(this.userDes))
+        decryptDesCbc(res, String(this.userDes))
       );
 
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        console.log(this.tableHeadData, "字表表头数据11");
+        // console.log(this.tableHeadData, "字表表头数据11");
       } else {
         this.$message.error(res.Message);
       }

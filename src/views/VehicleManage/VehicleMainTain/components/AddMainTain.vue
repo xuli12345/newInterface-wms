@@ -184,7 +184,7 @@ export default {
             this.$emit("closeBox", res.State);
             // this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -248,7 +248,9 @@ export default {
     },
     //关闭字表新增弹窗
     closeItemBox(value, fTableView) {
+    //  console.log(value,fTableView,this.fTableViewItem[0])
       if (value && fTableView == this.fTableViewItem[0]) {
+         
         value.fSort = this.tableData.length + 1;
         this.tableData.unshift(value);
       } else if (value && fTableView == this.fTableViewItem[1]) {

@@ -96,12 +96,7 @@
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import {
-  getItemMenus,
-  getTableBodyData,
-  getTableHeadData,
-  collectionData
-} from "@/api/index";
+import { getItemMenus, getTableBodyData, collectionData } from "@/api/index";
 import HeadForm from "@/components/HeadForm";
 import ItemTable from "@/components/ItemTable";
 export default {
@@ -133,7 +128,7 @@ export default {
       //获取权限表id
       menuId: "",
       getRowKeys(row) {
-        return row.fModName||row.fID;
+        return row.fModName || row.fID;
       },
 
       getSecondRowKeys(row) {
@@ -217,11 +212,9 @@ export default {
               headData: this.AuthorityTableHeadData
             }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
-          // console.log(res);
-          if (res.State === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+   console.log(res,"xu")
+          if (res.State) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
             this.$refs.formBox.$refs.ruleForm.resetFields();
@@ -248,7 +241,7 @@ export default {
     //current的tabs
     handleClick(activeName) {
       if (activeName == "third") {
-        // this.getMenuList();
+        this.getMenuList();
       }
     },
 
@@ -264,15 +257,15 @@ export default {
       this.menuId = tab.$attrs.MenuID;
       this.isHandleMenu = true;
     },
- 
-     //获取菜单
+
+    //获取菜单
     async getMenuList() {
       let res = await getItemMenus([
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
+
       if (res.State) {
         this.menuList = res.Menuurl.Child;
       }

@@ -193,7 +193,7 @@ export default {
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -238,6 +238,7 @@ export default {
           this.$message.error(res.Message);
         }
       }
+  
       this.selectAllData = arr;
     },
     //判断当前字段是否需要做下拉框
@@ -259,7 +260,7 @@ export default {
           arr = ele.data;
         }
       });
-
+    // console.log(arr,"arr")
       return arr;
     },
     //下拉选择框需要显示的label字段

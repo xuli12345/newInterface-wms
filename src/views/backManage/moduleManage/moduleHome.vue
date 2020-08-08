@@ -224,8 +224,6 @@ export default {
       this.active = index;
     },
     clickMenus(val) {
-      // console.log(val, "菜单");
-      // console.log(this.currentData)
       let filterData = this.currentData.filter(element => {
         return element.fType == 1 || element.fType == "模块分类";
       });
@@ -249,8 +247,9 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
+
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      console.log(res);
+
       if (res.State) {
         this.menuList = res.Menuurl.Child;
       }
@@ -302,7 +301,6 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
-      // console.log(filters);
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -341,13 +339,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
       }
     },
 
@@ -408,9 +399,7 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        console.log(this.tableData, "表体内容");
         this.copyData = JSON.parse(JSON.stringify(this.tableData));
-        // console.log(this.tableData);
         //fType:1 为模块分类   fType:0 为模块程序 this.tableData:为模块分类数据
       }
     },
@@ -457,8 +446,8 @@ export default {
               { userDes: this.userDes, userId: this.userId }
             ]);
             res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-            // console.log(res);
-            if (res.state) {
+
+            if (res.State) {
               this.$message.success("删除成功!");
               this.getTableData();
             } else {
@@ -487,11 +476,6 @@ export default {
         this.$set(currentRow, "fType", 1);
       }
 
-      for (const key in currentRow) {
-        if (currentRow[key] == null) {
-          this.$set(currentRow, key, 0);
-        }
-      }
       let resultData = addParams(this.tableHeadData, currentRow);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -514,11 +498,9 @@ export default {
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
-          );
-          // console.log(res);
-          if (res.state) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+          if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
             this.$emit("delSuccess", true);
@@ -566,7 +548,7 @@ export default {
   },
   created() {
     this.getTableHeadData();
-    // this.getMenuList();
+    this.getMenuList();
   },
   mounted() {
     setTimeout(() => {

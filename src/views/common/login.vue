@@ -120,14 +120,12 @@ export default {
             this.$router.replace({ name: "home" });
             let user2 = this.$store.state.user.userInfo;
             let res3 = await menus(user2);
-            res3 = JSON.parse(
-              decryptDesCbc(res3, String(user.userDes))
-            );
+            res3 = JSON.parse(decryptDesCbc(res3, String(user.userDes)));
             if (res3.State) {
               this.$store.commit("common/updateMenuList", res3.Menuurl.Child);
             }
           } else {
-            this.$message.warning(res.userLoginResult.Message);
+            this.$message.warning(res.message);
           }
         } else {
           this.$message.error("登录失败!");

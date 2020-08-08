@@ -115,9 +115,10 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
+     
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
+ console.log(this.tableHead,"字表表头");
         this.ruleForm = defaultForm(this.tableHead);
         this.rules = creatRules(this.tableHead);
       } else {
@@ -127,7 +128,6 @@ export default {
     //获取入库单号
     async getOrderNoData() {
       let res = await getOrderNo(this.fTableViewHead);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         for (const key in this.ruleForm) {
@@ -161,7 +161,6 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
-      // this.$destroy();
     },
     //判断当前字段是否需要做下拉框
     //v表头所有的字段
@@ -191,8 +190,6 @@ export default {
     selectStr(v) {
       let str = "";
       this.selectArr.forEach(element => {
-        // console.log(element)
-        // console.log(element.fDes)
         if (element.fName == v) {
           str = element.fDes;
         }
@@ -291,18 +288,10 @@ export default {
           this.$message.error(res.Message);
         }
       }
-      //   console.log(arr);
       this.selectAllData = arr;
-      // console.log(this.selectAllData, 11);
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   watch: {
     ruleForm: function(val) {
       this.ruleForm.fID = 0;

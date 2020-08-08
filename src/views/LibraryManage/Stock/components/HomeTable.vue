@@ -85,7 +85,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { userLimit } from "@/utils/common";
+import { userLimit,compare } from "@/utils/common";
 import { tableBodyData, getTableHeadData, getTableBodyData } from "@/api/index";
 import Sortable from "sortablejs";
 export default {
@@ -165,10 +165,13 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
+          this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -185,7 +188,7 @@ export default {
 
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(this.compare);
+        this.tableHeadData = res.lstRet.sort(compare);
         // console.log(this.tableHeadData, "列头");
 
         //过滤搜索的字段
@@ -280,16 +283,19 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        // console.log(this.tableData, "表体内容");
+        console.log(this.tableData, "表体内容");
         this.oldList = this.tableData.map(v => v.fID);
         this.newList = this.oldList.slice();
         // this.$nextTick(() => {
         //   this.setSort();
         // });
-        this.tableData.forEach(element => {
+          this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 || key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -340,18 +346,7 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val;
     },
-    //排序
-    compare(obj1, obj2) {
-      let val1 = obj1.fSort;
-      let val2 = obj2.fSort;
-      if (val1 < val2) {
-        return -1;
-      } else if (val1 > val2) {
-        return 1;
-      } else {
-        return 0;
-      }
-    },
+   
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       let a = userLimit(val);

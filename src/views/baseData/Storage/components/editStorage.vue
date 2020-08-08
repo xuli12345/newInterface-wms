@@ -215,7 +215,7 @@ export default {
             this.$emit("closeBox", res.State);
             this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -317,7 +317,7 @@ export default {
     //关闭新增弹窗
     closeBox(value) {
       if (value) {
-        this.tableData.shift(value);
+        this.tableData.push(value);
         value.fMstID = this.fID;
         this.insertRow.push(value);
         this.tableData.forEach((item, index) => {

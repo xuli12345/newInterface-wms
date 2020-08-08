@@ -8,7 +8,7 @@
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
     ></home-table>
-    <!-- 新增侧滑框  v-if="newisDestory" -->
+
     <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawer"
@@ -16,9 +16,13 @@
       :before-close="handleClose"
       v-if="newisDestory"
     >
-      <CreatFrom @closeBox="closeBox" :tableHead="userTableHead" :tableName="'t_UserLimit_Mst'"></CreatFrom>
+      <CreatFrom
+        @closeBox="closeBox"
+        :tableHead="userTableHead"
+        :tableName="'t_UserLimit_Mst'"
+      ></CreatFrom>
     </el-drawer>
-    <!-- 修改侧滑框   v-if="isDestory" -->
+
     <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawerValue"
@@ -36,19 +40,12 @@
   </div>
 </template>
 <script>
+import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
+import { timeCycle } from "@/utils/updateTime"; //格式化时间
+import { menus, getUserLimitMenu } from "@/api/index";
 import HomeTable from "@/components/HomeTable";
 import CreatFrom from "./components/addUserLimit";
 import editCreatFrom from "./components/editUserLimit";
-import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
-import { timeCycle } from "@/utils/updateTime"; //格式化时间
-
-import {
-  tableBodyData,
-  addformSaveData,
-  ItemTableHeadData,
-  menus,
-  getUserLimitMenu
-} from "@/api/index";
 export default {
   components: {
     HomeTable,
@@ -120,8 +117,8 @@ export default {
     async getMenus() {
       let user = this.$store.state.user.userInfo;
       let res = await menus(user);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(user.userDes)));
-      console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(user.userDes)));
+
       if (res.State) {
         this.$store.commit("common/updateMenuList", res.Menuurl.Child);
       }
@@ -131,15 +128,12 @@ export default {
       let userId = JSON.parse(sessionStorage.getItem("user")).userId;
       let userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
       let res1 = await getUserLimitMenu([fCompanyId, userId]);
-      res1 = JSON.parse(
-        decryptDesCbc(res1.getModUserLimitDataResult, String(userDes))
-      );
+      res1 = JSON.parse(decryptDesCbc(res1, String(userDes)));
       sessionStorage.setItem("userLimit", res1.Data);
     }
   },
   watch: {
     drawerValue: function(val, old) {
-      // console.log(val)
       if (val) {
         this.isDestory = true;
       } else {

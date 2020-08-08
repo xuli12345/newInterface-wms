@@ -158,14 +158,14 @@ export default {
             ]
           );
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
-          if (res.state === true) {
+          if (res.State) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", res.state);
+            this.$emit("closeBox", res.State);
             this.$refs.formBox.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
@@ -180,7 +180,7 @@ export default {
     //tabs
     handleClick(activeName) {
       if (activeName == "second") {
-        // this.getMenuList();
+        this.getMenuList();
       }
     },
     changeColor(index) {
@@ -200,8 +200,8 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
-       console.log(res);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
+      //  console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
      
       if (res.State) {
         this.menuList = res.Menuurl.Child;

@@ -13,6 +13,7 @@
       :title="title"
       :isCheck="checkData"
       :isClose="closeData"
+      :putawayData="putawayData"
     ></HomeTable>
     <el-drawer
       :modal-append-to-body="false"
@@ -82,13 +83,15 @@ export default {
       checkData: [true, 7],
       //单据关闭的数据
       closeData: [true, 8],
+      //已上架的数据
+      putawayData: [true, 6],
       printView: [
         "t_InboundOrderData",
         "v_InboundOrderData",
         "v_InboundOrder_Item",
         "t_InboundOrder_Item"
       ],
-      title: [],
+      title: ["知行易通(厦门)信息科技有限公司", "商品进仓单"],
       //是否新增成功
       isSaveSuccess: false,
       //批量删除的数据
@@ -176,7 +179,7 @@ export default {
               DataFile: "fUnitType",
               Value: 10
             }
-           ]
+          ]
         },
         {
           fName: "fBoxNumUniName",
@@ -191,7 +194,7 @@ export default {
               DataFile: "fUnitType",
               Value: 10
             }
-           ]
+          ]
         },
         {
           fName: "fVolumetUnitName",
@@ -229,7 +232,8 @@ export default {
       // key:需要做下拉框的字段名  fKey:需要装换的id值
       changeData: [
         { key: "fNumUnitName", fKey: "fInboundNumUnit" },
-        { key: "fBoxNumUniName", fKey: "fInboundBoxNumUnit" }
+        { key: "fBoxNumUniName", fKey: "fInboundBoxNumUnit" },
+        { key: "fVolumetUnitName", fKey: "fVolumetUnit" }
       ]
     };
   },
@@ -292,26 +296,26 @@ export default {
       }
       this.drawer = false;
     }
-  },
-   created() {
-    // console.log(process.env.BASE_API)
-    if (
-      process.env.BASE_API &&
-      process.env.BASE_API == "http://39.99.185.176:8001/Service.svc"
-    ) {
-      this.title = ["山东齐畅冷链物流股份有限公司", "商品进仓单"];
-    } else if (
-      process.env.BASE_API &&
-      process.env.BASE_API == "http://192.168.137.1:8001/Service.svc"
-    ) {
-      this.title = ["广州恒嘉电子科技有限公司", "商品进仓单"];
-    } else if(  process.env.BASE_API &&
-      process.env.BASE_API =="http://8.129.208.95:8001/Service.svc") {
-      this.title = ["知行易通(厦门)信息科技有限公司", "商品进仓单"];
-    }else{
-
-    }
   }
+  //  created() {
+  //   console.log(process.env.BASE_API)
+  //   if (
+  //     process.env.BASE_API &&
+  //     process.env.BASE_API == "http://39.99.185.176:8001/Service.svc"
+  //   ) {
+  //     this.title = ["山东齐畅冷链物流股份有限公司", "商品进仓单"];
+  //   } else if (
+  //     process.env.BASE_API &&
+  //     process.env.BASE_API == "http://192.168.137.1:8001/Service.svc"
+  //   ) {
+  //     this.title = ["广州恒嘉电子科技有限公司", "商品进仓单"];
+  //   } else if(  process.env.BASE_API &&
+  //     process.env.BASE_API =="http://8.129.208.95:8004/api") {
+  //     this.title = ["知行易通(厦门)信息科技有限公司", "商品进仓单"];
+  //   }else{
+
+  //   }
+  // }
 };
 </script>
 <style lang="scss" scoped></style>

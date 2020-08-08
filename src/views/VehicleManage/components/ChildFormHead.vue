@@ -56,7 +56,16 @@
               ></el-option>
             </el-select>
           </template>
-
+          <!-- 出入库配件 -->
+          <el-input
+            v-else-if="
+              (item.fColumn == 'fPartsNum' && item.fDataType == 'int') ||
+                (item.fColumn == 'fPrice' && item.fDataType == 'decimal')
+            "
+            v-model="ruleForm[item.fColumn]"
+            :disabled="item.fReadOnly == 0 ? false : true"
+            @change="getPartsValue"
+          ></el-input>
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
@@ -114,10 +123,8 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-     
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.ruleForm = defaultForm(this.tableHead);
@@ -133,6 +140,7 @@ export default {
       res = JSON.parse(
         decryptDesCbc(res, String(this.userDes))
       );
+      // console.log(res);
       if (res.State) {
         for (const key in this.ruleForm) {
           if (
@@ -148,13 +156,12 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
-         
           this.$notify({
             title: "新增",
             message: "新增成功",
             type: "success"
           });
-          this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
+          this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)),this.fTableViewHead);
           this.$refs[formName].resetFields();
         } else {
           return false;
@@ -165,7 +172,18 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
-    
+    },
+    getPartsValue() {
+      let fPrice = 0,
+        fPartsNum = 0;
+      if (this.ruleForm.fPrice) {
+        fPrice = this.ruleForm.fPrice;
+      }
+      if (this.ruleForm.fPartsNum) {
+        fPartsNum = this.ruleForm.fPartsNum;
+      }
+      let value = Number(fPrice) * parseInt(fPartsNum);
+      this.$set(this.ruleForm, "fAmount", value);
     },
     //判断当前字段是否需要做下拉框
     //v表头所有的字段

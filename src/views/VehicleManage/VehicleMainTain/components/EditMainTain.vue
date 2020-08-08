@@ -274,14 +274,14 @@ export default {
           ]);
 
           res = JSON.parse(
-            decryptDesCbc(res.saveDataResult, String(this.userDes))
+            decryptDesCbc(res, String(this.userDes))
           );
           // console.log(res);
-          if (res.state) {
+          if (res.State) {
             this.$message.success("修改成功!");
-            this.$emit("closeBox");
+            this.$emit("closeBox",res.State);
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         }
       });

@@ -42,8 +42,8 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import moduleHome from "./moduleHome";
-import CreatFrom from "@/components/CreatFrom";
-import editCreatFrom from "@/components/editCreatFrom";
+import CreatFrom from "./CreatFrom";
+import editCreatFrom from "./editCreatFrom";
 import {
   menus,
   getTableBodyData,
@@ -135,8 +135,7 @@ export default {
     async getMenus() {
       let user = this.$store.state.user.userInfo;
       let res = await menus(user);
-      console.log(res);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(user.userDes)));
+      res = JSON.parse(decryptDesCbc(res, String(user.userDes)));
       if (res.State) {
         this.$store.commit("common/updateMenuList", res.Menuurl.Child);
       }
@@ -147,8 +146,8 @@ export default {
         ["1"],
         { userDes: this.userDes, userId: this.userId }
       ]);
-      console.log(res);
-      res = JSON.parse(decryptDesCbc(res.urlMenuResult, String(this.userDes)));
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         let menus = [];
@@ -217,7 +216,7 @@ export default {
     }
   },
   created() {
-    // this.getMenuList();
+    this.getMenuList();
     this.getSelData();
   }
 };
