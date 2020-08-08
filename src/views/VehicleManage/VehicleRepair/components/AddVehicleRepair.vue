@@ -24,6 +24,7 @@
         type="primary"
         size="mini"
         class="iconfont icon-xinzeng"
+        style="margin-bottom:10px"
         @click="addPopRight"
         >新增</el-button
       >
@@ -192,7 +193,8 @@ export default {
     //关闭字表新增弹窗
     closeItemBox(value) {
       if (value) {
-        this.$refs[this.activeName][0].tableData.unshift(value);
+        value.fSort = this.$refs[this.activeName][0].tableData.length + 1;
+        this.$refs[this.activeName][0].tableData.push(value);
       }
       this.drawer = false;
     }
