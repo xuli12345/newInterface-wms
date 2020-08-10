@@ -21,8 +21,14 @@ export default {
     mainTabsActiveName: "",
     //loading的状态
     loadingStatus: false,
+    //路线主表下拉框的值(fID)
+    changeValue: '3'
   },
   mutations: {
+    updateRouteValue(state, data) {
+      // console.log(state,data);
+      state.changeValue=data;
+    },
     updateSidebarLayoutSkin(state, skin) {
       state.sidebarLayoutSkin = skin;
     },
@@ -55,6 +61,6 @@ export default {
     updateLoadingStatus(state, value) {
       // console.log(value)
       state.loadingStatus = value;
-    },
-  },
+    }
+  }
 };

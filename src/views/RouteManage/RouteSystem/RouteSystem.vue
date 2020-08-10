@@ -6,15 +6,41 @@
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
       :batchDelTableName="batchDelTableName" -->
-    <HomeRoute :selectArr="selectArr" :fTableView="fTableView" @input="$emit('input', event.target.value)"></HomeRoute>
+    <HomeRoute
+      :selectArr="selectArr"
+      :fTableView="fTableView"
+      v-model="changValue"
+    ></HomeRoute>
+    <el-button
+      type="primary"
+      style="margin-left:10px;margin-bottom:5px"
+      circle
+      size="mini"
+      @click="addPop"
+      >新增</el-button
+    >
 
-    <!-- <el-drawer
+    <ItemHome
+      :fTableView="'t_Route_System_Item'"
+      :isSaveSuccess="isSaveSuccess"
+      @openDrawer="openDrawer"
+      @openEditDrawer="openEditDrawer"
+      :tableData="tableData"
+    ></ItemHome>
+    <!-- 新增 -->
+    <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawer"
       :direction="direction"
       :before-close="handleClose"
       v-if="newisDestory"
     >
+      <CreatItemTable
+        @closeBox="closeBox"
+        :selectArr="selectArr"
+        :fTableViewItem="fTableViewItem"
+        :fTableViewHead="fTableViewHead"
+      ></CreatItemTable>
     </el-drawer>
     <el-drawer
       :modal-append-to-body="false"
@@ -23,14 +49,30 @@
       :before-close="handleEditClose"
       v-if="isDestory"
     >
-    </el-drawer> -->
+      <EditItemTable
+        @closeBox="closeEditBox"
+        :selectArr="selectArr"
+        :fTableViewItem="fTableViewItem"
+        :fTableViewHead="fTableViewHead"
+        :rowData="editForm"
+      ></EditItemTable>
+    </el-drawer>
   </div>
 </template>
 <script>
 import HomeRoute from "./components/RouteHome";
+import ItemHome from "./components/ItemHome";
+import CreatItemTable from "./components/CreatItemTable";
+import EditItemTable from "./components/EditItemTable";
+import { getTableBodyData } from "@/api/index";
+import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
+import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 export default {
   components: {
-    HomeRoute
+    HomeRoute,
+    ItemHome,
+    CreatItemTable,
+    EditItemTable
   },
   data() {
     return {
@@ -50,6 +92,10 @@ export default {
       fTableView: "t_Route_System_Mst",
       //是否新增成功
       isSaveSuccess: false,
+      changValue: "",
+      //表头的字段，以及自增长字段
+      fTableViewHead: ["t_Route_System_Item", "fMstID"],
+      fTableViewItem: ["t_Route_System_ShopItem", "fSystemItemID"],
       //批量删除的数据
       batchDelTableName: [
         {
@@ -83,6 +129,14 @@ export default {
           fID: "fID",
           fAuto: ["fRouteType"],
           fAutoID: ["fRouteType"]
+        },
+        {
+          fName: "fPickSort",
+          fUrl: "v_Type_PickSort",
+          fDes: "fTypeName",
+          fID: "fID",
+          fAuto: ["fPickSortID"],
+          fAutoID: ["fPickSortID"]
         }
       ]
     };
@@ -97,11 +151,45 @@ export default {
       setTimeout(() => {
         this.newisDestory = newval;
       }, 10);
+    },
+
+    changValue(val) {
+      console.log(val, "val");
+      this.getTableData();
     }
   },
   methods: {
-    input(e){
-      console.log(e,"e")
+    async getTableData() {
+      let searchWhere = [
+        {
+          Computer: "=",
+          DataFile: "fMstID",
+          Value: this.$store.state.common.changeValue
+        }
+      ];
+      let res = await getTableBodyData("v_Route_System_Item", searchWhere);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.tableData = JSON.parse(res.Data);
+        this.total = this.tableData.length;
+
+        this.tableData.forEach(element => {
+          for (const key in element) {
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("Time") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
+            }
+          }
+        });
+        console.log(this.tableData, "表体内容");
+      }
+    },
+    addPop() {
+      this.drawer = true;
     },
     //新增
     openDrawer(headData) {
@@ -140,7 +228,10 @@ export default {
       }
       this.drawer = false;
     }
+  },
+  created() {
+    this.getTableData();
   }
 };
 </script>
-<style lang="scss"></style>
+<style lang="scss" scoped></style>

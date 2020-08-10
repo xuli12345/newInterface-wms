@@ -322,20 +322,12 @@ export default {
     this.$set(this.ruleForm, "fModifier", userInfo.userId);
   },
   watch: {
-    ruleForm: {
-      handler(val) {
-        this.tableHead.forEach(item => {
-          if (item.fDataType == "bit") {
-            if (val[item.fColumn] == 1) {
-              this.$set(this.ruleForm, item.fColumn, true);
-            } else if (val[item.fColumn] == 0) {
-              this.$set(this.ruleForm, item.fColumn, false);
-            }
-          }
-        });
-      },
-
-      deep: true // 表示开启深度监听
+    rowData(newVal, oldVal) {
+       this.ruleForm = JSON.parse(JSON.stringify(newVal));
+      this.ruleForm.fModifyDate = new Date();
+      let userInfo = JSON.parse(sessionStorage.getItem("user"));
+      this.$set(this.ruleForm, "fModifier", userInfo.userId);
+      this.$set(this.ruleForm, "fModifierCode", userInfo.usercode);
     }
   }
 };
@@ -349,7 +341,7 @@ export default {
   padding: 0 !important;
 }
 
-.el-form-item {
+.ruleForm .el-form-item {
   width: 50%;
 }
 </style>

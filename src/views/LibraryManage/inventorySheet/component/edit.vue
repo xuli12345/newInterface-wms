@@ -346,13 +346,7 @@ export default {
     this.getTableHead();
     this.kucunHeadData();
   },
-   computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
 };
 </script>
 

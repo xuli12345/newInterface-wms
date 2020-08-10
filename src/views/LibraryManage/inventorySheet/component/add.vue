@@ -32,7 +32,6 @@
       :tableData="tableData"
     ></child-table>
     <!-- 新增字表数据 -->
-
     <el-dialog
       :title="openTitle"
       :visible.sync="dialogFormVisible"
@@ -179,13 +178,8 @@ export default {
       this.dialogFormVisible = false;
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
+
   created() {
     this.getTableHeadData();
     this.getTableHead();
