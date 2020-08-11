@@ -92,7 +92,14 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData, getOrderNo } from "@/api/index";
 
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "alertArr", "fCustomerID"],
+  props: [
+    "fTableViewHead",
+    "addItem",
+    "selectArr",
+    "alertArr",
+    "fCustomerID",
+    "Amount"
+  ],
   data() {
     return {
       //表单域标签的位置
@@ -109,7 +116,6 @@ export default {
   },
   created() {
     this.getTableHeadData();
-
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
@@ -119,12 +125,20 @@ export default {
       this.getOrderNoData();
     }, 100);
   },
+  watch: {
+    ruleForm: function(val) {
+      this.ruleForm.fID = 0;
+    },
+    Amount(newVal, oldVal) {
+      this.$set(this.ruleForm, "fInboundAmount", newVal);
+      this.$set(this.ruleForm, "fOutboundAmount", newVal);
+    }
+  },
   methods: {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.ruleForm = defaultForm(this.tableHead);
@@ -136,10 +150,7 @@ export default {
     //获取入库单号
     async getOrderNoData() {
       let res = await getOrderNo(this.fTableViewHead);
-
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         for (const key in this.ruleForm) {
@@ -161,7 +172,11 @@ export default {
             message: "新增成功",
             type: "success"
           });
-          this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)),this.fTableViewHead);
+          this.$emit(
+            "closeBox",
+            JSON.parse(JSON.stringify(this.ruleForm)),
+            this.fTableViewHead
+          );
           this.$refs[formName].resetFields();
         } else {
           return false;
@@ -312,12 +327,6 @@ export default {
       }
 
       this.selectAllData = arr;
-    }
-  },
-
-  watch: {
-    ruleForm: function(val) {
-      this.ruleForm.fID = 0;
     }
   }
 };

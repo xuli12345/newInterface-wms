@@ -274,6 +274,50 @@ function addformSaveData(data) {
 }
 
 /**
+ *
+ *   封装配件入库 审核接口
+ *
+ */
+function savePartsInboundData(data) {
+  console.log(data[0], "请求的数据");
+  let obj = {
+    UserID: data[1].userId,
+    SqlConn: sqlConn,
+    ParameterDes: encryptDesCbc(
+      JSON.stringify(data[0]),
+      String(data[1].userDes)
+    )
+  };
+  //  console.log(JSON.stringify(obj),"请求加密的数据");
+  return http({
+    url: "/savePartsInboundData",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
+ *
+ *   封装配件出库 审核接口
+ *
+ */
+function savePartsOutboundData(data) {
+  console.log(data[0], "请求的数据");
+  let obj = {
+    UserID: data[1].userId,
+    SqlConn: sqlConn,
+    ParameterDes: encryptDesCbc(
+      JSON.stringify(data[0]),
+      String(data[1].userDes)
+    )
+  };
+  //  console.log(JSON.stringify(obj),"请求加密的数据");
+  return http({
+    url: "/savePartsOutboundData",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
  * 新增/删除/修改保存数据
  * @param {*} data 
  * 
@@ -571,5 +615,7 @@ export {
   saveContainerCode,
   queryViewData,
   saveStockAdjust,
-  imPortExcel
+  imPortExcel,
+  savePartsInboundData,
+  savePartsOutboundData,
 };

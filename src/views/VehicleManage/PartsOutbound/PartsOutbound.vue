@@ -8,6 +8,7 @@
       @openEditDrawer="openEditDrawer"
       :batchDelTableName="batchDelTableName"
       :isItem="true"
+      :isCheck="checkData"
     ></HomeTable>
     <el-drawer
       :modal-append-to-body="false"
@@ -48,7 +49,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "../components/HomeTable";
 import CreatFrom from "../components/FormTable";
 import EditFormTable from "../components/EditFormTable";
 
@@ -76,6 +77,7 @@ export default {
       fTableView: "t_Parts_Outbound_Mst",
       //是否新增成功
       isSaveSuccess: false,
+      checkData: [true, 2,"PartsOutbound"],
       //批量删除的数据
       batchDelTableName: [
         {

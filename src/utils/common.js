@@ -108,7 +108,7 @@ export function defaultForm(tableHead) {
   let userInfo = JSON.parse(sessionStorage.getItem("user"));
   tableHead.forEach(element => {
     if (element.fDataType == "datetime") {
-      if (element.fColumn == "fCreateDate"||element.fColumn == "fLogintime") {
+      if (element.fColumn == "fCreateDate" || element.fColumn == "fLogintime") {
         obj[element.fColumn] = new Date();
       } else {
         obj[element.fColumn] = null;
@@ -134,8 +134,7 @@ export function defaultForm(tableHead) {
       obj[element.fColumn] = 0;
     } else if (element.fNeedSave == 1 && element.fDataType == "string") {
       obj[element.fColumn] = "";
-    } else{
-      
+    } else {
     }
   });
 
@@ -235,6 +234,57 @@ export function userLimit(strVal) {
   return disabled;
   // return false
 }
+
+//处理数据是修改的，还是新增的，还是删除的
+//传入的参数  （原来的数据，现在的数据）
+//返回一个数组，[修改，新增，删除]
+export function handelData(BackData, NowData) {
+  let that = this;
+  let Back = JSON.parse(JSON.stringify(BackData));
+  let Now = JSON.parse(JSON.stringify(NowData));
+  let update = [],
+    insert = [],
+    deleted = [],
+    common = [];
+
+  //获取原来的和现在的公有数据fMstID
+  //公有数据就是修改的数据
+  Back.forEach(item => {
+    Now.forEach(child => {
+      if (item.fID == child.fID) {
+        common.push(child);
+      }
+    });
+  });
+  //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
+  common.forEach(item1 => {
+    // console.log(item1);
+    Now.forEach((item2, idx2) => {
+      if (item1.fID == item2.fID) {
+        Now.splice(idx2, 1);
+      }
+    });
+  });
+  //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
+  common.forEach(child1 => {
+    Back.forEach((child2, idx2) => {
+      if (child1.fID == child2.fID) {
+        Back.splice(idx2, 1);
+      }
+    });
+  });
+  if (common.length < 1) {
+    common = null;
+  }
+  if (Now.length < 1) {
+    Now = null;
+  }
+  if (Back.length < 1) {
+    Back = null;
+  }
+  return [common, Now, Back];
+}
+
 
 //根据fsort进行排序
 export function compare(obj1, obj2) {

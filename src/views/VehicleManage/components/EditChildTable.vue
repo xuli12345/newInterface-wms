@@ -57,7 +57,6 @@
         </el-table-column>
       </template>
       <el-table-column fixed="right" label="操作" align="center" width="120">
-        <!-- v-if="tableDataPage.length > 0" -->
         <template slot-scope="scope">
           <div class="operation">
             <el-button
@@ -111,7 +110,8 @@ export default {
       fTableViewll: "",
       backData: [],
       selectOptions: [],
-      selData: []
+      selData: [],
+      totalAmount: 0
     };
   },
   methods: {
@@ -182,12 +182,16 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        //原来的数据
         // this.tableData = this.tableData.sort(compare)
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -195,6 +199,13 @@ export default {
         this.backData = JSON.parse(JSON.stringify(this.tableData));
         console.log(this.backData, "回显的数据");
         this.total = this.tableData.length;
+        let sum = 0;
+        this.backData.forEach(item => {
+          // console.log(item, fStockAmount)
+          sum += item.fAmount;
+        });
+        this.totalAmount = sum;
+        this.$emit("getAmount",this.totalAmount)
       } else {
         this.$message.error(res.Message);
       }

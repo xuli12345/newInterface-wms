@@ -22,7 +22,7 @@ export default {
     //loading的状态
     loadingStatus: false,
     //路线主表下拉框的值(fID)
-    changeValue: '3'
+    changeValue: ''
   },
   mutations: {
     updateRouteValue(state, data) {

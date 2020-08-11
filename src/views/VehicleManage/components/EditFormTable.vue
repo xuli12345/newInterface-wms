@@ -26,6 +26,7 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
+      :Amount="totalAmount"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -33,6 +34,7 @@
       :fTableView="fTableViewItem"
       :insertData="insertData"
       :fID="rowData.fID"
+      @getAmount="getAmount"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -56,12 +58,7 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
-import {
-  getTableHeadData,
-  collectionData,
-
- 
-} from "@/api/index";
+import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
@@ -87,10 +84,15 @@ export default {
       //表格添加的数据
       insertData: {},
       //表格数据表头
-      tableHead: []
+      tableHead: [],
+      totalAmount: 0
     };
   },
   methods: {
+    getAmount(value) {
+      // console.log(value, 99);
+      this.totalAmount = value;
+    },
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead[0]);
@@ -105,10 +107,8 @@ export default {
     //获取表格的表头，保存的时候需要用到
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-     
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
       } else {
@@ -205,9 +205,7 @@ export default {
             }
           ]);
 
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
           if (res.State) {
             this.$message.success("修改成功!");
@@ -236,16 +234,11 @@ export default {
     closeItemBox(value) {
       if (value) {
         this.insertData = value;
+        this.totalAmount += value.fAmount;
+        // console.log(this.totalAmount);
       }
       this.drawer = false;
-    },
-    
-   
-
-    
- 
-
-  
+    }
   },
 
   created() {

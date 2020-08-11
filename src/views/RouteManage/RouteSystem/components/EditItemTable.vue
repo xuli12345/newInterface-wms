@@ -167,6 +167,7 @@ export default {
     //关闭子表新增弹窗
     closeItemBox(value) {
       if (value) {
+        // console.log(value)
         value.forEach(item => {
           this.$set(item, "fShopID", item.fID);
         });
@@ -228,7 +229,7 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
-    console.log(this.rowData, "11");
+    
   }
 };
 </script>

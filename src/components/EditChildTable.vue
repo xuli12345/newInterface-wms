@@ -95,7 +95,7 @@ export default {
       tableHeadData: [], //表头数据
       //获取表格内容TableView的值,在获取headData中获取
       getRowKeys(row) {
-        return row.fID;
+        return row.fSort||row.fID;
       },
       //表格数据
       tableData: [],
@@ -177,10 +177,10 @@ export default {
           Value: this.fID
         }
       ];
-      console.log(searchWhereObj, "searchWhereObj");
+      // console.log(searchWhereObj, "searchWhereObj");
       let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      console.log(res, "xuli");
+
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
 
@@ -240,15 +240,23 @@ export default {
   },
   watch: {
     insertData(n, o) {
-      let iData = JSON.parse(JSON.stringify(this.insertData));
-      //   iData[this.fTableView[1]] = this.fID;
-      console.log(iData);
-      iData.forEach((item, index) => {
-        this.$set(item, "fSort", this.tableData.length + index + 1);
-        this.$set(item, this.fTableView[1], this.fID);
-      });
-      this.tableData = this.tableData.concat(iData);
+      // console.log(Array.isArray(this.insertData), "243");
+      if (Array.isArray(this.insertData)) {
+        let iData = JSON.parse(JSON.stringify(this.insertData));
+
+        iData.forEach((item, index) => {
+          this.$set(item, "fSort", this.tableData.length + index + 1);
+          this.$set(item, this.fTableView[1], this.fID);
+        });
+        this.tableData = this.tableData.concat(iData);
+      } else {
+        this.insertData[this.fTableView[1]] = this.fID;
+        this.tableData = this.tableData.concat(
+          JSON.parse(JSON.stringify(this.insertData))
+        );
+      }
       this.total = this.tableData.length;
+      // console.log(this.tableData,"eieo")
     }
   },
 

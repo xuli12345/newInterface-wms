@@ -26,6 +26,7 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :Amount="totalAmount"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -55,14 +56,11 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
-import {
-  getTableHeadData,
-  collectionData,
-  
-} from "@/api/index";
+import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
 import ChildTable from "./ChildTable";
+import VueBus from "../../../vueBus";
 export default {
   //strType:导入文件的类型
   props: [
@@ -88,9 +86,9 @@ export default {
       //表格数据表头
       tableHead: [],
       //excel
-      fileTemp: null,
       file: null,
-      fileName: ""
+      //金额合计
+      totalAmount: ""
     };
   },
   methods: {
@@ -116,6 +114,7 @@ export default {
 
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
+        // console.log(this.tableHead,"表格表头")
       } else {
         this.$message.error(res.Message);
       }
@@ -169,17 +168,33 @@ export default {
     closeItemBox(value) {
       if (value) {
         this.tableData.unshift(value);
+        let sum = 0;
+        this.tableData.forEach(item => {
+          sum += item.fAmount;
+        });
+
+        this.totalAmount = sum;
+        // console.log(this.totalAmount, "sum");
       }
       this.drawer = false;
-    },
- 
-   
+    }
   },
 
   created() {
     this.getTableHeadData();
     this.getTableHead();
-  }
+  },
+  // watch: {
+  //   totalAmount(newVal, oldVal) {
+  //     this.totalAmount = newVal;
+  //      VueBus.$emit("changeValue", this.totalAmount);
+  //   }
+  // }
+  // updated() {
+  //   VueBus.$on("changeValue", mes => {
+  //     this.totalAmount = mes;
+  //   });
+  // }
 };
 </script>
 

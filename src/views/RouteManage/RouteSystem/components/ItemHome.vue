@@ -78,14 +78,14 @@ import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { addParams, userLimit } from "@/utils/common";
 import { compare } from "@/utils/common";
 import {
-  tableBodyData,
   addformSaveData,
   getTableBodyData,
-  getTableHeadData
+  getTableHeadData,
+  BathcDeleteData
 } from "@/api/index";
 export default {
   //fTableView:请求列头   isSaveSuccess:是否保存成功
-  props: ["fTableView", "isSaveSuccess", "batchDelTableName","tableData"],
+  props: ["fTableView", "isSaveSuccess", "tableData", "total"],
   data() {
     return {
       tableHeadData: [], //表头数据
@@ -94,15 +94,20 @@ export default {
       getRowKeys(row) {
         return row.fID;
       },
-      //表格数据
-      // tableData: [],
       BatchList: [],
       // 当前页数
       pageNum: 1,
       // 每页条数
       pageSize: 10,
       // 总条数
-      total: 0,
+      // total: 0,
+      //删除的数据
+      batchDelTableName: [
+        {
+          Key: "t_Route_System_ShopItem",
+          Value: [{ Key: "fID", Value: "fSystemItemID" }]
+        }
+      ],
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn")
@@ -183,7 +188,7 @@ export default {
           }
         });
 
-        console.log(this.tableData, "过滤表体内容");
+        console.log(this.tableData, "表体内容");
       }
     },
 
@@ -205,38 +210,6 @@ export default {
       return newData;
     },
 
-    // //获取table表格内容数据
-    // async getTableData() {
-    //   console.log(this.$store.state.common.changeValue);
-    //   let searchWhere = [
-    //     {
-    //       Computer: "=",
-    //       DataFile: "fMstID",
-    //       Value: this.$store.state.common.changeValue
-    //     }
-    //   ];
-    //   let res = await getTableBodyData("v_Route_System_Item", searchWhere);
-    //   res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-    //   if (res.State) {
-    //     this.tableData = JSON.parse(res.Data);
-    //     this.total = this.tableData.length;
-
-    //     this.tableData.forEach(element => {
-    //       for (const key in element) {
-    //         if (
-    //           (key.indexOf("Date") != -1 ||
-    //             key.indexOf("time") != -1 ||
-    //             key.indexOf("Time") != -1) &&
-    //           element[key] != null
-    //         ) {
-    //           element[key] = element[key].replace(/T/, " ");
-    //         }
-    //       }
-    //     });
-    //     console.log(this.tableData, "表体内容");
-    //   }
-    // },
-
     //双击表格弹框
     dblclick(row) {
       if (this.userLimit("fEdit") == false) {
@@ -255,6 +228,7 @@ export default {
     },
     //删除
     DeleteOne(row, index) {
+      // console.log(row);
       let currentRow = JSON.parse(JSON.stringify(row));
       let resultData = addParams(this.tableHeadData, row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
@@ -262,28 +236,21 @@ export default {
         cancelButtonText: "取消",
         type: "warning"
       })
+
         .then(async () => {
-          let res = await addformSaveData([
+          let res = await BathcDeleteData([
             {
-              lstSaveData: [
-                {
-                  TableName: this.fTableView,
-                  IdentityColumn: null,
-                  InsertRow: null,
-                  UpdateRow: null,
-                  DeleteRow: [resultData.arr],
-                  Columns: resultData.columns
-                }
-              ]
+              MstItemKey: this.batchDelTableName,
+              MstKeyValue: [[{ Key: "fID", Value: row.fID }]],
+              MstTableView: "t_Route_System_Item"
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
-
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          // console.log(res);
+
           if (res.State) {
             this.$message.success("删除成功!");
-            this.getTableData();
+            this.$emit("update:isSaveSuccess", res.State);
           } else {
             this.$message.error(res.Message);
           }
@@ -310,17 +277,9 @@ export default {
       return userLimit(val);
     }
   },
-  watch: {
-    isSaveSuccess(newVal, oldVal) {
-      if (newVal) {
-        // this.getTableData();
-      }
-    }
-  },
 
   created() {
     this.getTableHeadData();
-    // this.getTableData();
   }
 };
 </script>

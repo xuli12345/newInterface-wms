@@ -8,6 +8,7 @@
       @openEditDrawer="openEditDrawer"
       :batchDelTableName="batchDelTableName"
       :isItem="true"
+      :isCheck="checkData"
     ></HomeTable>
     <el-drawer
       :modal-append-to-body="false"
@@ -48,7 +49,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "../components/HomeTable";
 import CreatFrom from "../components/FormTable";
 import EditFormTable from "../components/EditFormTable";
 
@@ -76,6 +77,8 @@ export default {
       fTableView: "t_Parts_Inbound_Mst",
       //是否新增成功
       isSaveSuccess: false,
+      //审核的数据
+      checkData: [true, 2,"PartsInbound"],
       //批量删除的数据
       batchDelTableName: [
         {
@@ -105,13 +108,13 @@ export default {
           fAutoID: ["fState"]
         }
       ],
-      selectArr2: [
+      selectArr2: [ 
         {
           fName: "fPartsCode",
           fUrl: "t_Vehicle_Parts",
           fDes: "fPartsCode",
           fID: "fID",
-          fAuto: ["fVehiclePartID", "fPartsUnit", "fPartsName"],
+          fAuto: ["fVehiclePartID", "fPartsUnit", "fPartsName","fStockAmount","fStockNum"],
           fAutoID: ["fVehiclePartID"]
         }
       ]

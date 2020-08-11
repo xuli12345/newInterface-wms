@@ -90,7 +90,14 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "rowData", "fCustomerID"],
+  props: [
+    "fTableViewHead",
+    "addItem",
+    "selectArr",
+    "rowData",
+    "fCustomerID",
+    "Amount"
+  ],
   data() {
     return {
       //表单域标签的位置
@@ -104,8 +111,16 @@ export default {
       selectAllData: []
     };
   },
+  watch: {
+    Amount(newVal, oldVal) {
+      // console.log(newVal, oldVal);
+       this.ruleForm.fInboundAmount=newVal;
+       this.ruleForm.fOutboundAmount=newVal;
+    }
+  },
   created() {
     this.getTableHeadData();
+   
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }

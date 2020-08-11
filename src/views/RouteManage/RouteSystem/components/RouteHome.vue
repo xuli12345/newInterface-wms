@@ -1,8 +1,6 @@
 <template>
   <div>
     <div class="page flex-wrap">
-      <!-- @change=" selectType(scope.row, scope.row[item.fColumn], item.fColumn) " -->
-
       <div class="search-title flex-align-center">
         运输线路体系:
         <el-select
@@ -32,6 +30,7 @@
           type="primary"
           size="small"
           @click="handleEdit"
+           class="el-icon-edit"
           :disabled="userLimit('fEdit')"
           >修改线路体系</el-button
         >
@@ -39,13 +38,17 @@
           type="primary"
           size="small"
           @click.stop="handleDelete"
+           class="iconfont icon-shanchu"
           :disabled="userLimit('fDel')"
           >删除线路体系</el-button
+        >
+        
+        <el-button type="primary" size="small"  class="iconfont icon-renwufenpei" @click="handleDis"
+          >分派车辆</el-button
         >
       </div>
     </div>
     <!-- dailog -->
-
     <el-dialog title="新增线路" :visible.sync="dialogFormVisible">
       <CreatFrom
         @closeBox="closeBox"
@@ -63,6 +66,7 @@
         :rowData="rowData"
       ></editCreatFrom>
     </el-dialog>
+    <!-- 分派车辆 -->
   </div>
 </template>
 
@@ -122,7 +126,7 @@ export default {
     },
     //修改线路体系
     async handleEdit() {
-        // console.log(this.routeValue,"www");
+      // console.log(this.routeValue,"www");
       if (!this.routeValue) {
         this.$message.warning("请选择运输线路!");
         return;
@@ -136,7 +140,7 @@ export default {
         ];
         let result = await this.getMstData(searchWhere);
         this.rowData = result[0];
-        console.log(this.rowData, "rowData");
+        // console.log(this.rowData, "rowData");
         //修改的弹窗
         this.editFormVisible = true;
       }
@@ -222,6 +226,10 @@ export default {
         return result;
         // console.log(this.selectOpts, "主体数据");
       }
+    },
+    //分派车辆
+    handleDis() {
+      this.$emit("openVehicle");
     }
   },
   async created() {
