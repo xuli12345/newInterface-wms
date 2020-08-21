@@ -39,13 +39,13 @@
         >
           属性调整</el-button
         >
-        <el-button
+        <!-- <el-button
           type="primary"
           size="mini"
           class="iconfont icon-export"
           @click="handerExport"
           >导出</el-button
-        >
+        > -->
       </div>
     </div>
 

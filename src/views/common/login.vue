@@ -103,13 +103,11 @@ export default {
             window.localStorage.setItem("token", res.token);
             window.sessionStorage.setItem("user", JSON.stringify(user));
             this.$store.commit("user/updataUser", user);
-            this.$message.success("登录成功!");
-            this.$router.replace({ name: "home" });
+            this.$message.success("登录成功!");        
             let userId = res.userID;
             let userDes = decryptDesCbc(res.desCode, "d#s87@28se45&i(p");
             // //用户权限
             let fSqlConn = 1;
-
             this.options.forEach((item, index) => {
               if (this.value == item.fCompanyName) {
                 fSqlConn = item.fSqlConn;
