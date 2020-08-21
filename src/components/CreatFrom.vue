@@ -172,9 +172,7 @@ export default {
           searchWhere = [];
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段
@@ -293,6 +291,8 @@ export default {
 
   created() {
     this.ruleForm = defaultForm(this.tableHead);
+    this.ruleForm.fStockNum = 0;
+    this.ruleForm.fStockAmount = 0;
     this.rules = creatRules(this.tableHead);
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();

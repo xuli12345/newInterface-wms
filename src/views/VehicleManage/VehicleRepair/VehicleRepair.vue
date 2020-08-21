@@ -142,7 +142,7 @@ export default {
         {
           fName: "fPartsCode",
           fUrl: "t_Vehicle_Parts",
-          fDes: "fPartsName",
+          fDes: "fPartsCode",
           fID: "fID",
           fAuto: ["fVehiclePartID", "fPartsUnit", "fPartsName"],
           fAutoID: ["fVehiclePartID"]

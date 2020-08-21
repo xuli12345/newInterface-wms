@@ -43,6 +43,7 @@
           <el-button
             class="login-btn-submit"
             type="primary"
+            :disabled="isDisabled"
             @click="submitForm('dataForm')"
             >登录</el-button
           >
@@ -54,7 +55,7 @@
 
 <script>
 //导入请求的api
-import { userLogin } from "@/api/user";
+import { userLogin, login, getCompanyData } from "@/api/user";
 import { companyList, getUserLimitMenu, menus } from "@/api/index.js";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import axios from "axios";
@@ -63,6 +64,7 @@ export default {
   name: "login",
   data() {
     return {
+      isDisabled: false,
       options: [],
       value: "",
       dataForm: {
@@ -83,9 +85,12 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          let res = await userLogin({
-            username: this.dataForm.username,
-            password: md5(this.dataForm.password)
+          this.isDisabled = true;
+
+          let res = await login({
+            CustomerID: 1,
+            Usercode: this.dataForm.username,
+            Password: md5(this.dataForm.password)
           });
 
           if (res.state) {
@@ -95,11 +100,11 @@ export default {
               usercode: res.userCode,
               userDes: decryptDesCbc(res.desCode, "d#s87@28se45&i(p")
             };
-
+            window.localStorage.setItem("token", res.token);
             window.sessionStorage.setItem("user", JSON.stringify(user));
             this.$store.commit("user/updataUser", user);
             this.$message.success("登录成功!");
-
+            this.$router.replace({ name: "home" });
             let userId = res.userID;
             let userDes = decryptDesCbc(res.desCode, "d#s87@28se45&i(p");
             // //用户权限
@@ -115,7 +120,7 @@ export default {
               fSqlConn
             );
             res1 = JSON.parse(decryptDesCbc(res1, String(userDes)));
-            // console.log(res1,"res1")
+
             sessionStorage.setItem("userLimit", res1.Data);
             this.$router.replace({ name: "home" });
             let user2 = this.$store.state.user.userInfo;
@@ -125,6 +130,7 @@ export default {
               this.$store.commit("common/updateMenuList", res3.Menuurl.Child);
             }
           } else {
+            this.isDisabled = false;
             this.$message.warning(res.message);
           }
         } else {
@@ -149,7 +155,6 @@ export default {
 
   async created() {
     let res = await companyList();
-    // console.log(res);
     if (res.state) {
       let resCom = res.lstRet;
       this.options = resCom;
@@ -157,8 +162,6 @@ export default {
       sessionStorage.setItem("sqlConn", JSON.stringify(resCom[0].fSqlConn));
       sessionStorage.setItem("requestUrl", resCom[0].fServiceUrl);
       this.fCompanyId = resCom[0].fID;
-    } else {
-      // console.log(res);
     }
   }
 };

@@ -16,6 +16,7 @@
         取消</el-button
       >
     </div>
+    
 
     <el-scrollbar style="min-height: 180px;" :native="true">
       <el-form
@@ -334,6 +335,7 @@ export default {
 
     //获取子表内容
     async getItemData(val) {
+    
       this.fTableViewData = val;
       let res = await getInterfaceItemData([
         [this.ruleForm.fTableView, this.ruleForm.fDataTableView],
@@ -342,7 +344,9 @@ export default {
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
+      
         this.tableData = JSON.parse(res.Data);
+          // console.log(this.tableData,11)
         this.tableData.forEach(item => {
           for (const key in item) {
             if (

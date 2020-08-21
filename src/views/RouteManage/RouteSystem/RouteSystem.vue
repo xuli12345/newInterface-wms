@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- :batchDelTableName="batchDelTableName" -->
     <HomeRoute
       :selectArr="selectArr"
       :fTableView="fTableView"
@@ -221,6 +220,10 @@ export default {
       }
     },
     addPop() {
+      if (!this.$store.state.common.changeValue) {
+        this.$message.warning("请选择运输线路体系!");
+        return;
+      }
       this.drawer = true;
     },
     //新增

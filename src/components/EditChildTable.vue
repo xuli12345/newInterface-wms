@@ -95,7 +95,7 @@ export default {
       tableHeadData: [], //表头数据
       //获取表格内容TableView的值,在获取headData中获取
       getRowKeys(row) {
-        return row.fSort||row.fID;
+        return row.fSort || row.fID;
       },
       //表格数据
       tableData: [],
@@ -183,12 +183,17 @@ export default {
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-
-        // this.tableData = this.tableData.sort(compare)
-        this.tableData.forEach(element => {
+        this.tableData = this.tableData.sort(compare);
+        this.tableData.forEach((element, index) => {
+          this.$set(element, "fSort", index + 1);
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -240,7 +245,6 @@ export default {
   },
   watch: {
     insertData(n, o) {
-      // console.log(Array.isArray(this.insertData), "243");
       if (Array.isArray(this.insertData)) {
         let iData = JSON.parse(JSON.stringify(this.insertData));
 

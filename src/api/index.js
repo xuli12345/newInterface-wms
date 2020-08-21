@@ -15,8 +15,6 @@ function menus(obj) {
   sqlConn = Number(sessionStorage.getItem("sqlConn"));
   let arr = [];
   let object = {
-    UserID: obj.userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(arr), String(obj.userDes))
   };
   return http({
@@ -31,11 +29,7 @@ function menus(obj) {
  * 用户组权限表菜单
  */
 function getItemMenus(data) {
-  console.log(data[0]);
-  sqlConn = Number(sessionStorage.getItem("sqlConn"));
   let object = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
@@ -57,8 +51,6 @@ function getItemMenus(data) {
 function ItemTableHeadData(data) {
   console.log(data[0].fTableView);
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(data[0].fTableView, String(data[1].userDes))
   };
 
@@ -76,14 +68,11 @@ function ItemTableHeadData(data) {
 function BathcDeleteData(data) {
   console.log(data[0], "请求批量删除");
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
     )
   };
-  //  console.log(JSON.stringify(obj),"请求批量删除加密");
   return http({
     url: "/DeleteData",
     method: "POST",
@@ -100,11 +89,9 @@ function getTableHeadData(str) {
   let fTableView = '["' + str + '"]';
 
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
-  // console.log(fTableView, "获取表格表头");
+
   return http({
     url: "/GetInterfaceEntity",
     method: "POST",
@@ -119,8 +106,6 @@ function getTableHeadData(str) {
  */
 function GroupLimitData(data) {
   let object = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
@@ -136,10 +121,7 @@ function GroupLimitData(data) {
 //获取用户权限权限表数据
 function GetUserLimitData(data) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(data), String(userDes))
   };
   return http({
@@ -155,10 +137,7 @@ function GetUserLimitData(data) {
  */
 function tableBodyData(data) {
   console.log(data[0], "tableBodyData");
-  // console.log(JSON.stringify(data[0]));
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
@@ -178,7 +157,6 @@ function tableBodyData(data) {
  */
 function getTableBodyData(str, condition = []) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let obj1 = {
     Columns: "",
     OrderBy: "",
@@ -188,14 +166,35 @@ function getTableBodyData(str, condition = []) {
   };
   console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
-  // console.log(JSON.stringify(obj),"加密的内容")
+
   return http({
     url: "/QureyData",
     method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+
+function exportData(str, condition = []) {
+  userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
+
+  let obj1 = {
+    Columns: "",
+    OrderBy: "",
+    SqlConn: sqlConn,
+    TableView: str,
+    Where: condition
+  };
+  console.log(JSON.stringify(obj1), "获取表格内容");
+  let obj = {
+    ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
+  };
+
+  return http({
+    url: "/exportData",
+    method: "POST",
+    responseType: "blob",
     data: JSON.stringify(obj)
   });
 }
@@ -208,7 +207,6 @@ function getTableBodyData(str, condition = []) {
  */
 function queryViewData(str, condition = []) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let obj1 = {
     Columns: "",
     OrderBy: "",
@@ -216,10 +214,8 @@ function queryViewData(str, condition = []) {
     TableView: str,
     Where: condition
   };
-  console.log(obj1);
+  // console.log(obj1);
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
   return http({
@@ -236,14 +232,11 @@ function queryViewData(str, condition = []) {
  */
 function getOrderNo(str) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let fTableView = '["' + str + '"]';
   let object = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
-  // console.log(JSON.stringify(object));
+
   return http({
     url: "/getOrderNo",
     method: "POST",
@@ -256,16 +249,13 @@ function getOrderNo(str) {
  *
  */
 function addformSaveData(data) {
-  console.log(data[0], "请求的数据");
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
     )
   };
-  //  console.log(JSON.stringify(obj),"请求加密的数据");
+
   return http({
     url: "/SaveData",
     method: "POST",
@@ -279,16 +269,13 @@ function addformSaveData(data) {
  *
  */
 function savePartsInboundData(data) {
-  console.log(data[0], "请求的数据");
+  // console.log(data[0], "请求的数据");
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
     )
   };
-  //  console.log(JSON.stringify(obj),"请求加密的数据");
   return http({
     url: "/savePartsInboundData",
     method: "POST",
@@ -301,16 +288,12 @@ function savePartsInboundData(data) {
  *
  */
 function savePartsOutboundData(data) {
-  console.log(data[0], "请求的数据");
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
     )
   };
-  //  console.log(JSON.stringify(obj),"请求加密的数据");
   return http({
     url: "/savePartsOutboundData",
     method: "POST",
@@ -320,8 +303,6 @@ function savePartsOutboundData(data) {
 /**
  * 新增/删除/修改保存数据
  * @param {*} data 
- * 
- * data 是数组，
  * 如data: [
           {
             type: "insert",type 字符串 有三个值 insert（新建） update（修改） delete（删除）
@@ -329,13 +310,14 @@ function savePartsOutboundData(data) {
             bodyData: this.selSceondData,//表格的内容
             headData: this.itemSceondTableHead,//表格的头部
             IdentityColumn: "fLimitID"//自增长字段
-          }
-});
+          }]
+ * 
+ * 
  * 
  */
 function collectionData(data) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
+
   let saveObj = [];
   let globalColumns;
   data.forEach(element => {
@@ -371,13 +353,11 @@ function collectionData(data) {
     lstSaveData: saveObj
   };
   console.log(savaData);
-  // console.log(JSON.stringify(savaData), "请求保存的数据");
+
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
   };
-  // console.log(JSON.stringify(obj), "请求保存加密的数据");
+
   return http({
     url: "/SaveData",
     method: "POST",
@@ -391,6 +371,7 @@ function collectionData(data) {
  *
  *
  */
+
 function storageCollectionData(data) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
@@ -429,8 +410,6 @@ function storageCollectionData(data) {
   console.log(savaData);
   console.log(JSON.stringify(savaData));
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
   };
   return http({
@@ -447,46 +426,11 @@ function storageCollectionData(data) {
  *
  */
 function saveContainerCode(data) {
-  userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
-  let saveObj = [];
-  let globalColumns;
-  data.forEach(element => {
-    let obj = {};
-    let update = null,
-      deleted = null,
-      insert = null;
-    if (element.insertData && element.insertData.length > 0) {
-      insert = batchDelete(element.headData, element.insertData);
-      globalColumns = insert.columns;
-    }
-    if (element.updateData && element.updateData.length > 0) {
-      update = batchDelete(element.headData, element.updateData);
-      globalColumns = update.columns;
-    }
-    if (element.deleteData && element.deleteData.length > 0) {
-      deleted = batchDelete(element.headData, element.deleteData);
-      globalColumns = deleted.columns;
-    }
-    // console.log(insert,update,deleted)
-    obj = {
-      TableName: element.TableName,
-      IdentityColumn: element.IdentityColumn ? element.IdentityColumn : null,
-      InsertRow: insert ? insert.arr : null,
-      UpdateRow: update ? update.arr : null,
-      DeleteRow: deleted ? deleted.arr : null,
-      Columns: globalColumns
-    };
-    saveObj.push(obj);
-  });
-  let savaData = {
-    lstSaveData: saveObj
-  };
-
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
-    ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
+    ParameterDes: encryptDesCbc(
+      JSON.stringify(data[0]),
+      String(data[1].userDes)
+    )
   };
   return http({
     url: "/saveContainerCodeData",
@@ -499,15 +443,10 @@ function saveContainerCode(data) {
  *
  * @param {*} data
  * 库存表管理 设置在库数量保存
- * saveStockAdjustData
+ *
  */
 function saveStockAdjust(data) {
-  // console.log(data[0]);
-  // console.log(JSON.stringify(data[0]));
-  // console.log(data[1]);
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
@@ -528,14 +467,12 @@ function saveStockAdjust(data) {
 function getInterfaceItemData(data) {
   console.log(JSON.stringify(data[0]));
   let obj = {
-    UserID: data[1].userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
     )
   };
-  // console.log(JSON.stringify(obj))
+
   return http({
     url: "/qureyInterfaceItemData",
     method: "POST",
@@ -549,7 +486,6 @@ function getInterfaceItemData(data) {
  */
 
 function imPortExcel(data) {
- 
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let formData = new FormData();
@@ -579,13 +515,8 @@ function companyList() {
 // 获取用户权限
 function getUserLimitMenu(data, fSqlconn) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-  userId = JSON.parse(sessionStorage.getItem("user")).userId;
-  if (fSqlconn) {
-    sqlConn = fSqlconn;
-  }
+
   let obj = {
-    UserID: userId,
-    SqlConn: sqlConn,
     ParameterDes: encryptDesCbc(JSON.stringify(data), String(userDes))
   };
   return http({
@@ -618,4 +549,27 @@ export {
   imPortExcel,
   savePartsInboundData,
   savePartsOutboundData,
+  exportData
 };
+
+
+
+//主要是将返回的data数据通过blob保存成文件
+          var content = res.data;
+          var blob = new Blob([content]);
+          var fileName = "出库单导入模板123456.xlsx"; //要保存的文件名称
+          if ("download" in document.createElement("a")) {
+            // 非IE下载
+            var elink = document.createElement("a");
+            elink.download = fileName;
+            elink.style.display = "none";
+            elink.href = URL.createObjectURL(blob);
+            document.body.appendChild(elink);
+            elink.click();
+            URL.revokeObjectURL(elink.href); // 释放URL 对象
+            document.body.removeChild(elink);
+          } else {
+            // IE10+下载
+            navigator.msSaveBlob(blob, fileName);
+          }
+          console.log(res);

@@ -88,7 +88,7 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import {
   addformSaveData,
   collectionData,
-  saveContainerCode
+
 } from "@/api/index";
 import { addParams, creatRules, defaultForm } from "@/utils/common";
 import md5 from "js-md5";

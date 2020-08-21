@@ -408,7 +408,6 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
@@ -1056,7 +1055,7 @@ export default {
     downloadTemp() {
       if (this.strType.includes("Goods")) {
         window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/货品导入模板.xlsx";
+          "http://8.129.208.95:8004/ImportTempModFile/货品导入模板.xlsx";
       }
     },
 

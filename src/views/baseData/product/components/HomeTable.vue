@@ -953,7 +953,7 @@ export default {
     downloadTemp() {
       if (this.strType.includes("Goods")) {
         window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/货品导入模板.xlsx";
+          "http://8.129.208.95:8004/ImportTempModFile/货品导入模板.xlsx";
       }
     },
 

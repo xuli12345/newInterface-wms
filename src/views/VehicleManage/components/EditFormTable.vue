@@ -57,7 +57,7 @@
 
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { compare } from "@/utils/common";
+import { compare,handelData } from "@/utils/common";
 import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
@@ -115,55 +115,7 @@ export default {
         this.$message.error(res.Message);
       }
     },
-    //处理数据是修改的，还是新增的，还是删除的
-    //传入的参数  （原来的数据，现在的数据）
-    //返回一个数组，[修改，新增，删除]
-    handelData(BackData, NowData) {
-      let that = this;
-      let Back = JSON.parse(JSON.stringify(BackData));
-      let Now = JSON.parse(JSON.stringify(NowData));
-      let update = [],
-        insert = [],
-        deleted = [],
-        common = [];
-      //获取原来的和现在的公有数据
-      //公有数据就是修改的数据
-      Back.forEach(item => {
-        Now.forEach(child => {
-          if (item[that.fTableViewHead[1]] == child[that.fTableViewHead[1]]) {
-            common.push(child);
-          }
-        });
-      });
-      //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
-      common.forEach(item1 => {
-        Now.forEach((item2, idx2) => {
-          if (item1[that.fTableViewHead[1]] == item2[that.fTableViewHead[1]]) {
-            Now.splice(idx2, 1);
-          }
-        });
-      });
-      //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
-      common.forEach(child1 => {
-        Back.forEach((child2, idx2) => {
-          if (
-            child1[that.fTableViewHead[1]] == child2[that.fTableViewHead[1]]
-          ) {
-            Back.splice(idx2, 1);
-          }
-        });
-      });
-      if (common.length < 1) {
-        common = null;
-      }
-      if (Now.length < 1) {
-        Now = null;
-      }
-      if (Back.length < 1) {
-        Back = null;
-      }
-      return [common, Now, Back];
-    },
+ 
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
@@ -184,7 +136,7 @@ export default {
           }
         }
       });
-      let wantData = this.handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       let deletedArr = wantData[2];

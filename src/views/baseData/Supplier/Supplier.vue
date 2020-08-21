@@ -2,13 +2,13 @@
   <div>
     <HomeTable
       :fTableView="fTableView"
-      :tableName="'t_Vehicle_Accident'"
+      :tableName="'t_Supplier'"
       :isSaveSuccess="isSaveSuccess"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
     ></HomeTable>
 
-    <!-- 新增侧滑框  -->
+    <!-- 新增侧滑框   -->
     <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawer"
@@ -19,8 +19,9 @@
       <CreatFrom
         @closeBox="closeBox"
         :tableHead="tableHeadData"
-        :tableName="'t_Vehicle_Accident'"
+        :tableName="'t_Supplier'"
         :selectArr="selectArr"
+        :fVisibleColumn="fVisibleColumn"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -33,9 +34,11 @@
       <editCreatFrom
         @closeBox="closeEditBox"
         :tableHead="tableHeadData"
-        :tableName="'t_Vehicle_Accident'"
+        :tableName="'t_Supplier'"
         :rowData="editForm"
         :selectArr="selectArr"
+        :selectParams="selectParams"
+        :fVisibleColumn="fVisibleColumn"
       ></editCreatFrom>
     </el-drawer>
   </div>
@@ -44,8 +47,8 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import HomeTable from "@/components/HomeTable";
-import CreatFrom from "@/components/CreatFrom";
-import editCreatFrom from "@/components/editCreatFrom";
+import editCreatFrom from "./components/EditCreatFrom";
+import CreatFrom from "./components/CreatFrom";
 import { getTableBodyData } from "@/api/index";
 export default {
   components: {
@@ -68,25 +71,30 @@ export default {
       tableData: [],
       //当前行的数据
       editForm: {},
-      fTableView: "t_Vehicle_Accident",
+      fTableView: "t_Supplier",
       //是否新增成功
       isSaveSuccess: false,
+      //回显省事联动配的字段
+      selectParams: ["fProvince", "fCity", "fDistrict"],
+      //需要隐藏的字段
+      fVisibleColumn: ["fProvince", "fCity", "fDistrict"],
+      userDes: this.$store.state.user.userInfo.userDes,
       selectArr: [
         {
-          fName: "fSubjectName",
-          fUrl: "v_CostSubject",
-          fDes: "fSubjectName",
+          fName: "fTypeName",
+          fUrl: "v_Type_Supplier",
+          fDes: "fTypeName",
           fID: "fID",
-          fAuto: ["fCostSubjectID"],
-          fAutoID: ["fCostSubjectID"]
+          fAuto: ["fSupplierType"],
+          fAutoID: ["fSupplierType"]
         },
         {
-          fName: "fLicenseNo",
-          fUrl: "v_Vehcile_Driver",
-          fDes: "fLicenseNo",
+          fName: "fConsignorName",
+          fUrl: "v_Consignor",
+          fDes: "fConsignorName",
           fID: "fID",
-          fAuto: ["fVehicleID"],
-          fAutoID: ["fVehicleID"]
+          fAuto: ["fConsignorID"],
+          fAutoID: ["fConsignorID"]
         }
       ]
     };
@@ -117,14 +125,25 @@ export default {
       this.drawerValue = true;
       this.isSaveSuccess = false;
     },
-
+    changeColumn() {
+      this.tableHeadData.shift();
+      this.fVisibleColumn.forEach(item => {
+        this.tableHeadData.forEach(ele => {
+          if (item == ele.fColumn) {
+            this.$set(ele, "fVisible", 1);
+          }
+        });
+      });
+    },
     //点击x关闭弹窗
     handleClose(done) {
       this.drawer = false;
+      this.changeColumn();
     },
     //点击x关闭弹窗
     handleEditClose(done) {
       this.drawerValue = false;
+      this.changeColumn();
     },
     //关闭修改弹窗
     closeEditBox(val) {

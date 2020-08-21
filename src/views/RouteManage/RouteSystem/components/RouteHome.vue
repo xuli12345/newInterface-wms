@@ -30,7 +30,7 @@
           type="primary"
           size="small"
           @click="handleEdit"
-           class="el-icon-edit"
+          class="el-icon-edit"
           :disabled="userLimit('fEdit')"
           >修改线路体系</el-button
         >
@@ -38,12 +38,16 @@
           type="primary"
           size="small"
           @click.stop="handleDelete"
-           class="iconfont icon-shanchu"
+          class="iconfont icon-shanchu"
           :disabled="userLimit('fDel')"
           >删除线路体系</el-button
         >
-        
-        <el-button type="primary" size="small"  class="iconfont icon-renwufenpei" @click="handleDis"
+
+        <el-button
+          type="primary"
+          size="small"
+          class="iconfont icon-renwufenpei"
+          @click="handleDis"
           >分派车辆</el-button
         >
       </div>
@@ -55,6 +59,7 @@
         :tableHead="tableHeadData"
         :tableName="fTableView"
         :selectArr="selectArr"
+        :isSaveSuccess="isSaveSuccess"
       ></CreatFrom>
     </el-dialog>
     <el-dialog title="修改线路" :visible.sync="editFormVisible">
@@ -64,6 +69,7 @@
         :tableName="fTableView"
         :selectArr="selectArr"
         :rowData="rowData"
+        :isSaveSuccess="isSaveSuccess"
       ></editCreatFrom>
     </el-dialog>
     <!-- 分派车辆 -->
@@ -106,12 +112,18 @@ export default {
       //获取主体内容字段
       //   fTableViewData: ""
       //当前行数据
-      rowData: {}
+      rowData: {},
+      isSaveSuccess: false
     };
   },
   watch: {
     routeValue(newVal, oldVal) {
-      console.log(newVal, oldVal);
+      // console.log(newVal, oldVal);
+    },
+    async isSaveSuccess(newVal, oldVal) {
+      if (newVal) {
+        this.selectOpts = await this.getMstData();
+      }
     }
   },
   methods: {
@@ -122,13 +134,30 @@ export default {
     },
     //新增线路体系
     handleAdd() {
+     
       this.dialogFormVisible = true;
+      this.isSaveSuccess = false;
+    },
+    //关闭新增弹窗
+    async closeBox(value) {
+      if (value) {
+        this.isSaveSuccess = true;
+      }
+      this.dialogFormVisible = false;
+      this.editFormVisible = false;
+    },
+    //根据用户权限，查询按钮是否禁用
+    userLimit(val) {
+      return userLimit(val);
+    },
+    //分派车辆
+    handleDis() {
+      this.$emit("openVehicle");
     },
     //修改线路体系
     async handleEdit() {
-      // console.log(this.routeValue,"www");
       if (!this.routeValue) {
-        this.$message.warning("请选择运输线路!");
+        this.$message.warning("请选择线路体系!");
         return;
       } else {
         let searchWhere = [
@@ -140,7 +169,7 @@ export default {
         ];
         let result = await this.getMstData(searchWhere);
         this.rowData = result[0];
-        // console.log(this.rowData, "rowData");
+        this.isSaveSuccess = false;
         //修改的弹窗
         this.editFormVisible = true;
       }
@@ -178,8 +207,8 @@ export default {
               res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
               if (res.State) {
                 this.$message.success("删除成功!");
-                // this.selectOpts = await this.getMstData();
-                // this.routeValue = 2;
+                this.selectOpts = await this.getMstData();
+                this.routeValue = "";
               } else {
                 this.$message.error(res.Message);
               }
@@ -193,15 +222,7 @@ export default {
           });
       }
     },
-    //关闭新增弹窗
-    async closeBox(value) {
-      if (value) {
-        // this.selectOpts = await this.getMstData();
-        // this.routeValue = 2;
-      }
-      this.dialogFormVisible = false;
-      this.editFormVisible = false;
-    },
+
     //获取线路体系表头数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
@@ -213,10 +234,7 @@ export default {
         this.$message.error(res.Message);
       }
     },
-    //根据用户权限，查询按钮是否禁用
-    userLimit(val) {
-      return userLimit(val);
-    },
+
     //获取回显的数据
     async getMstData(searchWhere = []) {
       let res = await getTableBodyData("v_Route_System_Mst", searchWhere);
@@ -226,10 +244,6 @@ export default {
         return result;
         // console.log(this.selectOpts, "主体数据");
       }
-    },
-    //分派车辆
-    handleDis() {
-      this.$emit("openVehicle");
     }
   },
   async created() {

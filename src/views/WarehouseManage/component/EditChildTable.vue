@@ -284,8 +284,6 @@ export default {
   async created() {
     this.getTableHeadData();
     this.selectOptions = await this.getType("v_Unit", "fNumUnitName", 10);
-    // console.log(res);
-    // this.getType("v_Unit", "fBoxNumUniName", 10);
     this.selectOpts = await this.getType("v_Unit", "fVolumetUnitName", 7);
   }
 };

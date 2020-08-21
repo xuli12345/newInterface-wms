@@ -231,10 +231,10 @@ export default {
     downloadTemp() {
       if (this.strType.includes("Inbound")) {
         window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/入库单导入模板.xlsx";
+          "http://8.129.208.95:8004/ImportTempModFile/入库单导入模板.xlsx";
       } else if (this.strType.includes("Outbound")) {
         window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/出库单导入模板.xlsx";
+          "http://8.129.208.95:8004/ImportTempModFile/出库单导入模板.xlsx";
       }
     },
 

@@ -220,6 +220,9 @@
 .search-title{
   white-space: nowrap;
   margin-right: 20px;
-  width: 19%;
+  // width: 19%;
   margin-top: 10px;
+  overflow: auto;
+  resize: horizontal;
+  min-width: 250px;
 }

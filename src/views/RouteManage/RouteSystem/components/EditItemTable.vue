@@ -6,7 +6,7 @@
         size="mini"
         class="iconfont icon-shuaixuan "
         @click="addPopRight"
-        >添加线路</el-button
+        >添加门店</el-button
       >
       <el-button
         type="primary"
@@ -53,7 +53,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { collectionData, getTableHeadData } from "@/api/index";
-import { compare } from "@/utils/common";
+import { compare ,handelData} from "@/utils/common";
 import EditChildFormHead from "@/components/EditChildFormHead";
 import EditChildTable from "@/components/EditChildTable";
 import AlertTable from "./AlertTable";
@@ -67,7 +67,7 @@ export default {
   data() {
     return {
       tableData: [],
-      openTitle: "选择运输线路",
+      openTitle: "选择门店",
       dialogFormVisible: false,
       //form表单数据
       tableHeadData: [],
@@ -84,12 +84,11 @@ export default {
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
       this.fID = this.$refs.ruleForm.ruleForm.fID; //字表添加数据时,需要手动添加的键
-      let wantData = this.handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       if (insertArr && insertArr.length > 0) {
         insertArr.forEach(element => {
-          // console.log(element,11)
           element.fSystemItemID = this.fID;
         });
       }
@@ -176,60 +175,11 @@ export default {
       }
       this.dialogFormVisible = false;
     },
-    //处理数据是修改的，还是新增的，还是删除的
-    //传入的参数  （原来的数据，现在的数据）
-    //返回一个数组，[修改，新增，删除]
-    handelData(BackData, NowData) {
-      let that = this;
-      let Back = JSON.parse(JSON.stringify(BackData));
-      let Now = JSON.parse(JSON.stringify(NowData));
-      let update = [],
-        insert = [],
-        deleted = [],
-        common = [];
-
-      //获取原来的和现在的公有数据fMstID
-      //公有数据就是修改的数据
-      Back.forEach(item => {
-        Now.forEach(child => {
-          if (item.fID == child.fID) {
-            common.push(child);
-          }
-        });
-      });
-      //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
-      common.forEach(item1 => {
-        // console.log(item1);
-        Now.forEach((item2, idx2) => {
-          if (item1.fID == item2.fID) {
-            Now.splice(idx2, 1);
-          }
-        });
-      });
-      //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
-      common.forEach(child1 => {
-        Back.forEach((child2, idx2) => {
-          if (child1.fID == child2.fID) {
-            Back.splice(idx2, 1);
-          }
-        });
-      });
-      if (common.length < 1) {
-        common = null;
-      }
-      if (Now.length < 1) {
-        Now = null;
-      }
-      if (Back.length < 1) {
-        Back = null;
-      }
-      return [common, Now, Back];
-    }
+   
   },
   created() {
     this.getTableHeadData();
     this.getTableHead();
-    
   }
 };
 </script>

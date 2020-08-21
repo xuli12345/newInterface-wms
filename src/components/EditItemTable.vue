@@ -289,7 +289,6 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
-
         this.$emit("update:backData", this.OrignData);
         this.OrignData.forEach(element => {
           for (const key in element) {

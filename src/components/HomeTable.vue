@@ -40,6 +40,8 @@
           v-model.trim="asData[item.fColumn]"
           :placeholder="`请输入${item.fColumnDes}`"
         ></el-input>
+       
+       
       </div>
       <div style="margin-top:10px">
         <el-button
@@ -411,7 +413,7 @@ export default {
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        console.log(this.tableHeadData, "表头");
+        console.log(this.tableHeadData, "表头1");
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
           return element.fQureyCol == 1;
@@ -884,11 +886,9 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.printHeadData = res.lstRet.sort(compare);
-        console.log(this.printHeadData, "printHeadData");
         this.printHeadData = this.printHeadData.filter(item => {
           return item.fVisible == 1;
         });
-
         this.printHeadData = this.printHeadData.map(item => {
           return item.fColumnDes;
         });
@@ -927,7 +927,7 @@ export default {
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           this.dataCode = JSON.parse(res.Data);
-          console.log(this.dataCode, "AHIW");
+          // console.log(this.dataCode, "AHIW");
         }
         this.isRender = true;
 
@@ -1033,7 +1033,7 @@ export default {
     downloadTemp() {
       if (this.strType.includes("Goods")) {
         window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/货品导入模板.xlsx";
+          "http://8.129.208.95:8004/ImportTempModFile/货品导入模板.xlsx";
       }
     },
 
@@ -1043,7 +1043,6 @@ export default {
         file: file
       });
 
-      // console.log(res,"xu");
       if (res.state) {
         this.$message.success("导入成功!");
         this.getTableData();

@@ -5,15 +5,13 @@ import http from "@/http/http";
  *   封装获取用户登录
  *
  */
-function userLogin(obj) {
-  let arr = [];
-  arr.push(obj.username);
-  arr.push(obj.password);
+
+function login(obj) {
   return http({
-    url: "/UserLogin",
+    url: "http://8.129.208.95:8004/token/userLogin",
     method: "POST",
-    loading:"true",
-    data: JSON.stringify(arr)
+    data: JSON.stringify(obj)
   });
 }
-export { userLogin };
+
+export { login};

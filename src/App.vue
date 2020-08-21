@@ -20,6 +20,7 @@ export default {
   created() {
     try {
       if (devicePixelRatio !== 1) {
+        //  console.log(devicePixelRatio)
         this.$notify({
           title: "提示",
           message: "请把浏览器缩放改为100%,否则界面可能会受影响",

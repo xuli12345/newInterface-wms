@@ -23,7 +23,7 @@
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao"   size="mini" @click="resetForm()"
+      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -73,7 +73,7 @@
 </template>
 
 <script>
-import { compare, batchDelete } from "@/utils/common";
+import { compare, batchDelete, handelData } from "@/utils/common";
 import { getTableHeadData, collectionData, saveStockAdjust } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "../../components/EditChildFormHead";
@@ -116,9 +116,7 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res)
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
@@ -129,9 +127,7 @@ export default {
     //获取表格的表头，保存的时候需要用到
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
@@ -139,55 +135,7 @@ export default {
         this.$message.error(res.Message);
       }
     },
-    //处理数据是修改的，还是新增的，还是删除的
-    //传入的参数  （原来的数据，现在的数据）
-    //返回一个数组，[修改，新增，删除]
-    handelData(BackData, NowData) {
-      let that = this;
-      let Back = JSON.parse(JSON.stringify(BackData));
-      let Now = JSON.parse(JSON.stringify(NowData));
-      let update = [],
-        insert = [],
-        deleted = [],
-        common = [];
 
-      //获取原来的和现在的公有数据fMstID
-      //公有数据就是修改的数据
-      Back.forEach(item => {
-        Now.forEach(child => {
-          if (item.fID == child.fID) {
-            common.push(child);
-          }
-        });
-      });
-      //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
-      common.forEach(item1 => {
-        console.log(item1);
-        Now.forEach((item2, idx2) => {
-          if (item1.fID == item2.fID) {
-            Now.splice(idx2, 1);
-          }
-        });
-      });
-      //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
-      common.forEach(child1 => {
-        Back.forEach((child2, idx2) => {
-          if (child1.fID == child2.fID) {
-            Back.splice(idx2, 1);
-          }
-        });
-      });
-      if (common.length < 1) {
-        common = null;
-      }
-      if (Now.length < 1) {
-        Now = null;
-      }
-      if (Back.length < 1) {
-        Back = null;
-      }
-      return [common, Now, Back];
-    },
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
@@ -206,20 +154,15 @@ export default {
           if (element[key] == null) {
             this.$set(element, key, 0);
           }
-          // if ("fMstID" in element) {
-          // } else {
-          //   this.$set(element, "fMstID", 0);
-          // }
         }
       });
 
-      let wantData = this.handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
 
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       if (insertArr && insertArr.length > 0) {
         insertArr.forEach(element => {
-          // this.$set(element, "fMstID", this.fMstID);
           element.fMstID = this.fMstID;
         });
       }
@@ -242,9 +185,7 @@ export default {
             }
           ]);
           //   console.log(res)
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           console.log(res);
           if (res.State === true) {
             this.$message.success("修改成功!");
@@ -281,9 +222,7 @@ export default {
     async kucunHeadData() {
       let res = await getTableHeadData("t_Stock_Adjust");
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.kucHeadData = res.lstRet.sort(compare);
         console.log(this.kucHeadData, "盘点更新库存表头");
@@ -330,9 +269,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       console.log(res);
       if (res.State === true) {
         this.$message.success("更新库存成功!");
@@ -345,8 +282,7 @@ export default {
     this.getTableHeadData();
     this.getTableHead();
     this.kucunHeadData();
-  },
-
+  }
 };
 </script>
 

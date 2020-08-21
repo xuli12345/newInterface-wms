@@ -6,8 +6,14 @@
         size="mini"
         class="iconfont icon-baocun"
         @click="submitForm('ruleForm')"
-      >保存</el-button>
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm('ruleForm')">取消</el-button>
+        >保存</el-button
+      >
+      <el-button
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm('ruleForm')"
+        >取消</el-button
+      >
     </div>
     <el-form
       :label-position="labelPosition"
@@ -109,10 +115,8 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.rules = creatRules(this.tableHead);
@@ -228,9 +232,7 @@ export default {
       let arr = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           console.log(JSON.parse(res.Data));
           let obj = {

@@ -8,7 +8,6 @@
         <i class="iconfont icon-quxiao"></i>取消</el-button
       >
     </div>
-
     <el-form
       label-position="right"
       label-width="180px"
@@ -42,6 +41,14 @@
             </el-select>
           </template>
 
+          <el-cascader
+            v-else-if="item.fColumn == 'address'"
+            size="large"
+            :options="options"
+            v-model="selectedOptions"
+            @change="handleChange"
+          >
+          </el-cascader>
           <el-date-picker
             v-else-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
@@ -60,12 +67,11 @@
             v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
           ></el-input>
-
-          <el-input
-            v-else-if="item.fColumn == 'fPassWord'"
+          <el-checkbox
+            v-else-if="item.fDataType == 'bit'"
             v-model="ruleForm[item.fColumn]"
-            type="password"
-          ></el-input>
+            :disabled="item.fReadOnly == 0 ? false : true"
+          ></el-checkbox>
 
           <el-input
             v-else
@@ -79,17 +85,13 @@
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import {
-  addformSaveData,
-  collectionData,
-  saveContainerCode,
-  getTableBodyData
-} from "@/api/index";
-import { addParams, creatRules, defaultForm } from "@/utils/common";
-
+import { collectionData, getTableBodyData } from "@/api/index";
+import { creatRules, defaultForm } from "@/utils/common";
+import { regionData, CodeToText } from "element-china-area-data";
 export default {
   data() {
     return {
+      options: regionData,
       selectedOptions: [],
       //表单数据
       ruleForm: {},
@@ -97,7 +99,32 @@ export default {
       //需要下拉选择的所有数据
       selectAllData: [],
       userDes: this.$store.state.user.userInfo.userDes,
-      userId: this.$store.state.user.userInfo.userId
+      userId: this.$store.state.user.userInfo.userId,
+      obj: {
+        fColumn: "address",
+        fColumnDes: "选择地址",
+        fComputer: "",
+        fDataType: "string",
+        fDateFormat: "",
+        fDecimal: 0,
+        fEnd: "",
+        fHeader: "",
+        fIsNo: 0,
+        fKey: 0,
+        fLanguageCode: "",
+        fLength: 200,
+        fLoadData: 0,
+        fNeedSave: 0,
+        fNotNull: 1,
+        fQureyCol: 1,
+        fReadOnly: 0,
+        fRemark: "",
+        fSn: 0,
+        fSort: 2,
+        fTableView: "t_AddressBook",
+        fVisible: 1
+      },
+      Areaobj: {}
     };
   },
   props: {
@@ -109,66 +136,97 @@ export default {
       type: String,
       default: () => ""
     },
-    //需要做下拉框的数据
+
     selectArr: {
+      type: Array,
+      default: () => []
+    },
+
+    //不可见的字段(省市区字段)
+    fVisibleColumn: {
       type: Array,
       default: () => []
     }
   },
 
   methods: {
-    // 基础资料生成容器号保存
+    handleChange() {
+      var loc = "";
+      this.Areaobj = {};
+      for (let i = 0; i < this.selectedOptions.length; i++) {
+        loc += CodeToText[this.selectedOptions[i]] + ",";
+      }
+
+      loc = loc.substring(0, loc.lastIndexOf(","));
+      let arr = loc.split(",");
+      let newArr = ["fProvince", "fCity", "fDistrict"];
+
+      for (let i = 0; i < newArr.length; i++) {
+        this.Areaobj[newArr[i]] = arr[i];
+      }
+
+      if (this.Areaobj.fDistrict == undefined) {
+        this.Areaobj.fDistrict = "";
+      }
+
+      this.ruleForm = Object.assign(this.ruleForm, this.Areaobj);
+    },
     submitForm(formName) {
+      if (JSON.stringify(this.Areaobj) == "{}") {
+        this.$message.warning("请选择地址!");
+        return;
+      }
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          // let res = await saveContainerCode([
-          //   {
-          //     TableName: this.tableName,
-          //     headData: this.tableHead,
-          //     insertData: [this.ruleForm]
-          //   }
-          // ]);
-          let result = addParams(this.tableHead, this.ruleForm);
-          let res = await saveContainerCode([
+          let res = await collectionData([
             {
-              lstSaveData: [
-                {
-                  TableName: this.tableName,
-                  IdentityColumn: null,
-                  InsertRow: [result.arr],
-                  UpdateRow: null,
-                  DeleteRow: null,
-                  Columns: result.columns
-                }
-              ]
-            },
-            { userDes: this.userDes, userId: this.userId }
+              TableName: this.tableName,
+              headData: this.tableHead,
+              insertData: [this.ruleForm]
+            }
           ]);
-
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          // console.log(res,"容器")
           if (res.State) {
-            let tableData = JSON.parse(res.Data);
-            this.$emit("closeBox", res.State, tableData);
+            this.$message.success("新增成功!");
+            this.$emit("closeBox", res.State, res.Identity);
+            this.changeColumn();
             this.$refs[formName].resetFields();
             this.ruleForm = defaultForm(this.tableHead);
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         } else {
           return false;
         }
       });
     },
+
     resetForm(formName) {
       this.$refs[formName].resetFields();
       this.$emit("closeBox");
+      this.changeColumn();
+    },
+    changeColumn() {
+      this.tableHead.splice(5, 1);
+      this.fVisibleColumn.forEach(item => {
+        this.tableHead.forEach(ele => {
+          if (item == ele.fColumn) {
+            this.$set(ele, "fVisible", 1);
+          }
+        });
+      });
     },
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
+      let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
-        let res = await getTableBodyData(this.selectArr[i].fUrl);
+        if (this.selectArr[i].searchWhere) {
+          searchWhere = this.selectArr[i].searchWhere;
+        } else {
+          searchWhere = [];
+        }
+        let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
@@ -180,6 +238,7 @@ export default {
           this.$message.error(res.Message);
         }
       }
+  
       this.selectAllData = arr;
     },
     //判断当前字段是否需要做下拉框
@@ -201,7 +260,7 @@ export default {
           arr = ele.data;
         }
       });
-
+    // console.log(arr,"arr")
       return arr;
     },
     //下拉选择框需要显示的label字段
@@ -270,10 +329,17 @@ export default {
   created() {
     this.ruleForm = defaultForm(this.tableHead);
     this.rules = creatRules(this.tableHead);
-    let userInfo = JSON.parse(sessionStorage.getItem("user"));
+    this.tableHead.splice(5, 0, this.obj);
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
+    this.fVisibleColumn.forEach(item => {
+      this.tableHead.forEach(ele => {
+        if (item == ele.fColumn) {
+          this.$set(ele, "fVisible", 0);
+        }
+      });
+    });
   }
 };
 </script>
