@@ -298,3 +298,50 @@ export function compare(obj1, obj2) {
     return 0;
   }
 }
+
+export function handleRFIDData(BackData, NowData) {
+  let that = this;
+  let Back = JSON.parse(JSON.stringify(BackData));
+  let Now = JSON.parse(JSON.stringify(NowData));
+  let update = [],
+    insert = [],
+    deleted = [],
+    common = [];
+
+  //获取原来的和现在的公有数据fMstID
+  //公有数据就是修改的数据
+  Back.forEach(item => {
+    Now.forEach(child => {
+      if (item.fTagCode == child.fTagCode) {
+        common.push(child);
+      }
+    });
+  });
+  //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
+  common.forEach(item1 => {
+    // console.log(item1);
+    Now.forEach((item2, idx2) => {
+      if (item1.fTagCode == item2.fTagCode) {
+        Now.splice(idx2, 1);
+      }
+    });
+  });
+  //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
+  common.forEach(child1 => {
+    Back.forEach((child2, idx2) => {
+      if (child1.fTagCode == child2.fTagCode) {
+        Back.splice(idx2, 1);
+      }
+    });
+  });
+  if (common.length < 1) {
+    common = null;
+  }
+  if (Now.length < 1) {
+    Now = null;
+  }
+  if (Back.length < 1) {
+    Back = null;
+  }
+  return [common, Now, Back];
+}

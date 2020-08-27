@@ -2,35 +2,13 @@
   <div>
     <div class="btns">
       <el-button
-        type="primary"
-        class="el-icon-bottom"
-        @click="downloadTemp"
-        size="mini"
-        >下载模板</el-button
-      >
-      <el-upload
-        style="margin-right:5px;float:left"
-        ref="upload"
-        class="upload"
-        action=""
-        :on-change="handleChange"
-        :on-remove="handleRemove"
-        :auto-upload="false"
-        :show-file-list="false"
-        accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-      >
-        <el-button type="primary" class="iconfont icon-excel" size="mini"
-          >导入excel</el-button
-        >
-      </el-upload>
-      <el-button
         v-if="addItem"
         type="primary"
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
-        >{{ strType == "Outbound" ? "货品新增" : "新增" }}</el-button
+      >
+        新增</el-button
       >
       <el-button
         type="primary"
@@ -48,6 +26,7 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :Amount="totalAmount"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -62,14 +41,24 @@
       :before-close="handleClose"
       v-if="addItem"
     >
-      <child-form-head
+      <!-- <child-form-head
         @closeBox="closeItemBox"
         :fTableViewHead="fTableViewItem[0]"
         ref="ItemRuleForm"
         :addItem="addItem"
         :selectArr="selectArr2"
         :alertArr="alertArr"
-      ></child-form-head>
+        :formData="ruleForm"
+      ></child-form-head> -->
+      <CreatFrom
+        ref="ItemRuleForm"
+        @closeBox="closeItemBox"
+        :tableHead="tableHead"
+        :tableName="fTableViewItem[0]"
+        :formData="ruleForm"
+        :fColumn="fColumn"
+        :selData="selData"
+      ></CreatFrom>
     </el-drawer>
   </div>
 </template>
@@ -77,16 +66,12 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
-import { tempUrl } from "@/utils/tempUrl";
-import {
-  getTableHeadData,
-  collectionData,
-  imPortExcel,
-  
-} from "@/api/index";
+import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import ChildFormHead from "../../component/ChildFormHead";
-import ChildTable from "../../component/ChildTable";
+import ChildFormHead from "./ChildFormHead";
+import ChildTable from "./ChildTable";
+import CreatFrom from "../Electronictag/components/CreatFrom";
+import VueBus from "../../../vueBus";
 export default {
   //strType:导入文件的类型
   props: [
@@ -100,7 +85,8 @@ export default {
   ],
   components: {
     ChildFormHead,
-    ChildTable
+    ChildTable,
+    CreatFrom
   },
   data() {
     return {
@@ -112,9 +98,20 @@ export default {
       //表格数据表头
       tableHead: [],
       //excel
-      fileTemp: null,
       file: null,
-      fileName: ""
+      //金额合计
+      totalAmount: "",
+      ruleForm: {},
+      fColumn: ["fType"],
+      selData: [
+        {
+          name: "fType",
+          data: [
+            { fType: 0, fColumnDes: "从标签" },
+            { fType: 1, fColumnDes: "主标签" }
+          ]
+        }
+      ]
     };
   },
   methods: {
@@ -124,12 +121,10 @@ export default {
     },
     //获取form表单数据
     async getTableHeadData() {
-      // console.log(this.fTableViewHead)
       let res = await getTableHeadData(this.fTableViewHead[0]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
+
       if (res.State) {
-        // this.fTableView = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
       } else {
         this.$message.error(res.Message);
@@ -139,10 +134,10 @@ export default {
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
+
       if (res.State) {
-        // this.fTableView = res.fTableViewData;
         this.tableHead = res.lstRet.sort(compare);
+        // console.log(this.tableHead,"表格表头")
       } else {
         this.$message.error(res.Message);
       }
@@ -150,7 +145,6 @@ export default {
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
-      // console.log(formData)
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           let res = await collectionData([
@@ -167,10 +161,10 @@ export default {
               IdentityColumn: this.fTableViewItem[1]
             }
           ]);
-          //   console.log(res)
+
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          console.log(res);
-          if (res.State === true) {
+
+          if (res.State) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -187,7 +181,17 @@ export default {
     },
     //新增按钮
     addPopRight() {
-      this.drawer = true;
+      let formData = this.$refs.ruleForm.ruleForm;
+
+      if (formData.fIP && formData.fPort) {
+        this.ruleForm = {
+          fIP: formData.fIP,
+          fPort: formData.fPort
+        };
+        this.drawer = true;
+      } else {
+        this.$message.warning("请先输入IP和Port");
+      }
     },
     //点击x关闭弹窗
     handleClose(done) {
@@ -196,71 +200,9 @@ export default {
     //关闭字表新增弹窗
     closeItemBox(value) {
       if (value) {
-        this.tableData.unshift(value);
+        this.tableData.push(value);
       }
       this.drawer = false;
-    },
-    // excel导入
-    handleChange(file, fileList) {
-      this.fileTemp = file.raw;
-      if (this.fileTemp) {
-        //xlsx
-        if (
-          this.fileTemp.type ==
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          this.fileTemp.type == "application/vnd.ms-excel"
-        ) {
-          this.importFile(this.strType, this.fileTemp);
-        } else {
-          this.$message({
-            type: "warning",
-            message: "附件格式错误，请删除后重新上传！"
-          });
-        }
-      } else {
-        this.$message({
-          type: "warning",
-          message: "请上传附件！"
-        });
-      }
-    },
-
-    handleRemove(file, fileList) {
-      this.fileTemp = null;
-    },
-    //下载模板
-    downloadTemp() {
-       if (this.strType.includes("Outbound")) {
-        window.location.href =`${tempUrl}/ImportTempModFile/出库单导入模板.xlsx`
-         
-      }
-    },
-
-    async importFile(strType, file) {
-      let res = await imPortExcel({
-        strType: strType,
-        file: file
-      });
-
-      if (res.state) {
-        this.$message.success("导入成功!");
-        let tableData = JSON.parse(res.Data).sort(compare);
-        tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
-        this.tableData = [...tableData, ...this.tableData];
-      } else {
-        this.$message.error(res.message);
-      }
     }
   },
 

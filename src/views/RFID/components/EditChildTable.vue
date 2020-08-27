@@ -46,7 +46,6 @@
                 :value="optionItem.value"
               ></el-option>
             </el-select>
-
             <el-input
               v-else
               v-model="scope.row[item.fColumn]"
@@ -178,12 +177,11 @@ export default {
           Value: this.fID
         }
       ];
-      console.log(searchWhereObj,"searchWhereObj")
+
       let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        // this.tableData = this.tableData.sort(compare)
         this.tableData.forEach(element => {
           for (const key in element) {
             if (
@@ -206,7 +204,7 @@ export default {
           sum += item.fAmount;
         });
         this.totalAmount = sum;
-        this.$emit("getAmount",this.totalAmount)
+        this.$emit("getAmount", this.totalAmount);
       } else {
         this.$message.error(res.Message);
       }
@@ -223,31 +221,6 @@ export default {
 
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
-    },
-    //获取类型
-    async getType(fTableView, fColumnType, value) {
-      let res = await getTableBodyData(fTableView, [
-        {
-          Computer: "=",
-          DataFile: "fUnitType",
-          Value: value
-        }
-      ]);
-
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        let result = JSON.parse(res.Data);
-        let arr = [];
-        result.forEach(element => {
-          let obj = {
-            value: element.fID,
-            label: element.fUnitName
-          };
-          arr.push(obj);
-        });
-
-        this.selectOptions = [...this.selData, ...arr];
-      }
     }
   },
   watch: {
@@ -260,8 +233,6 @@ export default {
 
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName", 10);
-    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>

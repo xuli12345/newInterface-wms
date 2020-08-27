@@ -152,35 +152,6 @@
           :disabled="userLimit('fApp')"
           >入库完成</el-button
         >
-        <el-button
-          v-if="product"
-          type="primary"
-          class="el-icon-bottom"
-          @click="downloadTemp"
-          size="mini"
-          >下载模板</el-button
-        >
-        <el-upload
-          v-if="product"
-          style="margin-left:15px;float:right"
-          ref="upload"
-          class="upload"
-          action=""
-          :on-change="handleChange"
-          :on-remove="handleRemove"
-          :auto-upload="false"
-          :show-file-list="false"
-          accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-        >
-          <el-button
-            type="primary"
-            class="iconfont icon-excel"
-            size="mini"
-            :disabled="userLimit('fInport')"
-            >导入excel</el-button
-          >
-        </el-upload>
       </div>
     </div>
     <el-table
@@ -319,7 +290,6 @@ import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { addParams, batchDelete, userLimit } from "@/utils/common";
 import PrintTable from "@/components/PrintTable";
 import { compare } from "@/utils/common";
-import { tempUrl } from "@/utils/tempUrl";
 import PrintJS from "print-js";
 import Sortable from "sortablejs";
 import {
@@ -583,7 +553,6 @@ export default {
       }
 
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -746,8 +715,12 @@ export default {
             this.BatchList.forEach(item => {
               let obj = [
                 {
-                  Key: "fID",
-                  Value: item.fID
+                  Key: "fIP",
+                  Value: item.fIP
+                },
+                {
+                  Key: "fPort",
+                  Value: item.fPort
                 }
               ];
               objectArr.push(obj);
@@ -1027,13 +1000,6 @@ export default {
 
     handleRemove(file, fileList) {
       this.fileTemp = null;
-    },
-    //下载模板
-    downloadTemp() {
-      if (this.strType.includes("Goods")) {
-        window.location.href =`${tempUrl}/ImportTempModFile/货品导入模板.xlsx`
-         
-      }
     },
 
     async importFile(strType, file) {

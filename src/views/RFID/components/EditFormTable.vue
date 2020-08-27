@@ -2,29 +2,6 @@
   <div>
     <div class="btns">
       <el-button
-        type="primary"
-        class="el-icon-bottom"
-        @click="downloadTemp"
-        size="mini"
-        >下载模板</el-button
-      >
-      <el-upload
-        style="margin-right:5px;float:left"
-        ref="upload"
-        class="upload"
-        action=""
-        :on-change="handleChange"
-        :on-remove="handleRemove"
-        :auto-upload="false"
-        :show-file-list="false"
-        accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-      >
-        <el-button type="primary" class="iconfont icon-excel" size="mini"
-          >导入excel</el-button
-        >
-      </el-upload>
-      <el-button
         v-if="addItem"
         type="primary"
         size="mini"
@@ -55,8 +32,8 @@
       ref="childTable"
       :fTableView="fTableViewItem"
       :insertData="insertData"
-      :fID="rowData.fID"
-      :changeData="changeData"
+      :fID="rowData.fIP"
+      @getAmount="getAmount"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -66,26 +43,27 @@
       :before-close="handleClose"
       v-if="addItem"
     >
-      <child-form-head
+      <editCreatFrom
         @closeBox="closeItemBox"
-        :fTableViewHead="fTableViewItem[0]"
         ref="ItemRuleForm"
-        :addItem="addItem"
-        :selectArr="selectArr2"
-        :fCustomerID="rowData.fCustomerID"
-      ></child-form-head>
+        :tableHead="tableHead"
+        :tableName="fTableViewItem[0]"
+        :rowData="formData"
+        :fColumn="fColumn"
+        :selData="selData"
+      ></editCreatFrom>
     </el-drawer>
   </div>
 </template>
 
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { compare, handelData } from "@/utils/common";
-import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
+import { compare, handleRFIDData } from "@/utils/common";
+import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
+import editCreatFrom from "../Electronictag/components/editCreatFrom";
 export default {
   props: [
     "fTableViewHead",
@@ -94,32 +72,46 @@ export default {
     "selectArr",
     "selectArr2",
     "rowData",
-    "changeData",
-    "strType"
+    "strType",
+    "formData"
   ],
   components: {
     ChildFormHead,
-    ChildTable
+    ChildTable,
+    editCreatFrom
   },
   data() {
     return {
-      //   fTableView: "",
       tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格添加的数据
       insertData: {},
       //表格数据表头
-      tableHead: []
+      tableHead: [],
+      totalAmount: 0,
+      fColumn: ["fType"],
+      selData: [
+        {
+          name: "fType",
+          data: [
+            { fType: 0, fColumnDes: "从标签" },
+            { fType: 1, fColumnDes: "主标签" }
+          ]
+        }
+      ]
     };
   },
   methods: {
+    getAmount(value) {
+      // console.log(value, 99);
+      this.totalAmount = value;
+    },
     //获取form表单数据
     async getTableHeadData() {
-      // console.log(this.fTableViewHead)
       let res = await getTableHeadData(this.fTableViewHead[0]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
+
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
       } else {
@@ -130,7 +122,6 @@ export default {
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
       } else {
@@ -143,7 +134,23 @@ export default {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
-      let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+
+      backData.forEach(element => {
+        for (const key in element) {
+          if (element[key] == null) {
+            this.$set(element, key, 0);
+          }
+        }
+      });
+      tableData.forEach(element => {
+        for (const key in element) {
+          if (element[key] == null) {
+            this.$set(element, key, 0);
+          }
+        }
+      });
+      let wantData = handleRFIDData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      // console.log(wantData,"wat")
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       let deletedArr = wantData[2];
@@ -163,10 +170,10 @@ export default {
               headData: this.tableHead
             }
           ]);
-          //   console.log(res)
+
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-          if (res.State === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -193,72 +200,9 @@ export default {
     closeItemBox(value) {
       if (value) {
         this.insertData = value;
+        this.totalAmount += value.fAmount;
       }
       this.drawer = false;
-    },
-    //下载模板
-    downloadTemp() {
-      if (this.strType.includes("Inbound")) {
-        window.location.href =`${tempUrl}/ImportTempModFile/入库单导入模板.xlsx`
-         
-      } 
-    },
-    // excel导入
-    handleChange(file, fileList) {
-      // console.log(file, fileList);
-      this.fileTemp = file.raw;
-      if (this.fileTemp) {
-        if (
-          this.fileTemp.type ==
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          this.fileTemp.type == "application/vnd.ms-excel"
-        ) {
-          this.importFile(this.strType, this.fileTemp);
-        } else {
-          this.$message({
-            type: "warning",
-            message: "附件格式错误，请删除后重新上传！"
-          });
-        }
-      } else {
-        this.$message({
-          type: "warning",
-          message: "请上传附件！"
-        });
-      }
-    },
-
-    handleRemove(file, fileList) {
-      this.fileTemp = null;
-    },
-
-
-
-    async importFile(strType, file) {
-      let res = await imPortExcel({
-        strType: strType,
-        file: file
-      });
-
-      if (res.state) {
-        this.$message.success("导入成功!");
-        let tableData = JSON.parse(res.resultString).sort(compare);
-        tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
-        this.insertData = [...tableData, ...this.insertData];
-      } else {
-        this.$message.error(res.Message);
-      }
     }
   },
 

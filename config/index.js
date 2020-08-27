@@ -4,8 +4,8 @@
 
 // 测试
 
-//var apiURL = "http://39.99.185.176:8001/Service.svc";//齐畅
-var apiURL = "http://8.129.208.95:8004/api";
+var apiURL = "http://39.99.185.176:8003/api";//齐畅
+//var apiURL = "http://8.129.208.95:8004/api";
 
 const path = require("path");
 

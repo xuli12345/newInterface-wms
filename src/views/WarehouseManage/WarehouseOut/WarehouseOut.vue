@@ -291,22 +291,7 @@ export default {
       }
     }
   }
-  //  created() {
-  //   console.log(process.env.BASE_API);
-  //   if (
-  //     process.env.BASE_API &&
-  //     process.env.BASE_API == "http://39.99.185.176:8001/Service.svc"
-  //   ) {
-  //     this.title = ["山东齐畅冷链物流股份有限公司", "商品出仓单"];
-  //   } else if (
-  //     process.env.BASE_API &&
-  //     process.env.BASE_API == "http://8.129.208.95:8004/api"
-  //   ) {
-  //     this.title = ["知行易通(厦门)信息科技有限公司", "商品出仓单"];
-  //   }else{
-
-  //   }
-  // }
+ 
 };
 </script>
 <style lang="scss"></style>

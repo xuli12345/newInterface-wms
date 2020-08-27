@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="page flex-wrap">
-      <div class="search-title flex-align-center">
+      <div class="title flex-align-center">
         运输线路体系:
         <el-select
           v-model="routeValue"
@@ -254,7 +254,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.search-title {
-  margin-top: 0;
+.title {
+  white-space: nowrap;
+  margin-right: 20px;
+  min-width: 250px;
 }
 </style>

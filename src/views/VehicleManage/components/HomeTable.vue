@@ -152,35 +152,7 @@
           :disabled="userLimit('fApp')"
           >入库完成</el-button
         >
-        <el-button
-          v-if="product"
-          type="primary"
-          class="el-icon-bottom"
-          @click="downloadTemp"
-          size="mini"
-          >下载模板</el-button
-        >
-        <el-upload
-          v-if="product"
-          style="margin-left:15px;float:right"
-          ref="upload"
-          class="upload"
-          action=""
-          :on-change="handleChange"
-          :on-remove="handleRemove"
-          :auto-upload="false"
-          :show-file-list="false"
-          accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-        >
-          <el-button
-            type="primary"
-            class="iconfont icon-excel"
-            size="mini"
-            :disabled="userLimit('fInport')"
-            >导入excel</el-button
-          >
-        </el-upload>
+     
       </div>
     </div>
     <el-table
@@ -1051,13 +1023,7 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     },
-    //下载模板
-    downloadTemp() {
-      if (this.strType.includes("Goods")) {
-        window.location.href =
-          "http://8.129.208.95:8004/ImportTempModFile/货品导入模板.xlsx";
-      }
-    },
+  
 
     async importFile(strType, file) {
       let res = await imPortExcel({

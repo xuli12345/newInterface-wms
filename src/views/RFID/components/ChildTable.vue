@@ -1,5 +1,6 @@
 <template>
   <div>
+    
     <el-table
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
@@ -28,13 +29,8 @@
               :disabled="item.fReadOnly == 0 ? false : true"
             ></el-checkbox>
             <el-select
-              @change="
-                selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
-              "
-              v-else-if="
-                item.fColumn == 'fNumUnitName' ||
-                  item.fColumn == 'fBoxNumUniName'
-              "
+              @change="selectDataType(scope.row, scope.row[item.fColumn])"
+              v-else-if="item.fColumn == 'fDataType'"
               v-model="scope.row[item.fColumn]"
               placeholder="请选择"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -46,7 +42,12 @@
                 :value="optionItem.value"
               ></el-option>
             </el-select>
-
+            <el-input
+              v-else-if="item.fColumn === 'fSort'"
+              v-model="scope.row[item.fColumn]"
+              @change="ruleContent(scope.row[item.fColumn])"
+              :disabled="item.fReadOnly == 0 ? false : true"
+            ></el-input>
             <el-input
               v-else
               v-model="scope.row[item.fColumn]"
@@ -87,31 +88,44 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
-import { getTableHeadData, getTableBodyData } from "@/api/index";
+import { getTableHeadData} from "@/api/index";
 export default {
-  props: ["fTableView", "insertData", "fID", "changeData"],
+  props: [
+    "fTableView",
+    "tableName",
+    "isSaveSuccess",
+    "value",
+    "isSave",
+    "selBatchList",
+    "tableData"
+  ],
   data() {
     return {
       tableHeadData: [], //表头数据
+      //checkbox选中的数据
+      BatchList: [],
       //获取表格内容TableView的值,在获取headData中获取
+      fTableViewData: "",
       getRowKeys(row) {
-        return row.fID;
+        return row.fCompanyID || row.fModName;
       },
-      //表格数据
-      tableData: [],
       // 当前页数
       pageNum: 1,
       // 每页条数
       pageSize: 10,
       // 总条数
       total: 0,
+      //权限表修改的数据
+      editTableData: [],
       userDes: this.$store.state.user.userInfo.userDes,
+      userId: this.$store.state.user.userInfo.userId,
+      sqlConn: sessionStorage.getItem("sqlConn"),
+      OrignData: [],
+      select: true,
+      //   kong
+      nullTable: [],
       //获取表格数据的fTableView
-      fTableViewll: "",
-      backData: [],
-      selectOptions: [],
-      selData: [],
-      totalAmount: 0
+      fTableViewll: ""
     };
   },
   methods: {
@@ -124,6 +138,12 @@ export default {
       this.pageNum = val;
     },
     changeA(item, val) {
+      if (this.isAuthority) {
+        this.editTableData.push(item);
+        this.editTableData = Array.from(new Set(this.editTableData));
+        this.$emit("update:selBatchList", this.editTableData);
+      }
+
       if (item[val] == 0) {
         item[val] = 1;
         this.$set(item, val, 1);
@@ -139,7 +159,6 @@ export default {
     },
     //筛选的条件数组
     screenFuction(val) {
-      // console.log(val); 表格中传递过来表格的的字段
       let copyTable = this.tableData;
       var screenData = [];
       copyTable.forEach((item, idx) => {
@@ -157,115 +176,63 @@ export default {
     },
     //获取表格表头数据
     async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableView[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
+      let res = await getTableHeadData(this.fTableView);
+      let userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
+      res = JSON.parse(
+        decryptDesCbc(res, String(userDes))
+      );
+
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "字表表头");
-        this.getTableData();
+        // console.log(this.tableHeadData, "字表表头数据");
       } else {
         this.$message.error(res.Message);
       }
     },
-    //获取表格内容数据
-    async getTableData() {
-      let searchWhereObj = [
-        {
-          Computer: "=",
-          DataFile: this.fTableView[1],
-          Value: this.fID
-        }
-      ];
-      console.log(searchWhereObj,"searchWhereObj")
-      let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        this.tableData = JSON.parse(res.Data);
-        // this.tableData = this.tableData.sort(compare)
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
 
-        this.backData = JSON.parse(JSON.stringify(this.tableData));
-        console.log(this.backData, "回显的数据");
-        this.total = this.tableData.length;
-        let sum = 0;
-        this.backData.forEach(item => {
-          // console.log(item, fStockAmount)
-          sum += item.fAmount;
-        });
-        this.totalAmount = sum;
-        this.$emit("getAmount",this.totalAmount)
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //下拉选择框
-    selectDataType(row, val, key) {
-      // console.log(row, val,key);
-      this.changeData.forEach(item => {
-        if (item.key == key) {
-          row[item.fKey] = val;
-        }
+    selectDataType(row, val) {
+      let isNullData = this.nullTable.some(item => {
+        return row.fColumn == item.fColumn;
       });
+      if (isNullData) {
+        this.insertRow.push(row);
+      } else {
+        let editIdx2 = this.editRow.indexOf(row);
+        if (editIdx2 == -1) {
+          this.editRow.push(row);
+        } else {
+          this.editRow.splice(editIdx2, 1, row);
+        }
+      }
     },
-
+    //验证表格内容不能为空
+    ruleContent(val) {
+      var reg = /^[1-9]\d*$|^0$/;
+      if (val.length > 0) {
+        if (!reg.test(val)) {
+          this.$message.warning("请在排序中输入数字!");
+        }
+      } else {
+        this.$message.warning("请在排序中输入数字!");
+      }
+    },
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
-    },
-    //获取类型
-    async getType(fTableView, fColumnType, value) {
-      let res = await getTableBodyData(fTableView, [
-        {
-          Computer: "=",
-          DataFile: "fUnitType",
-          Value: value
-        }
-      ]);
-
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        let result = JSON.parse(res.Data);
-        let arr = [];
-        result.forEach(element => {
-          let obj = {
-            value: element.fID,
-            label: element.fUnitName
-          };
-          arr.push(obj);
-        });
-
-        this.selectOptions = [...this.selData, ...arr];
-      }
     }
   },
   watch: {
-    insertData(n, o) {
-      this.insertData[this.fTableView[1]] = this.fID;
-      this.tableData = this.tableData.concat(this.insertData);
+    tableData: function() {
       this.total = this.tableData.length;
     }
   },
 
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName", 10);
-    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>
-
 <style lang="scss" scoped>
 .table-wrapper .el-input {
   margin-left: 0;

@@ -6,8 +6,36 @@
         v-for="(item, index) in searchData"
         :key="index"
       >
-        <p style="min-width:65px">{{ item.fColumnDes }}:</p>
+        {{ item.fColumnDes }}:
+        <el-checkbox
+          v-if="item.fDataType == 'bit'"
+          v-model="asData[item.fColumn]"
+        ></el-checkbox>
+        <el-date-picker
+          v-else-if="item.fDataType == 'datetime'"
+          v-model.trim="asData[item.fColumn]"
+          type="datetime"
+          placeholder="选择日期时间"
+          min-width="300"
+        ></el-date-picker>
+        <el-row v-else-if="item.fComputer == 'between'">
+          <el-col :span="11">
+            <el-input
+              v-model.trim="startData[item.fColumn]"
+              placeholder="请输入范围值"
+            ></el-input>
+          </el-col>
+          <el-col :span="2">——</el-col>
+          <el-col :span="11">
+            <el-input
+              style="margin-left:0px"
+              v-model.trim="endData[item.fColumn]"
+              placeholder="请输入范围值"
+            ></el-input>
+          </el-col>
+        </el-row>
         <el-input
+          v-else
           v-model.trim="asData[item.fColumn]"
           :placeholder="`请输入${item.fColumnDes}`"
         ></el-input>
@@ -39,13 +67,13 @@
         >
           属性调整</el-button
         >
-        <!-- <el-button
+        <el-button
           type="primary"
           size="mini"
           class="iconfont icon-export"
           @click="handerExport"
           >导出</el-button
-        > -->
+        >
       </div>
     </div>
 
@@ -124,6 +152,8 @@ export default {
       // 总条数
       total: 0,
       asData: {},
+      endData: {},
+      startData: {},
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),
@@ -361,7 +391,7 @@ export default {
     },
     //EXCEL导出
     async handerExport() {
-      console.log(this.$route);
+      // console.log(this.$route);
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -411,12 +441,15 @@ export default {
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
-      // let res = await companyList();
-      let res = await exportData(this.fTableViewData, this.searchWhere);
-      console.log(res, "daochu");
 
+      let res = await exportData(
+        this.fTableViewData,
+        this.searchWhere,
+        this.tableName
+      );
+      //  console.log(res,1232)
       if (!res) return;
-      var blob = new Blob([res.data], {
+      var blob = new Blob([res], {
         type: "application/vnd.ms-excel;charset=utf-8"
         //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
       });
@@ -424,33 +457,11 @@ export default {
       var href = window.URL.createObjectURL(blob); //创建下载的链接
 
       downloadElement.href = href;
-      downloadElement.download = `${this.$route.meta.title}-详情.xls`; //下载后文件名
+      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
       document.body.appendChild(downloadElement);
       downloadElement.click(); //点击下载
       document.body.removeChild(downloadElement); //下载完成移除元素
       window.URL.revokeObjectURL(href); //释放掉blob
-      // const BOM = "\uFEFF";
-      // if (window.Blob && window.URL && window.URL.createObjectURL) {
-      //   const csvData = new Blob([BOM + res], { type: "text/xls" });
-      //   const link = document.createElement("a");
-      //   link.download = name;
-      //   link.href = URL.createObjectURL(csvData);
-      //   link.target = "_blank";
-      //   document.body.appendChild(link);
-      //   link.click();
-      //   document.body.removeChild(link);
-      // } else {
-      //   const link = document.createElement("a");
-      //   link.download = name;
-      //   link.href =
-      //     "data:attachment/xls;charset=utf-8," +
-      //     BOM +
-      //     encodeURIComponent(res);
-      //   link.target = "_blank";
-      //   document.body.appendChild(link);
-      //   link.click();
-      //   document.body.removeChild(link);
-      // }
     }
   },
   watch: {

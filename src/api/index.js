@@ -164,19 +164,20 @@ function getTableBodyData(str, condition = []) {
     TableView: str,
     Where: condition
   };
-  console.log(JSON.stringify(obj1), "获取表格内容");
+  // console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
-
+//  console.log(JSON.stringify(obj),"加密查询")
   return http({
     url: "/QureyData",
     method: "POST",
     data: JSON.stringify(obj)
   });
 }
-
-function exportData(str, condition = []) {
+//EXCEL导出
+function exportData(str, condition = [],InterfaceName) {
+  console.log(InterfaceName,"InterfaceName")
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
 
   let obj1 = {
@@ -184,13 +185,14 @@ function exportData(str, condition = []) {
     OrderBy: "",
     SqlConn: sqlConn,
     TableView: str,
-    Where: condition
+    Where: condition,
+    InterfaceName:InterfaceName,
   };
   console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
-
+  console.log(JSON.stringify(obj), "加密获取表格内容");
   return http({
     url: "/exportData",
     method: "POST",
@@ -357,7 +359,7 @@ function collectionData(data) {
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
   };
-
+  // console.log(JSON.stringify(savaData));
   return http({
     url: "/SaveData",
     method: "POST",
