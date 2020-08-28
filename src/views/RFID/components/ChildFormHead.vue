@@ -112,11 +112,7 @@ export default {
       this.getSelectData();
     }
   },
-  mounted() {
-    setTimeout(() => {
-      this.getOrderNoData();
-    }, 100);
-  },
+
   watch: {
     ruleForm: function(val) {
       // this.ruleForm.fID = 0;
@@ -142,22 +138,7 @@ export default {
         this.$message.error(res.Message);
       }
     },
-    //获取入库单号
-    async getOrderNoData() {
-      let res = await getOrderNo(this.fTableViewHead);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
-      if (res.State) {
-        for (const key in this.ruleForm) {
-          if (
-            key.indexOf("boundOrderNo") != -1 ||
-            key.indexOf("CheckOrderNO") != -1
-          ) {
-            this.ruleForm[key] = res.Data;
-          }
-        }
-      }
-    },
+
     //新增子项,提交
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {

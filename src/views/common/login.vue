@@ -5,8 +5,17 @@
         src="https://file02.16sucai.com/d/file/2014/1006/e94e4f70870be76a018dff428306c5a3.jpg"
         alt
       />
-      <!-- <img src="../../assets/img/微信图片_20200716162737.jpg" alt=""> -->
-      <p class="title">欢迎进入知行易通仓储管理系统平台</p>
+    
+   
+      <p class="title">
+        <!-- <img
+          style="width:50px;height:50px"
+          src="../../assets/img/logo.png"
+          alt=""
+        /> -->
+        欢迎进入知行易通仓储管理系统平台
+      </p>
+      <p class="tit">power by 知行易通信息科技有限公司</p>
     </div>
     <div class="login-main">
       <h3 class="login-title">管理员登录</h3>
@@ -188,6 +197,13 @@ export default {
     font-weight: 700;
     margin: 200px 0 0 160px;
     color: #66b1ff;
+  }
+  .tit {
+    position: absolute;
+    right: 50px;
+    bottom: 20px;
+    font-weight: 700;
+    color: #999;
   }
 }
 .login-main {

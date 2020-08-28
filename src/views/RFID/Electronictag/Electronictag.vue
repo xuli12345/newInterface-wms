@@ -49,7 +49,6 @@ import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import HomeTable from "../components/HomeTable";
 import CreatFrom from "../components/FormTable";
 import EditFormTable from "../components/EditFormTable";
-
 export default {
   components: {
     HomeTable,
