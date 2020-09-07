@@ -5,8 +5,7 @@
         src="https://file02.16sucai.com/d/file/2014/1006/e94e4f70870be76a018dff428306c5a3.jpg"
         alt
       />
-    
-   
+
       <p class="title">
         <!-- <img
           style="width:50px;height:50px"
@@ -112,7 +111,7 @@ export default {
             window.localStorage.setItem("token", res.token);
             window.sessionStorage.setItem("user", JSON.stringify(user));
             this.$store.commit("user/updataUser", user);
-            this.$message.success("登录成功!");        
+            this.$message.success("登录成功!");
             let userId = res.userID;
             let userDes = decryptDesCbc(res.desCode, "d#s87@28se45&i(p");
             // //用户权限
@@ -193,10 +192,12 @@ export default {
     left: 0;
     bottom: 0;
     right: 0;
-    font-size: 40px;
     font-weight: 700;
-    margin: 200px 0 0 160px;
     color: #66b1ff;
+    // font-size: 40px;
+    // margin: 200px 0 0 160px;
+    font-size: 2.2vw;
+    margin: 20vh 0 0 10vw;
   }
   .tit {
     position: absolute;
@@ -209,7 +210,6 @@ export default {
 .login-main {
   width: 400px;
   background-color: #fff;
-  // background-color: #1b3651;
   padding: 200px 50px 180px;
   .select {
     width: 100%;

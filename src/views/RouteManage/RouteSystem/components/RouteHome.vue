@@ -249,6 +249,7 @@ export default {
   async created() {
     this.getTableHeadData();
     this.selectOpts = await this.getMstData();
+
   }
 };
 </script>

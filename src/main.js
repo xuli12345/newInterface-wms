@@ -15,11 +15,11 @@ Vue.use(print);
 
 
 // 避免路由重复点击时报错或npm i vue-router@3.0 -S
-// import Router from "vue-router"
-// const routerPush = Router.prototype.push;
-// Router.prototype.push = function push(location) {
-//   return routerPush.call(this, location).catch(error => error);
-// };
+import Router from "vue-router"
+const routerPush = Router.prototype.push;
+Router.prototype.push = function push(location) {
+  return routerPush.call(this, location).catch(error => error);
+};
 
 Vue.filter("pagination", function(tableData, pageNum, pageSize) {
   // console.log(tableData)

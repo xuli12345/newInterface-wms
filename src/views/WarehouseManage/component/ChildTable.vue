@@ -1,7 +1,8 @@
 <template>
   <div>
-    <!-- fit列的宽度是否自动撑开 -->
+ 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"

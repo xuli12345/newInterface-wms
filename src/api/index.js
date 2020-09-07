@@ -164,7 +164,7 @@ function getTableBodyData(str, condition = []) {
     TableView: str,
     Where: condition
   };
-  // console.log(JSON.stringify(obj1), "获取表格内容");
+  console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
@@ -172,6 +172,7 @@ function getTableBodyData(str, condition = []) {
   return http({
     url: "/QureyData",
     method: "POST",
+    // loading:true,
     data: JSON.stringify(obj)
   });
 }
@@ -188,11 +189,11 @@ function exportData(str, condition = [],InterfaceName) {
     Where: condition,
     InterfaceName:InterfaceName,
   };
-  console.log(JSON.stringify(obj1), "获取表格内容");
+  // console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
-  console.log(JSON.stringify(obj), "加密获取表格内容");
+  // console.log(JSON.stringify(obj), "加密获取表格内容");
   return http({
     url: "/exportData",
     method: "POST",

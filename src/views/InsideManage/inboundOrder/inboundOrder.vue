@@ -132,8 +132,8 @@ export default {
         },
         {
           fName: "fCustomerName",
-          fUrl: "v_Customer",
-          fDes: "fCustomerName",
+          fUrl: "v_Consignor",
+          fDes: "fConsignorName",
           fID: "fID",
           fAuto: ["fCustomerID"],
           fAutoID: ["fCustomerID"]

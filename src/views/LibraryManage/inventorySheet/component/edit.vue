@@ -7,6 +7,7 @@
         size="mini"
         class="iconfont icon-shuaixuan "
         @click="addPopRight"
+        :disabled="isDisabled"
         >库存筛选</el-button
       >
       <el-button
@@ -14,6 +15,7 @@
         size="mini"
         class="iconfont icon-gengxin "
         @click="updateKucun"
+        :disabled="isDisabled"
         >盘点更新库存</el-button
       >
       <el-button
@@ -21,9 +23,14 @@
         class="iconfont icon-baocun"
         @click="submitForm()"
         size="mini"
+        :disabled="isDisabled"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+      <el-button
+        class="iconfont icon-quxiao"
+        :disabled="isDisabled"
+        size="mini"
+        @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -39,6 +46,7 @@
       ref="childTable"
       :fTableView="fTableViewItem"
       :insertData="insertData"
+      :isDisabled="isDisabled"
       :fID="rowData.fID"
     ></child-table>
     <!-- 新增字表数据 -->
@@ -109,7 +117,9 @@ export default {
       tableHead: [],
       dialogFormVisible: false,
       openTitle: "选择货品",
-      fMstID: ""
+      fMstID: "",
+      //
+      isDisabled: false
     };
   },
   methods: {
@@ -282,6 +292,9 @@ export default {
     this.getTableHeadData();
     this.getTableHead();
     this.kucunHeadData();
+    if (this.rowData.fMstState && this.rowData.fMstState == 7) {
+      this.isDisabled = true;
+    }
   }
 };
 </script>

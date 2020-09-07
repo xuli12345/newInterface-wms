@@ -30,12 +30,13 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
+         <!-- :disabled="item.fReadOnly == 0 ? false : true" -->
           <el-date-picker
             v-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
             type="datetime"
             placeholder="选择日期时间"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-date-picker>
           <template
             v-else-if="
@@ -45,6 +46,7 @@
             <el-select
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
+               :disabled="isDisabled"
             >
               <el-option
                 :value="i[selectVal(item.fColumn)]"
@@ -61,23 +63,23 @@
                 (item.fColumn == 'fPrice' && item.fDataType == 'decimal')
             "
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
             @change="getPartsValue"
           ></el-input>
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-input>
           <el-checkbox
             v-else-if="item.fDataType == 'bit'"
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-checkbox>
           <el-input
             v-else
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-input>
         </el-form-item>
       </template>
@@ -90,7 +92,7 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "rowData", "fCustomerID"],
+  props: ["fTableViewHead", "addItem", "selectArr", "rowData", "fCustomerID","fState"],
   data() {
     return {
       //表单域标签的位置
@@ -101,7 +103,9 @@ export default {
       tableHead: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       //需要下拉选择的所有数据
-      selectAllData: []
+      selectAllData: [],
+      //是否禁用(根据状态已审核为禁用状态)
+      isDisabled: false
     };
   },
   created() {
@@ -111,6 +115,10 @@ export default {
     }
     if (this.rowData) {
       this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
+      // console.log(this.fState,'fState')
+       if (this.rowData.fState && this.rowData.fState == this.fState) {
+      this.isDisabled = true;
+    }
       this.ruleForm.fModifyDate = new Date();
       for (const key in this.ruleForm) {
         if (JSON.stringify(this.ruleForm[key]).indexOf("/Date") != -1) {

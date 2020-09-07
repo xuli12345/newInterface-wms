@@ -60,6 +60,7 @@
       </div>
     </div>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border

@@ -61,6 +61,7 @@
     <el-tabs v-model="activeName" @tab-click="handleClick(activeName)">
       <el-tab-pane label="权限公司" name="first">
         <el-table
+        :header-cell-style="{ background: '#eef1f6'}"
           :data="secondtableData"
           class="table-wrapper"
           ref="secondTable"

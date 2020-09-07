@@ -53,8 +53,7 @@
         :fTableViewAlert="fTableViewAlert"
         :searchData="searchData"
         :addItem="true"
-        :selectArr="selectArr"
-        
+        :selectArr="selectArr"   
         :rowData="editForm"
       ></edit-form-table>
     </el-drawer>
@@ -109,10 +108,10 @@ export default {
           fAuto: ["fMstState"],
           fAutoID: ["fMstState"]
         },
-        {
+         {
           fName: "fCustomerName",
-          fUrl: "v_Customer",
-          fDes: "fCustomerName",
+          fUrl: "v_Consignor",
+          fDes: "fConsignorName",
           fID: "fID",
           fAuto: ["fCustomerID"],
           fAutoID: ["fCustomerID"]
@@ -126,35 +125,6 @@ export default {
           fAutoID: ["fWarehouseID"]
         }
       ],
-      //新增字表需要下拉选择的数据
-      // selectArr2: [
-      //   {
-      //     fName: "fProductID",
-      //     fUrl: "v_Product",
-      //     fDes: "fProductName",
-      //     fID: "fID",
-      //     fAuto: [
-      //       "fProductCode",
-      //       "fProductBarCode",
-      //       "fStorageCode",
-      //       "fProductName"
-      //     ]
-      //   },
-      //   {
-      //     fName: "fCheckUnit",
-      //     fUrl: "v_Unit",
-      //     fDes: "fUnitName",
-      //     fID: "fID",
-          
-      //   },
-      //   {
-      //     fName: "fStorageID",
-      //     fUrl: "v_Storage_Item",
-      //     fDes: "fStorageID",
-      //     fID: "fID",
-      //     fAuto: ["fStorageCode"]
-      //   }
-      // ],
       batchDelTableName: [
         {
           Key: "t_CheckOrder_Item",
@@ -169,7 +139,9 @@ export default {
       searchData: [
         { fColumnDes: "货品名称", fColumn: "fProductName" },
         { fColumnDes: "货品批次", fColumn: "fBatchNo" },
-        { fColumnDes: "货品代码", fColumn: "fProductCode" }
+        { fColumnDes: "货品代码", fColumn: "fProductCode" },
+        { fColumnDes: "库位编码", fColumn: "fStorageCode" },
+        { fColumnDes: "区域名称", fColumn: "fAreaName" },
       ]
     };
   },

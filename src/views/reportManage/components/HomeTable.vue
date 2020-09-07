@@ -71,6 +71,7 @@
           type="primary"
           size="mini"
           class="iconfont icon-export"
+          :disabled="userLimit('fExport')"
           @click="handerExport"
           >导出</el-button
         >
@@ -78,6 +79,7 @@
     </div>
 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -312,6 +314,7 @@ export default {
           OrderBy: "",
           SqlConn: this.sqlConn,
           TableView: this.fTableViewData,
+          
           Where: this.searchWhere
         },
         { userDes: this.userDes, userId: this.userId }

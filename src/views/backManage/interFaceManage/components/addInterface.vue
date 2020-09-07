@@ -71,6 +71,7 @@
     <hc-title content="子表接口数据"></hc-title>
     <!-- 子表格数据  -->
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       :data="tableDataPage"

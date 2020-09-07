@@ -1,15 +1,14 @@
 <template>
   <div>
-    <!-- fit列的宽度是否自动撑开 -->
     <el-table
-      :data="tableData | pagination(pageNum, pageSize)"
+    :header-cell-style="{ background: '#eef1f6'}"
+      :data="tableList | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
     >
-    
       <el-table-column type="index" width="50"></el-table-column>
       <template v-for="(item, index) in tableHeadData">
         <el-table-column
@@ -58,19 +57,15 @@
           </template>
         </el-table-column>
       </template>
-      <el-table-column
-        fixed="right"
-        label="操作"
-        align="center"
-        width="120"
-      >
+      <el-table-column fixed="right" label="操作" align="center" width="120">
         <template slot-scope="scope">
           <div class="operation">
             <el-button
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
-            >删除</el-button>
+              >删除</el-button
+            >
           </div>
         </template>
       </el-table-column>
@@ -92,10 +87,8 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import { addParams, batchDelete,compare } from "@/utils/common";
-import {
-  getTableHeadData
-} from "@/api/index";
+import { addParams, batchDelete, compare } from "@/utils/common";
+import { getTableHeadData, getTableBodyData } from "@/api/index";
 export default {
   props: [
     "fTableView",
@@ -118,13 +111,13 @@ export default {
         return row.fCompanyID || row.fModName;
       },
       //表格数据
-    //   tableData: [],
+      tableList: [],
       // 当前页数
       pageNum: 1,
       // 每页条数
       pageSize: 10,
       // 总条数
-      total:0,
+      total: 0,
       //权限表修改的数据
       editTableData: [],
       userDes: this.$store.state.user.userInfo.userDes,
@@ -132,17 +125,18 @@ export default {
       sqlConn: sessionStorage.getItem("sqlConn"),
       OrignData: [],
       select: true,
-    //   kong
-    nullTable: [],
-    //获取表格数据的fTableView
-    fTableViewll:''
+      //   kong
+      nullTable: [],
+      //获取表格数据的fTableView
+      fTableViewll: "",
+      asData: {}
     };
   },
   methods: {
     // 页容量
     handleSizeChange(val) {
       this.pageSize = val;
-    },  
+    },
     // 当前页
     handleCurrentChange(val) {
       this.pageNum = val;
@@ -186,18 +180,16 @@ export default {
       });
       return newData;
     },
-     //获取表格表头数据
+    //获取表格表头数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      let userDes = JSON.parse(sessionStorage.getItem('user')).userDes
-      res = JSON.parse(
-        decryptDesCbc(res, String(userDes))
-      );
-    
+      let userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
+      res = JSON.parse(decryptDesCbc(res, String(userDes)));
+
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-          console.log( this.tableHeadData,"字表表头数据")
+        console.log(this.tableHeadData, "字表表头数据");
         // this.getTableData();
       } else {
         this.$message.error(res.Message);
@@ -220,7 +212,7 @@ export default {
         }
       }
     },
-     //验证表格内容不能为空
+    //验证表格内容不能为空
     ruleContent(val) {
       var reg = /^[1-9]\d*$|^0$/;
       if (val.length > 0) {
@@ -231,19 +223,20 @@ export default {
         this.$message.warning("请在排序中输入数字!");
       }
     },
-    handleDelete(val,index){
-      this.tableData.splice(index,1)
+    handleDelete(val, index) {
+      this.tableData.splice(index, 1);
     }
   },
   watch: {
-    tableData:function(){
-      this.total=this.tableData.length
+    tableData: function() {
+      this.tableList = [...this.tableData];
+      this.total = this.tableList.length;
     }
   },
 
-
   created() {
-    this.getTableHeadData()
+    this.getTableHeadData();
+    this.tableList = this.tableData;
   }
 };
 </script>

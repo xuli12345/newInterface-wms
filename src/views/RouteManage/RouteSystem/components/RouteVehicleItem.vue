@@ -1,10 +1,11 @@
 <template>
   <div>
+     <!-- iconfont icon-shuaixuan -->
     <div class="btns">
       <el-button
         type="primary"
         size="mini"
-        class="iconfont icon-shuaixuan "
+        class="iconfont icon-xinzeng"
         @click="openTable"
         style="margin-bottom:15px"
         >新增</el-button

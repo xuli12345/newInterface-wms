@@ -7,16 +7,18 @@
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
+         :disabled="isDisabled"
         >新增</el-button
       >
       <el-button
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
+         :disabled="isDisabled"
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+      <el-button  :disabled="isDisabled" class="iconfont icon-quxiao" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -27,6 +29,7 @@
       ref="ruleForm"
       :selectArr="selectArr"
       :Amount="totalAmount"
+      :fState='fState'
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -35,6 +38,8 @@
       :insertData="insertData"
       :fID="rowData.fID"
       @getAmount="getAmount"
+      :isDisabled="isDisabled"
+      :fState='fState'
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -85,7 +90,10 @@ export default {
       insertData: {},
       //表格数据表头
       tableHead: [],
-      totalAmount: 0
+      totalAmount: 0,
+         //已审核状态
+      isDisabled: false,
+      fState: 2
     };
   },
   methods: {
@@ -196,6 +204,9 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
+      if (this.rowData.fState && this.rowData.fState == this.fState) {
+      this.isDisabled = true;
+    }
   }
 };
 </script>

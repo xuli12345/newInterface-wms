@@ -81,7 +81,6 @@ export default {
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           formData.fMstID = fMstID;
-
           let res = await collectionData([
             {
               TableName: this.fTableViewHead[0],

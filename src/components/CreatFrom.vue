@@ -30,6 +30,7 @@
             "
           >
             <el-select
+              :multiple="item.fColumn == 'fPickingPlace'"
               v-model="ruleForm[item.fColumn]"
               @change="getName(ruleForm[item.fColumn], item.fColumn)"
             >
@@ -41,7 +42,7 @@
               ></el-option>
             </el-select>
           </template>
-
+        
           <el-date-picker
             v-else-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
@@ -133,6 +134,15 @@ export default {
               md5(this.ruleForm["fPassWord"])
             );
           }
+
+          if (
+            "fPickingPlace" in this.ruleForm &&
+            this.ruleForm["fPickingPlace"].length > 0
+          ) {
+            let value = this.ruleForm["fPickingPlace"];
+            value = value.join(",");
+            this.$set(this.ruleForm, "fPickingPlace", value);
+          }
           let res = await collectionData([
             {
               TableName: this.tableName,
@@ -173,6 +183,7 @@ export default {
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        console.log(JSON.parse(res.Data));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段

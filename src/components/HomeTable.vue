@@ -123,6 +123,7 @@
           type="primary"
           size="mini"
           class="iconfont icon-A"
+          :disabled="userLimit('fExport')"
           @click="handleStorage"
           >查询导出库位条码</el-button
         >
@@ -141,6 +142,7 @@
           size="mini"
           class="el-icon-circle-close"
           @click="colseOrder"
+          :disabled="userLimit('fClose')"
           >关闭</el-button
         >
         <el-button
@@ -153,7 +155,24 @@
           >入库完成</el-button
         >
         <el-button
-          v-if="product"
+          v-if="importExcel"
+          type="primary"
+          size="mini"
+          class="iconfont icon-export"
+          @click="handerExport"
+          :disabled="userLimit('fExport')"
+          >导出</el-button
+        >
+        <el-button
+          v-if="Invalid"
+          type="primary"
+          size="mini"
+          class="iconfont icon-jurassic_cancle-pandian"
+          @click="handerInvalid"
+          >作废</el-button
+        >
+        <el-button
+          v-if="isDownLoad"
           type="primary"
           class="el-icon-bottom"
           @click="downloadTemp"
@@ -161,7 +180,7 @@
           >下载模板</el-button
         >
         <el-upload
-          v-if="product"
+          v-if="isDownLoad"
           style="margin-left:15px;float:right"
           ref="upload"
           class="upload"
@@ -184,6 +203,7 @@
       </div>
     </div>
     <el-table
+      :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -194,7 +214,6 @@
       @row-dblclick="dblclick"
       @filter-change="filterTagTable"
     >
-      <!-- :filter-method="userLimit('fFiler') ? null : filtersF"  -->
       <el-table-column type="selection" width="50"></el-table-column>
       <template v-if="!isHave">
         <template v-for="(item, index) in tableHeadData">
@@ -222,7 +241,6 @@
         </template>
       </template>
       <template v-if="isHave">
-        <!-- :filter-method="filtersF" -->
         <template v-for="(item, index) in tableHeadData">
           <el-table-column
             v-if="item.fVisible == 1"
@@ -274,7 +292,6 @@
               :disabled="userLimit('fDel')"
               >删除</el-button
             >
-
             <el-button
               type="text"
               size="small"
@@ -321,7 +338,6 @@ import PrintTable from "@/components/PrintTable";
 import { compare } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
 import PrintJS from "print-js";
-import Sortable from "sortablejs";
 import {
   tableBodyData,
   addformSaveData,
@@ -330,12 +346,14 @@ import {
   getTableHeadData,
   BathcDeleteData,
   queryViewData,
-  imPortExcel
+  imPortExcel,
+  exportData
 } from "@/api/index";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
   //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:已审核  strType:导入excel类型字段
-  //putawayData:是否已上架完成   //isClose:单据关闭(入库,盘点,出库)
+  //putawayData:是否已上架完成   isClose:单据关闭(入库,盘点,出库)  importExcel:excel导出    Invalid:作废
+  //isDownLoad:是否下载   openExcelDrawer:配送通知单(从excel导入窗口)
   props: [
     "fTableView",
     "tableName",
@@ -352,7 +370,10 @@ export default {
     "isCheck",
     "strType",
     "isClose",
-    "putawayData"
+    "putawayData",
+    "importExcel",
+    "Invalid",
+    "isDownLoad"
   ],
   components: {
     PrintTable
@@ -394,10 +415,6 @@ export default {
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),
-      //表格拖拽字段
-      sortable: null,
-      oldList: [],
-      newList: [],
       newArr: [],
       //excel
       fileTemp: null
@@ -588,12 +605,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.oldList = this.tableData.map(v => v.fID);
-        this.newList = this.oldList.slice();
-        this.$nextTick(() => {
-          // this.setSort();
-        });
-
         this.tableData.forEach(element => {
           for (const key in element) {
             if (
@@ -602,6 +613,12 @@ export default {
             ) {
               element[key] = element[key].replace(/T/, " ");
             }
+          }
+          if (
+            element.fPickingPlace &&
+            element.fPickingPlace == "System.Object[]"
+          ) {
+            this.$set(element, "fPickingPlace", "");
           }
         });
         console.log(this.tableData, "表体内容");
@@ -644,7 +661,9 @@ export default {
         this.$message.warning(`请选择要${msg}的数据!`);
       } else {
         this.BatchList.forEach(item => {
+          console.log(item);
           this.$set(item, "fMstState", status);
+          this.$set(item, "fState", status);
         });
         let result = batchDelete(this.tableHeadData, this.BatchList);
         let res = await addformSaveData([
@@ -682,6 +701,11 @@ export default {
     //入库完成
     async handleInboundFinsh() {
       this.billsFn(this.putawayData[1], "入库");
+    },
+    //单据作废
+    //作废
+    handerInvalid() {
+      this.billsFn(this.isCheck[2], "作废");
     },
     // 手动选中Checkbox
     handleSelectionChange(val) {
@@ -891,7 +915,6 @@ export default {
         this.printHeadData = this.printHeadData.map(item => {
           return item.fColumnDes;
         });
-        // console.log(this.printHeadData, "打印的表头");
       }
     },
     //获取打印字表表头的数据
@@ -926,7 +949,6 @@ export default {
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           this.dataCode = JSON.parse(res.Data);
-          // console.log(this.dataCode, "AHIW");
         }
         this.isRender = true;
 
@@ -935,9 +957,6 @@ export default {
             printable: "toPrint",
             type: "html",
             scanStyles: false,
-            // header: 'PrintJS - Form Element Selection', white-space:nowrap
-            // css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css",
-
             style:
               "table tr td,th { border-collapse: collapse; border: 1px #000 solid;font-size: 12px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;}; "
           });
@@ -982,25 +1001,7 @@ export default {
         return data;
       }
     },
-    //表格拖拽
-    setSort() {
-      const el = this.$refs.singleTable.$el.querySelectorAll(
-        ".el-table__body-wrapper > table > tbody"
-      )[0];
-      this.sortable = Sortable.create(el, {
-        setData: function(dataTransfer) {
-          dataTransfer.setData("Text", "");
-        },
-        onEnd: evt => {
-          const targetRow = this.tableData.splice(evt.oldIndex, 1)[0];
-          this.tableData.splice(evt.newIndex, 0, targetRow);
 
-          // for show the changes, you can delete in you code
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0];
-          this.newList.splice(evt.newIndex, 0, tempIndex);
-        }
-      });
-    },
     // excel导入
     handleChange(file, fileList) {
       this.fileTemp = file.raw;
@@ -1031,8 +1032,9 @@ export default {
     //下载模板
     downloadTemp() {
       if (this.strType.includes("Goods")) {
-        window.location.href =`${tempUrl}/ImportTempModFile/货品导入模板.xlsx`
-         
+        window.location.href = `${tempUrl}/ImportTempModFile/货品导入模板.xlsx`;
+      } else if (this.strType.includes("PGAlcntc")) {
+        window.location.href = `${tempUrl}/ImportTempModFile/配货通知单导入模板.xlsx`;
       }
     },
 
@@ -1048,6 +1050,80 @@ export default {
       } else {
         this.$message.error(res.message);
       }
+    },
+    //EXCEL导出
+    async handerExport() {
+      // console.log(this.$route);
+      this.searchWhere = [];
+      if (JSON.stringify(this.asData) == "{}") {
+        this.searchWhere = [];
+      } else {
+        this.searchData.forEach(element => {
+          if (this.asData[element.fColumn]) {
+            let result = this.asData[element.fColumn];
+            if (result instanceof Date) {
+              result = timeCycle(result);
+              // console.log(result);
+            }
+            if (result.constructor == Boolean && result == true) {
+              result = 1;
+            }
+            let obj = {
+              Computer: element.fComputer,
+              DataFile: element.fColumn,
+              Value: result
+            };
+            this.searchWhere.push(obj);
+          }
+        });
+      }
+      let startobj = {};
+      let endobj = {};
+      let arr = [];
+      for (const key in this.startData) {
+        for (const Ikey in this.endData) {
+          if (Ikey == key) {
+            startobj = {
+              Computer: ">=",
+              DataFile: key,
+              Value: this.startData[key]
+            };
+            endobj = {
+              Computer: "<=",
+              DataFile: key,
+              Value: this.endData[Ikey]
+            };
+
+            arr.push(startobj);
+            arr.push(endobj);
+          }
+        }
+      }
+
+      if (arr.length >= 1) {
+        this.searchWhere.push(...arr);
+      }
+
+      let res = await exportData(
+        this.fTableViewData,
+        this.searchWhere,
+        this.tableName
+      );
+      //  console.log(res,1232)
+      if (!res) return;
+      var blob = new Blob([res], {
+        type: "application/vnd.ms-excel;charset=utf-8"
+        //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
+      });
+      var downloadElement = document.createElement("a");
+      var href = window.URL.createObjectURL(blob); //创建下载的链接
+
+      downloadElement.href = href;
+      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
+      document.body.appendChild(downloadElement);
+      downloadElement.click(); //点击下载
+      document.body.removeChild(downloadElement); //下载完成移除元素
+      window.URL.revokeObjectURL(href); //释放掉blob
     }
   },
   watch: {
@@ -1057,7 +1133,6 @@ export default {
       }
     }
   },
-
   created() {
     this.getTableHeadData();
     if (this.isPrint) {

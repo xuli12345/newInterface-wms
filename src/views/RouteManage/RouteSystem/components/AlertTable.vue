@@ -14,6 +14,7 @@
     </div>
 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -67,18 +68,7 @@
           </template>
         </el-table-column>
       </template>
-      <!-- <el-table-column fixed="right" label="操作" align="center" width="120">
-        <template slot-scope="scope">
-          <div class="operation">
-            <el-button
-              type="text"
-              size="small"
-              @click.stop="handleDelete(scope.row, scope.$index)"
-              >删除</el-button
-            >
-          </div>
-        </template>
-      </el-table-column> -->
+  
     </el-table>
     <!-- 分页 -->
     <div class="page flex-justify-end">

@@ -5,6 +5,7 @@
         type="primary"
         class="el-icon-bottom"
         @click="downloadTemp"
+        :disabled="isDisabled"
         size="mini"
         >下载模板</el-button
       >
@@ -20,12 +21,13 @@
         accept="application/vnd.openxmlformats-    
         officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
       >
-        <el-button type="primary" class="iconfont icon-excel" size="mini"
+        <el-button type="primary" :disabled="isDisabled" class="iconfont icon-excel" size="mini"
           >导入excel</el-button
         >
       </el-upload>
       <el-button
         v-if="addItem"
+        :disabled="isDisabled"
         type="primary"
         size="mini"
         class="iconfont icon-xinzeng add"
@@ -33,13 +35,18 @@
         >新增</el-button
       >
       <el-button
+         :disabled="isDisabled"
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+      <el-button
+        :disabled="isDisabled"
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -56,6 +63,7 @@
       :fTableView="fTableViewItem"
       :insertData="insertData"
       :fID="rowData.fID"
+      :isDisabled="isDisabled"
       :changeData="changeData"
     ></child-table>
     <!-- 新增字表数据 -->
@@ -110,7 +118,9 @@ export default {
       //表格添加的数据
       insertData: {},
       //表格数据表头
-      tableHead: []
+      tableHead: [],
+      //
+      isDisabled: false
     };
   },
   methods: {
@@ -199,9 +209,8 @@ export default {
     //下载模板
     downloadTemp() {
       if (this.strType.includes("Inbound")) {
-        window.location.href =`${tempUrl}/ImportTempModFile/入库单导入模板.xlsx`
-         
-      } 
+        window.location.href = `${tempUrl}/ImportTempModFile/入库单导入模板.xlsx`;
+      }
     },
     // excel导入
     handleChange(file, fileList) {
@@ -232,8 +241,6 @@ export default {
       this.fileTemp = null;
     },
 
-
-
     async importFile(strType, file) {
       let res = await imPortExcel({
         strType: strType,
@@ -257,7 +264,7 @@ export default {
         });
         this.insertData = [...tableData, ...this.insertData];
       } else {
-        this.$message.error(res.Message);
+        this.$message.error(res.message);
       }
     }
   },
@@ -265,6 +272,9 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
+    if (this.rowData.fMstState && this.rowData.fMstState == 7) {
+      this.isDisabled = true;
+    }
   }
 };
 </script>

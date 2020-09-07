@@ -137,11 +137,10 @@
           :disabled="userLimit('fApp')"
           >审核</el-button
         >
-
-    
       </div>
     </div>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -272,7 +271,6 @@ import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { addParams, batchDelete, userLimit } from "@/utils/common";
 import PrintTable from "./PrintProduct";
 import { compare } from "@/utils/common";
-import PrintJS from "print-js";
 import Sortable from "sortablejs";
 import {
   tableBodyData,
@@ -285,7 +283,6 @@ import {
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
   //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:审核(入库,盘点,出库)  strType:导入excel类型字段
-
   props: [
     "fTableView",
     "tableName",
@@ -342,10 +339,6 @@ export default {
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),
-      //表格拖拽字段
-      sortable: null,
-      oldList: [],
-      newList: [],
       newArr: [],
       //excel
       fileTemp: null,
@@ -357,9 +350,7 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
@@ -373,7 +364,6 @@ export default {
         searchArr.forEach(item => {
           ColumnArr.push(item.fColumn);
         });
-        // console.log(ColumnArr, "搜索的字段");
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
@@ -402,9 +392,7 @@ export default {
       }
     },
     //表格筛选
-
     async filterTagTable(filters) {
-      // console.log(filters);
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -497,7 +485,6 @@ export default {
               result = 1;
             }
             let obj = {
-              // Computer: "=",
               Computer: element.fComputer,
               DataFile: element.fColumn,
               Value: result
@@ -528,7 +515,7 @@ export default {
           }
         }
       }
-      // console.log(arr);
+
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
@@ -538,11 +525,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.oldList = this.tableData.map(v => v.fID);
-        this.newList = this.oldList.slice();
-        this.$nextTick(() => {
-          // this.setSort();
-        });
         this.tableData.forEach(element => {
           for (const key in element) {
             if (
@@ -874,25 +856,7 @@ export default {
         return data;
       }
     },
-    //表格拖拽
-    setSort() {
-      const el = this.$refs.singleTable.$el.querySelectorAll(
-        ".el-table__body-wrapper > table > tbody"
-      )[0];
-      this.sortable = Sortable.create(el, {
-        setData: function(dataTransfer) {
-          dataTransfer.setData("Text", "");
-        },
-        onEnd: evt => {
-          const targetRow = this.tableData.splice(evt.oldIndex, 1)[0];
-          this.tableData.splice(evt.newIndex, 0, targetRow);
 
-          // for show the changes, you can delete in you code
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0];
-          this.newList.splice(evt.newIndex, 0, tempIndex);
-        }
-      });
-    },
     // excel导入
     handleChange(file, fileList) {
       // console.log(file, fileList);
@@ -921,7 +885,6 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     },
-
 
     async importFile(strType, file) {
       let res = await imPortExcel({

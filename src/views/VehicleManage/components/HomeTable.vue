@@ -141,6 +141,7 @@
           size="mini"
           class="el-icon-circle-close"
           @click="colseOrder"
+           :disabled="userLimit('fClose')"
           >关闭</el-button
         >
         <el-button
@@ -156,6 +157,7 @@
       </div>
     </div>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border

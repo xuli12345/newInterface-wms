@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
