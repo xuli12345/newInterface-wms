@@ -20,26 +20,30 @@ const request = axios.create({
 request.defaults.headers.post["Content-Type"] = "application/json";
 //请求拦截器
 request.interceptors.request.use(
-  function(config) {
+  function (config) {
     if (config.loading) {
       store.commit("common/updateLoadingStatus", true);
     }
 
+    let token = window.localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = token;
+    }
     return config;
   },
-  function(error) {
+  function (error) {
     return Promise.reject(error);
   }
 );
 
 // 响应拦截器
 request.interceptors.response.use(
-  function(response) {
+  function (response) {
     store.commit("common/updateLoadingStatus", false);
 
     return response.data || response;
   },
-  async function(error) {
+  async function (error) {
     return Promise.reject(error);
   }
 );

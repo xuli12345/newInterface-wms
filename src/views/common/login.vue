@@ -32,20 +32,11 @@
           <el-input v-model="dataForm.username" placeholder="帐号"></el-input>
         </el-form-item>
         <el-form-item prop="password">
-          <el-input
-            v-model="dataForm.password"
-            type="password"
-            placeholder="密码"
-          ></el-input>
+          <el-input v-model="dataForm.password" type="password" placeholder="密码"></el-input>
         </el-form-item>
 
         <el-form-item>
-          <el-button
-            class="login-btn-submit"
-            type="primary"
-            @click="submitForm('dataForm')"
-            >登录</el-button
-          >
+          <el-button class="login-btn-submit" type="primary" @click="submitForm('dataForm')">登录</el-button>
         </el-form-item>
       </el-form>
     </div>
@@ -84,8 +75,9 @@ export default {
       this.$refs[formName].validate(async valid => {
         if (valid) {
           let res = await userLogin({
-            username: this.dataForm.username,
-            password: md5(this.dataForm.password)
+            CustomerID: 1,
+            Usercode: this.dataForm.username,
+            Password: md5(this.dataForm.password)
           });
 
           if (res.state) {
@@ -95,16 +87,14 @@ export default {
               usercode: res.userCode,
               userDes: decryptDesCbc(res.desCode, "d#s87@28se45&i(p")
             };
-
+            window.localStorage.setItem("token", res.token);
             window.sessionStorage.setItem("user", JSON.stringify(user));
             this.$store.commit("user/updataUser", user);
             this.$message.success("登录成功!");
-
             let userId = res.userID;
             let userDes = decryptDesCbc(res.desCode, "d#s87@28se45&i(p");
             // //用户权限
             let fSqlConn = 1;
-
             this.options.forEach((item, index) => {
               if (this.value == item.fCompanyName) {
                 fSqlConn = item.fSqlConn;
@@ -183,9 +173,11 @@ export default {
     left: 0;
     bottom: 0;
     right: 0;
-    font-size: 40px;
+    // font-size: 40px;
+    font-size: 2.2vw;
     font-weight: 700;
-    margin: 200px 0 0 160px;
+    // margin: 200px 0 0 160px;
+    margin: 20vh 0 0 10vw;
     color: #66b1ff;
   }
 }

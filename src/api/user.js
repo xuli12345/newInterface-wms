@@ -6,14 +6,10 @@ import http from "@/http/http";
  *
  */
 function userLogin(obj) {
-  let arr = [];
-  arr.push(obj.username);
-  arr.push(obj.password);
   return http({
-    url: "/UserLogin",
+    url: "http://8.129.208.95:8004/token/userLogin",
     method: "POST",
-    loading:"true",
-    data: JSON.stringify(arr)
+    data: JSON.stringify(obj)
   });
 }
 export { userLogin };

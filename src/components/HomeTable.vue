@@ -1,17 +1,9 @@
 <template>
   <div>
     <div class="page flex-wrap">
-      <div
-        class="search-title flex-align-center"
-        v-for="(item, index) in searchData"
-        :key="index"
-      >
+      <div class="search-title flex-align-center" v-for="(item, index) in searchData" :key="index">
         {{ item.fColumnDes }}:
-
-        <el-checkbox
-          v-if="item.fDataType == 'bit'"
-          v-model="asData[item.fColumn]"
-        ></el-checkbox>
+        <el-checkbox v-if="item.fDataType == 'bit'" v-model="asData[item.fColumn]"></el-checkbox>
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
@@ -21,10 +13,7 @@
         ></el-date-picker>
         <el-row v-else-if="item.fComputer == 'between'">
           <el-col :span="11">
-            <el-input
-              v-model.trim="startData[item.fColumn]"
-              placeholder="请输入范围值"
-            ></el-input>
+            <el-input v-model.trim="startData[item.fColumn]" placeholder="请输入范围值"></el-input>
           </el-col>
           <el-col :span="2">——</el-col>
           <el-col :span="11">
@@ -35,11 +24,7 @@
             ></el-input>
           </el-col>
         </el-row>
-        <el-input
-          v-else
-          v-model.trim="asData[item.fColumn]"
-          :placeholder="`请输入${item.fColumnDes}`"
-        ></el-input>
+        <el-input v-else v-model.trim="asData[item.fColumn]" :placeholder="`请输入${item.fColumnDes}`"></el-input>
       </div>
       <div style="margin-top:10px">
         <el-button
@@ -48,16 +33,14 @@
           class="iconfont icon-A"
           @click="search"
           :disabled="userLimit('fQurey')"
-          >查询</el-button
-        >
+        >查询</el-button>
         <el-button
           type="primary"
           size="mini"
           class="iconfont icon-xinzeng"
           @click="addPopRight"
           :disabled="userLimit('fAdd')"
-          >新增</el-button
-        >
+        >新增</el-button>
         <el-button
           v-if="!isItem"
           type="primary"
@@ -65,8 +48,7 @@
           class="iconfont icon-shanchu"
           @click="BatchDelete"
           :disabled="userLimit('fDel')"
-          >批量删除</el-button
-        >
+        >批量删除</el-button>
         <el-button
           v-if="isItem"
           type="primary"
@@ -74,8 +56,7 @@
           class="iconfont icon-shanchu"
           @click="BatchFormsDelete"
           :disabled="userLimit('fDel')"
-          >批量删除</el-button
-        >
+        >批量删除</el-button>
         <!-- v-print="'#toPrint'" -->
         <el-button
           v-if="isPrint"
@@ -84,48 +65,42 @@
           class="iconfont icon-dayin1"
           @click="printCon()"
           :disabled="userLimit('fPrint')"
-          >打印</el-button
-        >
+        >打印</el-button>
         <el-button
           v-if="product"
           type="primary"
           size="mini"
           icon="el-icon-help"
           @click="handleBarCode"
-          >货品条码绑定</el-button
-        >
+        >货品条码绑定</el-button>
         <el-button
           v-if="product"
           icon="el-icon-goods"
           type="primary"
           size="mini"
           @click="handleCarton"
-          >装箱信息</el-button
-        >
+        >装箱信息</el-button>
         <el-button
           v-if="product"
           type="primary"
           size="mini"
-          class="iconfont icon-setting "
+          class="iconfont icon-setting"
           @click="handleSeq"
-          >上架拣货设置</el-button
-        >
+        >上架拣货设置</el-button>
         <el-button
           v-if="containerNum"
           type="primary"
           size="mini"
           icon="el-icon-suitcase-1"
           @click="handleContainer"
-          >生成容器号</el-button
-        >
+        >生成容器号</el-button>
         <el-button
           v-if="storage"
           type="primary"
           size="mini"
           class="iconfont icon-A"
           @click="handleStorage"
-          >查询导出库位条码</el-button
-        >
+        >查询导出库位条码</el-button>
         <el-button
           v-if="isCheck"
           type="primary"
@@ -133,16 +108,14 @@
           class="iconfont icon-yishenhe"
           @click="handleCheck"
           :disabled="userLimit('fApp')"
-          >审核</el-button
-        >
+        >审核</el-button>
         <el-button
           v-if="isClose"
           type="primary"
           size="mini"
           class="el-icon-circle-close"
           @click="colseOrder"
-          >关闭</el-button
-        >
+        >关闭</el-button>
         <el-button
           v-if="putawayData"
           type="primary"
@@ -150,36 +123,33 @@
           class="el-icon-s-claim"
           @click="handleInboundFinsh"
           :disabled="userLimit('fApp')"
-          >入库完成</el-button
-        >
+        >入库完成</el-button>
         <el-button
           v-if="product"
           type="primary"
           class="el-icon-bottom"
           @click="downloadTemp"
           size="mini"
-          >下载模板</el-button
-        >
+        >下载模板</el-button>
         <el-upload
           v-if="product"
           style="margin-left:15px;float:right"
           ref="upload"
           class="upload"
-          action=""
+          action
           :on-change="handleChange"
           :on-remove="handleRemove"
           :auto-upload="false"
           :show-file-list="false"
           accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+        officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
         >
           <el-button
             type="primary"
             class="iconfont icon-excel"
             size="mini"
             :disabled="userLimit('fInport')"
-            >导入excel</el-button
-          >
+          >导入excel</el-button>
         </el-upload>
       </div>
     </div>
@@ -193,6 +163,7 @@
       @selection-change="handleSelectionChange"
       @row-dblclick="dblclick"
       @filter-change="filterTagTable"
+      
     >
       <!-- :filter-method="userLimit('fFiler') ? null : filtersF"  -->
       <el-table-column type="selection" width="50"></el-table-column>
@@ -236,11 +207,7 @@
           >
             <template slot-scope="scope">
               <form v-if="item.fColumn === 'fPassWord'">
-                <el-input
-                  v-model="scope.row[item.fColumn]"
-                  type="password"
-                  disabled
-                ></el-input>
+                <el-input v-model="scope.row[item.fColumn]" type="password" disabled></el-input>
               </form>
 
               <el-checkbox
@@ -264,24 +231,21 @@
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
               :disabled="userLimit('fDel')"
-              >删除</el-button
-            >
+            >删除</el-button>
             <el-button
               v-if="isItem"
               type="text"
               size="small"
               @click.stop="haveItemDelete(scope.row, scope.$index)"
               :disabled="userLimit('fDel')"
-              >删除</el-button
-            >
+            >删除</el-button>
 
             <el-button
               type="text"
               size="small"
               @click="handleEdit(scope.row, scope.$index)"
               :disabled="userLimit('fEdit')"
-              >修改</el-button
-            >
+            >修改</el-button>
           </div>
         </template>
       </el-table-column>
