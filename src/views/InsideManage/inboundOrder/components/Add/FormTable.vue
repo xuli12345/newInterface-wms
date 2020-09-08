@@ -48,6 +48,9 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :Amount="totalAmount"
+      :Qtystr="totalQtystr"
+      :Num="totalNum"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -111,7 +114,11 @@ export default {
       fileTemp: null,
       file: null,
       fileName: "",
-      fCustomerID: null
+      fCustomerID: null,
+      //主表总数量 总件数  总金额
+      totalNum: 0,
+      totalQtystr: 0,
+      totalAmount: 0
     };
   },
   methods: {
@@ -199,13 +206,25 @@ export default {
     //关闭字表新增弹窗
     closeItemBox(value) {
       if (value) {
+        let Amount = 0;
+        let Qtystr = 0;
+        let num = 0;
         this.tableData.unshift(value);
+        this.tableData.forEach(item => {
+          Amount += Number(item.fAmount);
+          Qtystr += Number(item.fQtystr);
+          num += Number(item.fInboundNum);
+        });
+
+        this.totalAmount = Amount;
+        this.totalQtystr = Qtystr;
+        this.totalNum = num;
+        // console.log(this.totalAmount, this.totalQtystr, this.totalNum, "sum");
       }
       this.drawer = false;
     },
     // excel导入
     handleChange(file, fileList) {
-      // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
         if (
@@ -234,9 +253,8 @@ export default {
     //下载模板
     downloadTemp() {
       if (this.strType.includes("Inbound")) {
-        window.location.href =`${tempUrl}/ImportTempModFile/入库单导入模板.xlsx`
-         
-      } 
+        window.location.href = `${tempUrl}/ImportTempModFile/入库单导入模板.xlsx`;
+      }
     },
 
     async importFile(strType, file) {
@@ -249,6 +267,10 @@ export default {
         this.$message.success("导入成功!");
         let tableData = JSON.parse(res.resultString).sort(compare);
         this.tableData = [...tableData, ...this.tableData];
+        let Amount = 0;
+        let Qtystr = 0;
+        let num = 0;
+
         this.tableData.forEach(element => {
           for (const key in element) {
             if (
@@ -260,7 +282,13 @@ export default {
               element[key] = element[key].replace(/T/, " ");
             }
           }
+          Amount += Number(element.fAmount);
+          Qtystr += Number(element.fQtystr);
+          num += Number(element.fInboundNum);
         });
+        this.totalAmount = Amount;
+        this.totalQtystr = Qtystr;
+        this.totalNum = num;
       } else {
         this.$message.error(res.message);
       }

@@ -146,6 +146,22 @@ export default {
           // fEdit:[{key:'fInboundOrdeTypeName',value:'fInboundOrdeType'}],
           fAuto: ["fInboundOrdeType"],
           fAutoID: ["fInboundOrdeType"]
+        },
+        {
+          fName: "fSupplierName",
+          fUrl: "v_Supplier",
+          fDes: "fSupplierName",
+          fID: "fID",
+          fAuto: ["fSupplierID"],
+          fAutoID: ["fSupplierID"]
+        },
+        {
+          fName: "fWarehouseName",
+          fUrl: "v_Warehouse_Mst",
+          fDes: "fWarehouseName",
+          fID: "fID",
+          fAuto: ["fWarehouseID"],
+          fAutoID: ["fWarehouseID"]
         }
       ],
       //新增字表需要下拉选择的数据
@@ -219,6 +235,7 @@ export default {
           fAuto: ["fItemState"],
           fAutoID: ["fItemState"]
         },
+
         {
           fName: "fShelfLifeDays",
           fUrl: "v_Type_ShelfLife",
@@ -297,8 +314,6 @@ export default {
       this.drawer = false;
     }
   }
-
-  
 };
 </script>
 <style lang="scss" scoped></style>

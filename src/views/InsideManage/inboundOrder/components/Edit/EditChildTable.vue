@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -221,6 +221,16 @@ export default {
         this.backData = JSON.parse(JSON.stringify(this.tableData));
         this.total = this.tableData.length;
         console.log(this.backData, "回显的数据");
+        let Amount = 0;
+        let Qtystr = 0;
+        let num = 0;
+        this.backData.forEach(item => {
+          Amount += Number(item.fAmount);
+          Qtystr += Number(item.fQtystr);
+          num += Number(item.fInboundNum);
+        });
+        let arr = [Amount, Qtystr, num];
+        this.$emit("getAmount", arr);
       } else {
         this.$message.error(res.Message);
       }

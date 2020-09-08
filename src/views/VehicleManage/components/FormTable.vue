@@ -168,6 +168,9 @@ export default {
     closeItemBox(value) {
       if (value) {
         this.tableData.unshift(value);
+        if (value.fAmount == undefined) {
+          this.$set(value, "fAmount", 0);
+        }
         let sum = 0;
         this.tableData.forEach(item => {
           sum += item.fAmount;
@@ -183,7 +186,7 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
-  },
+  }
   // watch: {
   //   totalAmount(newVal, oldVal) {
   //     this.totalAmount = newVal;

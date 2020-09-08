@@ -7,18 +7,22 @@
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
-         :disabled="isDisabled"
+        :disabled="isDisabled"
         >新增</el-button
       >
       <el-button
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
-         :disabled="isDisabled"
+        :disabled="isDisabled"
         size="mini"
         >保存</el-button
       >
-      <el-button  :disabled="isDisabled" class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+      <el-button
+        :disabled="isDisabled"
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -29,7 +33,7 @@
       ref="ruleForm"
       :selectArr="selectArr"
       :Amount="totalAmount"
-      :fState='fState'
+      :fState="fState"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -39,7 +43,7 @@
       :fID="rowData.fID"
       @getAmount="getAmount"
       :isDisabled="isDisabled"
-      :fState='fState'
+      :fState="fState"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -62,7 +66,7 @@
 
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { compare,handelData } from "@/utils/common";
+import { compare, handelData } from "@/utils/common";
 import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
@@ -91,7 +95,7 @@ export default {
       //表格数据表头
       tableHead: [],
       totalAmount: 0,
-         //已审核状态
+      //已审核状态
       isDisabled: false,
       fState: 2
     };
@@ -123,7 +127,7 @@ export default {
         this.$message.error(res.Message);
       }
     },
- 
+
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
@@ -192,8 +196,12 @@ export default {
     },
     //关闭字表新增弹窗
     closeItemBox(value) {
+      this.insertData = value;
       if (value) {
-        this.insertData = value;
+        if (value.fAmount == undefined) {
+          this.$set(value, "fAmount", 0);
+        }
+
         this.totalAmount += value.fAmount;
         // console.log(this.totalAmount);
       }
@@ -204,7 +212,7 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
-      if (this.rowData.fState && this.rowData.fState == this.fState) {
+    if (this.rowData.fState && this.rowData.fState == this.fState) {
       this.isDisabled = true;
     }
   }

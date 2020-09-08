@@ -56,6 +56,16 @@
               ></el-option>
             </el-select>
           </template>
+          <!-- 从表入库金额 -->
+          <el-input
+            v-else-if="
+              (item.fColumn == 'fInboundNum' && item.fDataType == 'decimal') ||
+                (item.fColumn == 'fPrice' && item.fDataType == 'decimal')
+            "
+            v-model="ruleForm[item.fColumn]"
+            :disabled="item.fReadOnly == 0 ? false : true"
+            @change="getPartsValue"
+          ></el-input>
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
@@ -82,7 +92,15 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "rowData", "fCustomerID"],
+  props: [
+    "fTableViewHead",
+    "addItem",
+    "selectArr",
+    "rowData",
+    "Amount",
+    "Qtystr",
+    "Num"
+  ],
   data() {
     return {
       //表单域标签的位置
@@ -238,25 +256,10 @@ export default {
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
-      let where = [];
-      if (this.fCustomerID) {
-        where = [
-          {
-            Computer: "=",
-            DataFile: "fCustomerID",
-            Value: this.fCustomerID
-          }
-        ];
-      }
       let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res;
-        if (
-          this.selectArr[i].fName == "fProductName" ||
-          this.selectArr[i].fName == "fProductCode"
-        ) {
-          res = await getTableBodyData(this.selectArr[i].fUrl, where);
-        } else if (this.selectArr[i].searchWhere) {
+        if (this.selectArr[i].searchWhere) {
           searchWhere = this.selectArr[i].searchWhere;
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         } else {
@@ -276,6 +279,30 @@ export default {
       }
       //   console.log(arr);
       this.selectAllData = arr;
+    },
+    //计算总金额
+    getPartsValue() {
+      let fPrice = 0,
+        fInboundNum = 0;
+      if (this.ruleForm.fPrice) {
+        fPrice = this.ruleForm.fPrice;
+      }
+      if (this.ruleForm.fInboundNum) {
+        fInboundNum = this.ruleForm.fInboundNum;
+      }
+      let value = Number(fPrice) * parseInt(fInboundNum);
+      this.$set(this.ruleForm, "fAmount", value);
+    }
+  },
+  watch: {
+    Qtystr(newVal, oldVal) {
+      this.$set(this.ruleForm, "fQtystr", newVal);
+    },
+    Num(newVal, oldVal) {
+      this.$set(this.ruleForm, "fTotalNum", newVal);
+    },
+    Amount(newVal, oldVal) {
+      this.$set(this.ruleForm, "fTotalAmount", newVal);
     }
   }
 };

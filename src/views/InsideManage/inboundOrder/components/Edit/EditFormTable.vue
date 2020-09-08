@@ -21,7 +21,11 @@
         accept="application/vnd.openxmlformats-    
         officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
       >
-        <el-button type="primary" :disabled="isDisabled" class="iconfont icon-excel" size="mini"
+        <el-button
+          type="primary"
+          :disabled="isDisabled"
+          class="iconfont icon-excel"
+          size="mini"
           >导入excel</el-button
         >
       </el-upload>
@@ -35,7 +39,7 @@
         >新增</el-button
       >
       <el-button
-         :disabled="isDisabled"
+        :disabled="isDisabled"
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
@@ -56,6 +60,9 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
+      :Amount="totalAmount"
+      :Qtystr="totalQtystr"
+      :Num="totalNum"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -65,6 +72,7 @@
       :fID="rowData.fID"
       :isDisabled="isDisabled"
       :changeData="changeData"
+      @getAmount="getAmount"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -120,10 +128,18 @@ export default {
       //表格数据表头
       tableHead: [],
       //
-      isDisabled: false
+      isDisabled: false,
+      totalAmount: 0,
+      totalQtystr: 0,
+      totalNum: 0
     };
   },
   methods: {
+    getAmount(value) {
+      this.totalAmount = value[0];
+      this.totalQtystr = value[1];
+      this.totalNum = value[2];
+    },
     //获取form表单数据
     async getTableHeadData() {
       // console.log(this.fTableViewHead)
@@ -203,6 +219,13 @@ export default {
     closeItemBox(value) {
       if (value) {
         this.insertData = value;
+
+        if (value.fQtystr == undefined) {
+          this.$set(value, "fQtystr", 0);
+        }
+        this.totalAmount += Number(value.fAmount);
+        this.totalQtystr += Number(value.fQtystr);
+        this.totalNum += Number(value.fInboundNum);
       }
       this.drawer = false;
     },
@@ -250,6 +273,9 @@ export default {
       if (res.state) {
         this.$message.success("导入成功!");
         let tableData = JSON.parse(res.resultString).sort(compare);
+        let Amount = 0;
+        let Qtystr = 0;
+        let num = 0;
         tableData.forEach(element => {
           for (const key in element) {
             if (
@@ -261,7 +287,13 @@ export default {
               element[key] = element[key].replace(/T/, " ");
             }
           }
+          Amount += Number(element.fAmount);
+          Qtystr += Number(element.fQtystr);
+          num += Number(element.fInboundNum);
         });
+        this.totalAmount = Amount;
+        this.totalQtystr = Qtystr;
+        this.totalNum = num;
         this.insertData = [...tableData, ...this.insertData];
       } else {
         this.$message.error(res.message);

@@ -204,7 +204,7 @@ export default {
         this.total = this.tableData.length;
         let sum = 0;
         this.backData.forEach(item => {
-          // console.log(item, fStockAmount)
+          // console.log(item.fAmount, fStockAmount)
           sum += item.fAmount;
         });
         this.totalAmount = sum;

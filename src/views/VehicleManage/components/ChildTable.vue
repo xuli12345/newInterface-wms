@@ -1,9 +1,7 @@
 <template>
   <div>
-    
     <el-table
-    
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -90,7 +88,7 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
-import { getTableHeadData} from "@/api/index";
+import { getTableHeadData } from "@/api/index";
 export default {
   props: [
     "fTableView",
@@ -180,9 +178,7 @@ export default {
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
       let userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-      res = JSON.parse(
-        decryptDesCbc(res, String(userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(userDes)));
 
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
