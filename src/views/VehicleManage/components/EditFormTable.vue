@@ -7,16 +7,18 @@
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
+         :disabled="isDisabled"
         >新增</el-button
       >
       <el-button
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
+         :disabled="isDisabled"
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+      <el-button  :disabled="isDisabled" class="iconfont icon-quxiao" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -26,6 +28,8 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
+      :Amount="totalAmount"
+      :fState='fState'
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -33,6 +37,9 @@
       :fTableView="fTableViewItem"
       :insertData="insertData"
       :fID="rowData.fID"
+      @getAmount="getAmount"
+      :isDisabled="isDisabled"
+      :fState='fState'
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -55,13 +62,8 @@
 
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { compare } from "@/utils/common";
-import {
-  getTableHeadData,
-  collectionData,
-
- 
-} from "@/api/index";
+import { compare,handelData } from "@/utils/common";
+import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
@@ -87,10 +89,18 @@ export default {
       //表格添加的数据
       insertData: {},
       //表格数据表头
-      tableHead: []
+      tableHead: [],
+      totalAmount: 0,
+         //已审核状态
+      isDisabled: false,
+      fState: 2
     };
   },
   methods: {
+    getAmount(value) {
+      // console.log(value, 99);
+      this.totalAmount = value;
+    },
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead[0]);
@@ -105,65 +115,15 @@ export default {
     //获取表格的表头，保存的时候需要用到
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-     
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
       } else {
         this.$message.error(res.Message);
       }
     },
-    //处理数据是修改的，还是新增的，还是删除的
-    //传入的参数  （原来的数据，现在的数据）
-    //返回一个数组，[修改，新增，删除]
-    handelData(BackData, NowData) {
-      let that = this;
-      let Back = JSON.parse(JSON.stringify(BackData));
-      let Now = JSON.parse(JSON.stringify(NowData));
-      let update = [],
-        insert = [],
-        deleted = [],
-        common = [];
-      //获取原来的和现在的公有数据
-      //公有数据就是修改的数据
-      Back.forEach(item => {
-        Now.forEach(child => {
-          if (item[that.fTableViewHead[1]] == child[that.fTableViewHead[1]]) {
-            common.push(child);
-          }
-        });
-      });
-      //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
-      common.forEach(item1 => {
-        Now.forEach((item2, idx2) => {
-          if (item1[that.fTableViewHead[1]] == item2[that.fTableViewHead[1]]) {
-            Now.splice(idx2, 1);
-          }
-        });
-      });
-      //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
-      common.forEach(child1 => {
-        Back.forEach((child2, idx2) => {
-          if (
-            child1[that.fTableViewHead[1]] == child2[that.fTableViewHead[1]]
-          ) {
-            Back.splice(idx2, 1);
-          }
-        });
-      });
-      if (common.length < 1) {
-        common = null;
-      }
-      if (Now.length < 1) {
-        Now = null;
-      }
-      if (Back.length < 1) {
-        Back = null;
-      }
-      return [common, Now, Back];
-    },
+ 
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
@@ -184,7 +144,7 @@ export default {
           }
         }
       });
-      let wantData = this.handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       let deletedArr = wantData[2];
@@ -205,9 +165,7 @@ export default {
             }
           ]);
 
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
           if (res.State) {
             this.$message.success("修改成功!");
@@ -236,21 +194,19 @@ export default {
     closeItemBox(value) {
       if (value) {
         this.insertData = value;
+        this.totalAmount += value.fAmount;
+        // console.log(this.totalAmount);
       }
       this.drawer = false;
-    },
-    
-   
-
-    
- 
-
-  
+    }
   },
 
   created() {
     this.getTableHeadData();
     this.getTableHead();
+      if (this.rowData.fState && this.rowData.fState == this.fState) {
+      this.isDisabled = true;
+    }
   }
 };
 </script>

@@ -21,7 +21,7 @@
       v-if="newisDestory"
     >
       <addStorage
-        @closeBox="closeBox" 
+        @closeBox="closeBox"
         :tableHead="tableHeadData"
         :tableName="'t_Storage_Mst'"
         :selectArr="selectArr"
@@ -109,10 +109,19 @@ export default {
           fUrl: "v_Storage_Template_Mst",
           fDes: "fTemplateName",
           fID: "fID",
-          fAuto: ["fTemplateMstID","fTemplateCode"],
-          fAutoID: ["fTemplateMstID"],
+          fAuto: ["fTemplateMstID", "fTemplateCode"],
+          fAutoID: ["fTemplateMstID"]
           // fEdit: [{ key: "fMstStateName", value: "TypeName" }]
         },
+        {
+          fName: "fStorageTypeName",
+          fUrl: "v_Type_Storage",
+          fDes: "fTypeName",
+          fID: "fID",
+          fAuto: ["fStorageType"],
+          fAutoID: ["fStorageType"]
+        },
+
         {
           fName: "fPutOnAreaID",
           fUrl: "v_Area_Item",

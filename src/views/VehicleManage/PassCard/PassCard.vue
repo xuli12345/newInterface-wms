@@ -8,7 +8,7 @@
       @openEditDrawer="openEditDrawer"
     ></HomeTable>
 
-    <!-- 新增侧滑框  -->
+    <!-- 新增侧滑框  --> 
     <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawer"

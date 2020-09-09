@@ -6,8 +6,14 @@
         size="mini"
         class="iconfont icon-baocun"
         @click="submitForm('ruleForm')"
-      >保存</el-button>
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm('ruleForm')">取消</el-button>
+        >保存</el-button
+      >
+      <el-button
+        class="iconfont icon-quxiao"
+        size="mini"
+        @click="resetForm('ruleForm')"
+        >取消</el-button
+      >
     </div>
     <el-form
       :label-position="labelPosition"
@@ -24,12 +30,14 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
+        <!--  :disabled="item.fReadOnly == 0 ? false : true" -->
           <el-date-picker
             v-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
             type="datetime"
             placeholder="选择日期时间"
-            :disabled="item.fReadOnly == 0 ? false : true"
+             :disabled="isDisabled"
+           
           ></el-date-picker>
           <template
             v-else-if="
@@ -37,6 +45,7 @@
             "
           >
             <el-select
+             :disabled="isDisabled"
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
             >
@@ -51,17 +60,17 @@
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-input>
           <el-checkbox
             v-else-if="item.fDataType == 'bit'"
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-checkbox>
           <el-input
             v-else
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-input>
         </el-form-item>
       </template>
@@ -85,7 +94,9 @@ export default {
       tableHead: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       //需要下拉选择的所有数据
-      selectAllData: []
+      selectAllData: [],
+      //是否禁用(根据状态已审核为禁用状态)
+      isDisabled: false
     };
   },
   created() {
@@ -95,6 +106,9 @@ export default {
     }
     if (this.rowData) {
       this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
+       if (this.ruleForm.fMstState && this.ruleForm.fMstState == 7) {
+        this.isDisabled = true;
+      }
       this.ruleForm.fModifyDate = new Date();
       for (const key in this.ruleForm) {
         if (JSON.stringify(this.ruleForm[key]).indexOf("/Date") != -1) {
@@ -109,10 +123,8 @@ export default {
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      console.log(res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.rules = creatRules(this.tableHead);
@@ -228,9 +240,7 @@ export default {
       let arr = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res = await getTableBodyData(this.selectArr[i].fUrl);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           console.log(JSON.parse(res.Data));
           let obj = {
@@ -246,13 +256,7 @@ export default {
       this.selectAllData = arr;
     }
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  }
+
 };
 </script>
 <style lang="scss" scoped></style>

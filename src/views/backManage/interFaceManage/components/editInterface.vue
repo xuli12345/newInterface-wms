@@ -73,6 +73,7 @@
     <hc-title content="子表接口数据"></hc-title>
 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       :data="tableDataPage"

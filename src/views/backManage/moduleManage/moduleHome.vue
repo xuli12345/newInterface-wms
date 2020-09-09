@@ -70,6 +70,7 @@
       </div>
       <div class="right">
         <el-table
+        :header-cell-style="{ background: '#eef1f6'}"
           class="table-wrapper"
           ref="singleTable"
           border
@@ -373,6 +374,18 @@ export default {
       } else {
         this.searchData.forEach(element => {
           if (this.asData[element.fColumn]) {
+            if (
+              element.fColumn === "fType" &&
+              this.asData[element.fColumn] == "模块分类"
+            ) {
+              // this.$set(this.asData, element.fColumn, 1);
+            this.asData[element.fColumn] = 1;
+            } else if (
+              element.fColumn === "fType" &&
+              this.asData[element.fColumn] == "模块程序"
+            ) {
+              this.asData[element.fColumn] = 0;
+            }
             let obj = {
               Computer: element.fComputer,
               DataFile: element.fColumn,

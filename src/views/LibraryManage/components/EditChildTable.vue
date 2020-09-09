@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -8,7 +9,7 @@
       :row-key="getRowKeys"
       style="width: 100%;"
     >
-      <!-- @selection-change="handleSelectionChange" -->
+      <!--  :disabled="item.fReadOnly == 0 ? false : true"  -->
       <el-table-column type="index" width="50"></el-table-column>
       <template v-for="(item, index) in tableHeadData">
         <el-table-column
@@ -26,7 +27,7 @@
               @change="changeA(scope.row, item.fColumn)"
               v-if="item.fDataType == 'bit'"
               :value="scope.row[item.fColumn] == 0 ? false : true"
-              :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
             ></el-checkbox>
             <el-select
               @change="
@@ -38,7 +39,7 @@
               "
               v-model="scope.row[item.fColumn]"
               placeholder="请选择"
-              :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
             >
               <el-option
                 v-for="optionItem in selectOptions"
@@ -52,16 +53,17 @@
               v-else
               v-model="scope.row[item.fColumn]"
               :maxlength="scope.row[item.fLength]"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :disabled="isDisabled"
             ></el-input>
           </template>
         </el-table-column>
       </template>
       <el-table-column fixed="right" label="操作" align="center" width="120">
-        <!-- v-if="tableDataPage.length > 0" -->
+      
         <template slot-scope="scope">
           <div class="operation">
             <el-button
+            :disabled="isDisabled"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
@@ -91,7 +93,7 @@ import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 export default {
-  props: ["fTableView", "insertData", "fID", "changeData"],
+  props: ["fTableView", "insertData", "fID", "changeData","isDisabled"],
   data() {
     return {
       tableHeadData: [], //表头数据

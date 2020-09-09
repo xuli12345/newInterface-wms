@@ -6,7 +6,7 @@
       :key="index"
       style="text-align: center;margin:15px 0"
     >
-      <!-- <div>库位标签</div> -->
+      <div>库位标签</div>
       <svg
         :key="index"
         class="barcode"

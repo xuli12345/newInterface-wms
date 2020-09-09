@@ -20,12 +20,13 @@
           :filters="screenFuction(item.fColumn)"
           :filter-method="filtersF"
         >
+          <!--  :disabled="item.fReadOnly == 0 ? false : true" -->
           <template slot-scope="scope">
             <el-checkbox
               @change="changeA(scope.row, item.fColumn)"
               v-if="item.fDataType == 'bit'"
               :value="scope.row[item.fColumn] == 0 ? false : true"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :disabled="isDisabled"
             ></el-checkbox>
             <el-select
               @change="
@@ -37,7 +38,7 @@
               "
               v-model="scope.row[item.fColumn]"
               placeholder="请选择"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :disabled="isDisabled"
             >
               <el-option
                 v-for="optionItem in selectOptions"
@@ -51,18 +52,18 @@
               v-else
               v-model="scope.row[item.fColumn]"
               :maxlength="scope.row[item.fLength]"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :disabled="isDisabled"
             ></el-input>
           </template>
         </el-table-column>
       </template>
       <el-table-column fixed="right" label="操作" align="center" width="120">
-        <!-- v-if="tableDataPage.length > 0" -->
         <template slot-scope="scope">
           <div class="operation">
             <el-button
               type="text"
               size="small"
+              :disabled="isDisabled"
               @click.stop="handleDelete(scope.row, scope.$index)"
               >删除</el-button
             >
@@ -90,7 +91,7 @@ import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 export default {
-  props: ["fTableView", "insertData", "fID", "changeData"],
+  props: ["fTableView", "insertData", "fID", "changeData", "isDisabled"],
   data() {
     return {
       tableHeadData: [], //表头数据
@@ -111,7 +112,8 @@ export default {
       fTableViewll: "",
       backData: [],
       selectOptions: [],
-      selData: []
+      selData: [],
+      totalAmount: 0
     };
   },
   methods: {
@@ -178,16 +180,21 @@ export default {
           Value: this.fID
         }
       ];
+      console.log(searchWhereObj, "searchWhereObj");
       let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        //原来的数据
         // this.tableData = this.tableData.sort(compare)
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -195,6 +202,13 @@ export default {
         this.backData = JSON.parse(JSON.stringify(this.tableData));
         console.log(this.backData, "回显的数据");
         this.total = this.tableData.length;
+        let sum = 0;
+        this.backData.forEach(item => {
+          // console.log(item, fStockAmount)
+          sum += item.fAmount;
+        });
+        this.totalAmount = sum;
+        this.$emit("getAmount", this.totalAmount);
       } else {
         this.$message.error(res.Message);
       }
@@ -253,6 +267,7 @@ export default {
   }
 };
 </script>
+
 <style lang="scss" scoped>
 .table-wrapper .el-input {
   margin-left: 0;

@@ -14,6 +14,7 @@
     </div>
 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -57,12 +58,6 @@
                 :value="optionItem.value"
               ></el-option>
             </el-select>
-            <el-input
-              v-else-if="item.fColumn === 'fSort'"
-              v-model="scope.row[item.fColumn]"
-              @change="ruleContent(scope.row[item.fColumn])"
-              :disabled="item.fReadOnly == 0 ? false : true"
-            ></el-input>
 
             <el-input
               v-else
@@ -73,18 +68,7 @@
           </template>
         </el-table-column>
       </template>
-      <el-table-column fixed="right" label="操作" align="center" width="120">
-        <template slot-scope="scope">
-          <div class="operation">
-            <el-button
-              type="text"
-              size="small"
-              @click.stop="handleDelete(scope.row, scope.$index)"
-              >删除</el-button
-            >
-          </div>
-        </template>
-      </el-table-column>
+  
     </el-table>
     <!-- 分页 -->
     <div class="page flex-justify-end">
@@ -223,27 +207,29 @@ export default {
 
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
+        this.getTableData(res.fTableViewData);
         // console.log(this.tableHeadData, "dailog表头数据");
       } else {
         this.$message.error(res.Message);
       }
     },
-    search() {
-      this.getTableData();
-    },
-    //获取表格内容数据
-    async getTableData() {
-      let searchWhere = [];
 
-      let res = await getTableBodyData("v_ShopItem", searchWhere);
+    //获取表格内容数据
+    async getTableData(fTableView) {
+      let searchWhere = [];
+      let res = await getTableBodyData(fTableView, searchWhere);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        console.log(this.tableData);
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
@@ -254,21 +240,11 @@ export default {
     //下拉选择框
     selectDataType(row, val) {},
     //验证表格内容不能为空
-    ruleContent(val) {
-      var reg = /^[1-9]\d*$|^0$/;
-      if (val.length > 0) {
-        if (!reg.test(val)) {
-          this.$message.warning("请在排序中输入数字!");
-        }
-      } else {
-        this.$message.warning("请在排序中输入数字!");
-      }
-    },
+
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
     },
     submitForm() {
-      // console.log(this.sendData)
       this.$emit("closeBox", JSON.parse(JSON.stringify(this.sendData)));
     },
     resetForm() {
@@ -285,7 +261,6 @@ export default {
   },
   created() {
     this.getTableHeadData();
-    this.getTableData();
   }
 };
 </script>
@@ -295,5 +270,8 @@ export default {
 }
 .table-wrapper /deep/.el-input__inner {
   border: none !important;
+}
+.pan-btns{
+  margin-bottom: 10px;
 }
 </style>

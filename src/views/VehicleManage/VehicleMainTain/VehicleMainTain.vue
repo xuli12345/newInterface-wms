@@ -23,6 +23,7 @@
         :addItem="true"
         :tableName="'t_Vehicle_Maintain_Mst'"
         :selectArr="selectArr"
+         :selectArr2="selectArr2"
       ></AddMainTain>
     </el-drawer>
     <el-drawer
@@ -38,6 +39,7 @@
         :fTableViewItem="fTableViewItem"
         :addItem="true"
         :selectArr="selectArr"
+        :selectArr2="selectArr2"
         :rowData="editForm"
       ></EditMainTain>
     </el-drawer>
@@ -122,6 +124,16 @@ export default {
           fID: "fID",
           fAuto: ["fCostSubjectID"],
           fAutoID: ["fCostSubjectID"]
+        }
+      ],
+       selectArr2: [
+        {
+          fName: "fPartsCode",
+          fUrl: "t_Vehicle_Parts",
+          fDes: "fPartsCode",
+          fID: "fID",
+          fAuto: ["fVehiclePartID", "fPartsUnit", "fPartsName"],
+          fAutoID: ["fVehiclePartID"]
         }
       ]
     };

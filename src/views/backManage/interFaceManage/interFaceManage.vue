@@ -55,6 +55,7 @@
     </div>
     <!-- 表格数据   -->
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       ref="singleTable"
       :data="tableDataPage"
       border

@@ -6,8 +6,36 @@
         v-for="(item, index) in searchData"
         :key="index"
       >
-        <p style="min-width:90px">{{ item.fColumnDes }}:</p>
+        {{ item.fColumnDes }}:
+        <el-checkbox
+          v-if="item.fDataType == 'bit'"
+          v-model="asData[item.fColumn]"
+        ></el-checkbox>
+        <el-date-picker
+          v-else-if="item.fDataType == 'datetime'"
+          v-model.trim="asData[item.fColumn]"
+          type="datetime"
+          placeholder="选择日期时间"
+          min-width="300"
+        ></el-date-picker>
+        <el-row v-else-if="item.fComputer == 'between'">
+          <el-col :span="11">
+            <el-input
+              v-model.trim="startData[item.fColumn]"
+              placeholder="请输入范围值"
+            ></el-input>
+          </el-col>
+          <el-col :span="2">——</el-col>
+          <el-col :span="11">
+            <el-input
+              style="margin-left:0px"
+              v-model.trim="endData[item.fColumn]"
+              placeholder="请输入范围值"
+            ></el-input>
+          </el-col>
+        </el-row>
         <el-input
+          v-else
           v-model.trim="asData[item.fColumn]"
           :placeholder="`请输入${item.fColumnDes}`"
         ></el-input>
@@ -39,10 +67,19 @@
         >
           属性调整</el-button
         >
+        <el-button
+          type="primary"
+          size="mini"
+          class="iconfont icon-export"
+          :disabled="userLimit('fExport')"
+          @click="handerExport"
+          >导出</el-button
+        >
       </div>
     </div>
 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -86,7 +123,13 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
-import { tableBodyData, getTableHeadData, getTableBodyData } from "@/api/index";
+import {
+  tableBodyData,
+  getTableHeadData,
+  getTableBodyData,
+  exportData,
+  companyList
+} from "@/api/index";
 import Sortable from "sortablejs";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 stock:库存查询显示的按钮
@@ -111,6 +154,8 @@ export default {
       // 总条数
       total: 0,
       asData: {},
+      endData: {},
+      startData: {},
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),
@@ -269,6 +314,7 @@ export default {
           OrderBy: "",
           SqlConn: this.sqlConn,
           TableView: this.fTableViewData,
+          
           Where: this.searchWhere
         },
         { userDes: this.userDes, userId: this.userId }
@@ -285,7 +331,7 @@ export default {
         this.$nextTick(() => {
           //this.setSort();
         });
-       this.tableData.forEach(element => {
+        this.tableData.forEach(element => {
           for (const key in element) {
             if (
               (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
@@ -345,6 +391,80 @@ export default {
     userLimit(val) {
       let a = userLimit(val);
       return a;
+    },
+    //EXCEL导出
+    async handerExport() {
+      // console.log(this.$route);
+      this.searchWhere = [];
+      if (JSON.stringify(this.asData) == "{}") {
+        this.searchWhere = [];
+      } else {
+        this.searchData.forEach(element => {
+          if (this.asData[element.fColumn]) {
+            let result = this.asData[element.fColumn];
+            if (result instanceof Date) {
+              result = timeCycle(result);
+              // console.log(result);
+            }
+            if (result.constructor == Boolean && result == true) {
+              result = 1;
+            }
+            let obj = {
+              Computer: element.fComputer,
+              DataFile: element.fColumn,
+              Value: result
+            };
+            this.searchWhere.push(obj);
+          }
+        });
+      }
+      let startobj = {};
+      let endobj = {};
+      let arr = [];
+      for (const key in this.startData) {
+        for (const Ikey in this.endData) {
+          if (Ikey == key) {
+            startobj = {
+              Computer: ">=",
+              DataFile: key,
+              Value: this.startData[key]
+            };
+            endobj = {
+              Computer: "<=",
+              DataFile: key,
+              Value: this.endData[Ikey]
+            };
+
+            arr.push(startobj);
+            arr.push(endobj);
+          }
+        }
+      }
+
+      if (arr.length >= 1) {
+        this.searchWhere.push(...arr);
+      }
+
+      let res = await exportData(
+        this.fTableViewData,
+        this.searchWhere,
+        this.tableName
+      );
+      //  console.log(res,1232)
+      if (!res) return;
+      var blob = new Blob([res], {
+        type: "application/vnd.ms-excel;charset=utf-8"
+        //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
+      });
+      var downloadElement = document.createElement("a");
+      var href = window.URL.createObjectURL(blob); //创建下载的链接
+
+      downloadElement.href = href;
+      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
+      document.body.appendChild(downloadElement);
+      downloadElement.click(); //点击下载
+      document.body.removeChild(downloadElement); //下载完成移除元素
+      window.URL.revokeObjectURL(href); //释放掉blob
     }
   },
   watch: {
@@ -356,13 +476,6 @@ export default {
   },
   created() {
     this.getTableHeadData();
-  },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
   }
 };
 </script>

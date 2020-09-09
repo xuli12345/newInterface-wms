@@ -6,7 +6,7 @@
         size="mini"
         class="iconfont icon-shuaixuan "
         @click="addPopRight"
-        >添加线路</el-button
+        >添加门店</el-button
       >
       <el-button
         type="primary"
@@ -64,7 +64,7 @@ export default {
   data() {
     return {
       tableData: [],
-      openTitle: "选择运输线路",
+      openTitle: "选择门店",
       dialogFormVisible: false,
       //form表单数据
       tableHeadData: [],
@@ -81,7 +81,6 @@ export default {
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           formData.fMstID = fMstID;
-
           let res = await collectionData([
             {
               TableName: this.fTableViewHead[0],
@@ -139,7 +138,7 @@ export default {
       if (res.State) {
         // console.log(res);
         this.tableHead = res.lstRet.sort(compare);
-        console.log(this.tableHead,"表格表头")
+        console.log(this.tableHead, "表格表头");
       } else {
         this.$message.error(res.Message);
       }
@@ -152,14 +151,12 @@ export default {
     closeItemBox(value) {
       if (value) {
         // console.log(value,"value")
-   
         value.forEach(item => {
           this.$set(item, "fShopID", item.fID);
           this.$set(item, "fSort", this.tableData.length + 1);
         });
 
         this.tableData = [...this.tableData, ...value];
-        console.log(this.tableData, "22");
       }
       this.dialogFormVisible = false;
     }

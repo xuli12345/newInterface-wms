@@ -1,0 +1,216 @@
+<template>
+  <div>
+    <div class="btns">
+      <el-button
+        v-if="addItem"
+        type="primary"
+        size="mini"
+        class="iconfont icon-xinzeng add"
+        @click="addPopRight"
+        >新增</el-button
+      >
+      <el-button
+        type="primary"
+        class="iconfont icon-baocun"
+        @click="submitForm()"
+        size="mini"
+        >保存</el-button
+      >
+      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+        >取消</el-button
+      >
+    </div>
+    <!-- 头部表单 -->
+    <child-form-head
+      :fTableViewHead="fTableViewHead[0]"
+      :rowData="rowData"
+      ref="ruleForm"
+      :selectArr="selectArr"
+    ></child-form-head>
+    <!-- 表格 -->
+    <child-table
+      ref="childTable"
+      :fTableView="fTableViewItem"
+      :insertData="insertData"
+      :fID="rowData.fIP"
+      @getAmount="getAmount"
+    ></child-table>
+    <!-- 新增字表数据 -->
+    <el-drawer
+      :append-to-body="true"
+      :visible.sync="drawer"
+      direction="rtl"
+      :before-close="handleClose"
+      v-if="addItem"
+    >
+      <editCreatFrom
+        @closeBox="closeItemBox"
+        ref="ItemRuleForm"
+        :tableHead="tableHead"
+        :tableName="fTableViewItem[0]"
+        :rowData="formData"
+        :fColumn="fColumn"
+        :selData="selData"
+      ></editCreatFrom>
+    </el-drawer>
+  </div>
+</template>
+
+<script>
+import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
+import { compare, handleRFIDData } from "@/utils/common";
+import { getTableHeadData, collectionData } from "@/api/index";
+import { decryptDesCbc } from "@/utils/cryptoJs.js";
+import ChildFormHead from "./EditChildFormHead";
+import ChildTable from "./EditChildTable";
+import editCreatFrom from "../Electronictag/components/editCreatFrom";
+export default {
+  props: [
+    "fTableViewHead",
+    "fTableViewItem",
+    "addItem",
+    "selectArr",
+    "selectArr2",
+    "rowData",
+    "strType",
+    "formData"
+  ],
+  components: {
+    ChildFormHead,
+    ChildTable,
+    editCreatFrom
+  },
+  data() {
+    return {
+      tableHeadData: [],
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
+      drawer: false,
+      //表格添加的数据
+      insertData: {},
+      //表格数据表头
+      tableHead: [],
+      totalAmount: 0,
+      fColumn: ["fType"],
+      selData: [
+        {
+          name: "fType",
+          data: [
+            { fType: 0, fColumnDes: "从标签" },
+            { fType: 1, fColumnDes: "主标签" }
+          ]
+        }
+      ]
+    };
+  },
+  methods: {
+    getAmount(value) {
+      // console.log(value, 99);
+      this.totalAmount = value;
+    },
+    //获取form表单数据
+    async getTableHeadData() {
+      let res = await getTableHeadData(this.fTableViewHead[0]);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+      if (res.State) {
+        this.tableHeadData = res.lstRet.sort(compare);
+      } else {
+        this.$message.error(res.Message);
+      }
+    },
+    //获取表格的表头，保存的时候需要用到
+    async getTableHead() {
+      let res = await getTableHeadData(this.fTableViewItem[0]);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.tableHead = res.lstRet.sort(compare);
+      } else {
+        this.$message.error(res.Message);
+      }
+    },
+
+    //保存
+    submitForm() {
+      let formData = this.$refs.ruleForm.ruleForm; //表单的数据
+      let tableData = this.$refs.childTable.tableData; //表格的数据
+      let backData = this.$refs.childTable.backData; //表格原来的数据
+
+      backData.forEach(element => {
+        for (const key in element) {
+          if (element[key] == null) {
+            this.$set(element, key, 0);
+          }
+        }
+      });
+      tableData.forEach(element => {
+        for (const key in element) {
+          if (element[key] == null) {
+            this.$set(element, key, 0);
+          }
+        }
+      });
+      let wantData = handleRFIDData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      // console.log(wantData,"wat")
+      let updateArr = wantData[0];
+      let insertArr = wantData[1];
+      let deletedArr = wantData[2];
+      this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
+        if (valid) {
+          let res = await collectionData([
+            {
+              TableName: this.fTableViewHead[0],
+              updateData: [formData],
+              headData: this.tableHeadData
+            },
+            {
+              TableName: this.fTableViewItem[0],
+              updateData: updateArr,
+              insertData: insertArr,
+              deleteData: deletedArr,
+              headData: this.tableHead
+            }
+          ]);
+
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+          if (res.State) {
+            this.$message.success("修改成功!");
+            this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
+            this.$refs.ruleForm.$refs.ruleForm.resetFields();
+          } else {
+            this.$message.error(res.Message);
+          }
+        }
+      });
+    },
+    //取消
+    resetForm() {
+      this.$refs.ruleForm.$refs.ruleForm.resetFields();
+      this.$emit("closeBox");
+    },
+    //新增按钮
+    addPopRight() {
+      this.drawer = true;
+    },
+    //点击x关闭弹窗
+    handleClose(done) {
+      this.drawer = false;
+    },
+    //关闭字表新增弹窗
+    closeItemBox(value) {
+      if (value) {
+        this.insertData = value;
+        this.totalAmount += value.fAmount;
+      }
+      this.drawer = false;
+    }
+  },
+
+  created() {
+    this.getTableHeadData();
+    this.getTableHead();
+  }
+};
+</script>
+
+<style></style>

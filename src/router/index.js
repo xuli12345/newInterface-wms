@@ -193,7 +193,7 @@ function fnAddDynamicMenuRoutes(menuList = [], routes = []) {
       {
         path: "*",
         redirect: {
-          name: "404"
+          name: "notFoundPage"
         }
       }
     ]);

@@ -30,12 +30,13 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
+          <!-- :disabled="item.fReadOnly == 0 ? false : true" -->
           <el-date-picker
             v-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
             type="datetime"
             placeholder="选择日期时间"
-            :disabled="item.fReadOnly == 0 ? false : true"
+           :disabled="isDisabled"
           ></el-date-picker>
           <template
             v-else-if="
@@ -43,6 +44,7 @@
             "
           >
             <el-select
+             :disabled="isDisabled"
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
             >
@@ -67,7 +69,7 @@
           <el-input
             v-else
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="isDisabled"
           ></el-input>
         </el-form-item>
       </template>
@@ -91,7 +93,9 @@ export default {
       tableHead: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       //需要下拉选择的所有数据
-      selectAllData: []
+      selectAllData: [],
+      //是否禁用(根据状态已审核为禁用状态)
+      isDisabled: false
     };
   },
   created() {
@@ -101,7 +105,10 @@ export default {
     }
     if (this.rowData) {
       this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
-      this.ruleForm.fModifyDate = new Date();
+     if (this.ruleForm.fMstState && this.ruleForm.fMstState == 3) {
+        this.isDisabled = true;
+      }
+    this.ruleForm.fModifyDate = new Date();
       for (const key in this.ruleForm) {
         if (JSON.stringify(this.ruleForm[key]).indexOf("/Date") != -1) {
           this.ruleForm[key] = timeCycle(this.ruleForm[key]);

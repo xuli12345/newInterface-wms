@@ -2,19 +2,19 @@
   <div>
     <div class="pan-btns">
       <el-button
-       type="primary"
+        type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
         size="mini"
         >确定</el-button
       >
-      <el-button class="iconfont icon-quxiao"   size="mini" @click="resetForm()"
+      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
-    <div class="page flex">
+    <div class="page flex-wrap">
       <div
-        class="title flex-align-center"
+        class="search-title flex-align-center"
         v-for="(item, index) in searchData"
         :key="index"
       >
@@ -25,18 +25,19 @@
           clearable
         ></el-input>
       </div>
-      <el-button
-       type="primary"
-        size="mini"
-        class="iconfont icon-A"
-        @click="search"
-        >查询</el-button
-      >
-      <!-- :disabled="userLimit('fAdd')" -->
-      <!-- :disabled="userLimit('fQurey')" -->
+      <div style="margin-top:10px">
+        <el-button
+          type="primary"
+          size="mini"
+          class="iconfont icon-A"
+          @click="search"
+          >查询</el-button
+        >
+      </div>
     </div>
 
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -47,7 +48,7 @@
       @filter-change="filterTagTable"
     >
       <el-table-column type="selection" width="50"></el-table-column>
-       <!-- :filter-method="filtersF" -->
+      <!-- :filter-method="filtersF" -->
       <template v-for="(item, index) in tableHeadData">
         <el-table-column
           v-if="item.fVisible == 1 ? true : false"
@@ -57,7 +58,7 @@
           sortable
           min-width="120px"
           :filters="screenFuction(item.fColumn)"
-           :column-key="item.fColumn"
+          :column-key="item.fColumn"
         >
           <template slot-scope="scope">
             <el-checkbox
@@ -209,11 +210,9 @@ export default {
 
         searchData.push(objData);
       });
-  
+
       let res = await getTableBodyData(this.fTableViewll, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -253,14 +252,12 @@ export default {
     //获取表格表头数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "dailog表头数据");
+        console.log(this.tableHeadData, "dailog表头数据");
       } else {
         this.$message.error(res.Message);
       }
@@ -286,9 +283,7 @@ export default {
         });
       }
       let res = await getTableBodyData(this.fTableViewll, searchWhere);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         console.log(this.tableData);
@@ -352,13 +347,7 @@ export default {
   created() {
     this.getTableHeadData();
   },
-  computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  }
+
 };
 </script>
 <style lang="scss" scoped>

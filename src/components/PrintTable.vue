@@ -41,6 +41,7 @@
       </div>
 
       <el-table
+      :header-cell-style="{ background: '#eef1f6'}"
         class="singleTable"
         ref="singleTable"
         border

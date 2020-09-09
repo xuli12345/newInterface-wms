@@ -8,10 +8,7 @@ import store from "@/store/store";
 // console.log(process.env)
 
 
-//let url = "http://39.99.185.176:8001/Service.svc"; //齐畅
-//let url = "http://192.168.137.1:8001/Service.svc"; //恒嘉客户地址
 let url = "http://8.129.208.95:8004/api";
-
 
 
 const request = axios.create({
@@ -24,7 +21,6 @@ request.interceptors.request.use(
     if (config.loading) {
       store.commit("common/updateLoadingStatus", true);
     }
-
     let token = window.localStorage.getItem("token");
     if (token) {
       config.headers.Authorization = token;

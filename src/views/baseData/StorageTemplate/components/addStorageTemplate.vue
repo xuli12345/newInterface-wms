@@ -31,6 +31,7 @@
     ></HeadForm>
     <HcTitle content="库位模板编码生成规则"></HcTitle>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
       border

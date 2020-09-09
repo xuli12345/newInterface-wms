@@ -114,11 +114,11 @@ export default {
       this.getSelectData();
     }
   },
-  mounted() {
-    setTimeout(() => {
-      this.getOrderNoData();
-    }, 100);
-  },
+  // mounted() {
+  //   setTimeout(() => {
+  //     this.getOrderNoData();
+  //   }, 100);
+  // },
   methods: {
     //获取form表单数据
     async getTableHeadData() {

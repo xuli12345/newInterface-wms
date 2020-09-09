@@ -121,18 +121,33 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
+          // let res = await saveContainerCode([
+          //   {
+          //     TableName: this.tableName,
+          //     headData: this.tableHead,
+          //     insertData: [this.ruleForm]
+          //   }
+          // ]);
+          let result = addParams(this.tableHead, this.ruleForm);
           let res = await saveContainerCode([
             {
-              TableName: this.tableName,
-              headData: this.tableHead,
-              insertData: [this.ruleForm]
-            }
+              lstSaveData: [
+                {
+                  TableName: this.tableName,
+                  IdentityColumn: null,
+                  InsertRow: [result.arr],
+                  UpdateRow: null,
+                  DeleteRow: null,
+                  Columns: result.columns
+                }
+              ]
+            },
+            { userDes: this.userDes, userId: this.userId }
           ]);
-          // console.log(res, "saveContainerCode保存");
-          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          // console.log(res,"容器")
           if (res.State) {
-            // this.$message.success("新增成功!");
             let tableData = JSON.parse(res.Data);
             this.$emit("closeBox", res.State, tableData);
             this.$refs[formName].resetFields();

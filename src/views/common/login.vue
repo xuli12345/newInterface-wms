@@ -5,8 +5,16 @@
         src="https://file02.16sucai.com/d/file/2014/1006/e94e4f70870be76a018dff428306c5a3.jpg"
         alt
       />
-      <!-- <img src="../../assets/img/微信图片_20200716162737.jpg" alt=""> -->
-      <p class="title">欢迎进入知行易通仓储管理系统平台</p>
+
+      <p class="title">
+        <!-- <img
+          style="width:50px;height:50px"
+          src="../../assets/img/logo.png"
+          alt=""
+        /> -->
+        欢迎进入知行易通仓储管理系统平台
+      </p>
+      <p class="tit">power by 知行易通信息科技有限公司</p>
     </div>
     <div class="login-main">
       <h3 class="login-title">管理员登录</h3>
@@ -36,7 +44,13 @@
         </el-form-item>
 
         <el-form-item>
-          <el-button class="login-btn-submit" type="primary" @click="submitForm('dataForm')">登录</el-button>
+          <el-button
+            class="login-btn-submit"
+            type="primary"
+            :disabled="isDisabled"
+            @click="submitForm('dataForm')"
+            >登录</el-button
+          >
         </el-form-item>
       </el-form>
     </div>
@@ -45,7 +59,7 @@
 
 <script>
 //导入请求的api
-import { userLogin } from "@/api/user";
+import { userLogin, login, getCompanyData } from "@/api/user";
 import { companyList, getUserLimitMenu, menus } from "@/api/index.js";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import axios from "axios";
@@ -54,6 +68,7 @@ export default {
   name: "login",
   data() {
     return {
+      isDisabled: false,
       options: [],
       value: "",
       dataForm: {
@@ -74,7 +89,9 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate(async valid => {
         if (valid) {
-          let res = await userLogin({
+          this.isDisabled = true;
+
+          let res = await login({
             CustomerID: 1,
             Usercode: this.dataForm.username,
             Password: md5(this.dataForm.password)
@@ -105,7 +122,7 @@ export default {
               fSqlConn
             );
             res1 = JSON.parse(decryptDesCbc(res1, String(userDes)));
-            // console.log(res1,"res1")
+
             sessionStorage.setItem("userLimit", res1.Data);
             this.$router.replace({ name: "home" });
             let user2 = this.$store.state.user.userInfo;
@@ -115,6 +132,7 @@ export default {
               this.$store.commit("common/updateMenuList", res3.Menuurl.Child);
             }
           } else {
+            this.isDisabled = false;
             this.$message.warning(res.message);
           }
         } else {
@@ -139,7 +157,6 @@ export default {
 
   async created() {
     let res = await companyList();
-    // console.log(res);
     if (res.state) {
       let resCom = res.lstRet;
       this.options = resCom;
@@ -147,8 +164,6 @@ export default {
       sessionStorage.setItem("sqlConn", JSON.stringify(resCom[0].fSqlConn));
       sessionStorage.setItem("requestUrl", resCom[0].fServiceUrl);
       this.fCompanyId = resCom[0].fID;
-    } else {
-      // console.log(res);
     }
   }
 };
@@ -173,18 +188,24 @@ export default {
     left: 0;
     bottom: 0;
     right: 0;
-    // font-size: 40px;
-    font-size: 2.2vw;
     font-weight: 700;
-    // margin: 200px 0 0 160px;
-    margin: 20vh 0 0 10vw;
     color: #66b1ff;
+    // font-size: 40px;
+    // margin: 200px 0 0 160px;
+    font-size: 2.2vw;
+    margin: 20vh 0 0 10vw;
+  }
+  .tit {
+    position: absolute;
+    right: 50px;
+    bottom: 20px;
+    font-weight: 700;
+    color: #999;
   }
 }
 .login-main {
   width: 400px;
   background-color: #fff;
-  // background-color: #1b3651;
   padding: 200px 50px 180px;
   .select {
     width: 100%;

@@ -149,6 +149,10 @@
   padding: 2px 0 !important;
 }
 
+.el-table th {
+  padding: 0 !important;
+}
+
 .el-menu-item,
 .el-submenu__title {
   height: 38px !important;
@@ -169,10 +173,12 @@
   background-color: #67C23A !important;
   color: #fff !important;
 }
-.dark-text{
+
+.dark-text {
   color: #409EFF !important;
 }
-.light-text{
+
+.light-text {
   color: #67C23A !important;
 }
 
@@ -216,11 +222,16 @@
 .title {
   white-space: nowrap;
   margin-right: 20px;
- 
+
+
 }
-.search-title{
+
+.search-title {
   white-space: nowrap;
   margin-right: 20px;
-  width: 19%;
+  // width: 19%;
   margin-top: 10px;
+  overflow: auto;
+  resize: horizontal;
+  min-width: 250px;
 }

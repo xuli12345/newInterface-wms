@@ -78,6 +78,7 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
+import { tempUrl } from "@/utils/tempUrl";
 import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
@@ -233,12 +234,9 @@ export default {
     //下载模板
     downloadTemp() {
       if (this.strType.includes("Inbound")) {
-        window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/入库单导入模板.xlsx";
-      } else if (this.strType.includes("Outbound")) {
-        window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/出库单导入模板.xlsx";
-      }
+        window.location.href =`${tempUrl}/ImportTempModFile/入库单导入模板.xlsx`
+         
+      } 
     },
 
     async importFile(strType, file) {

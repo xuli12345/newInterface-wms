@@ -4,6 +4,7 @@
       :fTableView="fTableView"
       :tableName="'t_Rpt_DailyInbound'"
       :isSaveSuccess="isSaveSuccess"
+      
     ></HomeTable>
   </div>
 </template>

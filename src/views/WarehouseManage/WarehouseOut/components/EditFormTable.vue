@@ -5,6 +5,7 @@
         type="primary"
         class="el-icon-bottom"
         @click="downloadTemp"
+        :disabled="isDisabled"
         size="mini"
         >下载模板</el-button
       >
@@ -20,12 +21,13 @@
         accept="application/vnd.openxmlformats-    
         officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
       >
-        <el-button type="primary" class="iconfont icon-excel" size="mini"
+        <el-button type="primary" :disabled="isDisabled" class="iconfont icon-excel" size="mini"
           >导入excel</el-button
         >
       </el-upload>
       <el-button
         v-if="addItem"
+        :disabled="isDisabled"
         type="primary"
         size="mini"
         class="iconfont icon-xinzeng add"
@@ -33,13 +35,14 @@
         >新增</el-button
       >
       <el-button
+      :disabled="isDisabled"
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
+      <el-button class="iconfont icon-quxiao" :disabled="isDisabled" size="mini" @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -57,6 +60,7 @@
       :insertData="insertData"
       :fID="rowData.fID"
       :changeData="changeData"
+      :isDisabled="isDisabled"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -79,7 +83,8 @@
 
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { compare } from "@/utils/common";
+import { compare, handelData } from "@/utils/common";
+import { tempUrl } from "@/utils/tempUrl";
 import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "../../component/EditChildFormHead";
@@ -109,7 +114,9 @@ export default {
       //表格添加的数据
       insertData: {},
       //表格数据表头
-      tableHead: []
+      tableHead: [],
+       //
+      isDisabled: false
     };
   },
   methods: {
@@ -136,63 +143,14 @@ export default {
         this.$message.error(res.Message);
       }
     },
-    //处理数据是修改的，还是新增的，还是删除的
-    //传入的参数  （原来的数据，现在的数据）
-    //返回一个数组，[修改，新增，删除]
-    handelData(BackData, NowData) {
-      let that = this;
-      let Back = JSON.parse(JSON.stringify(BackData));
-      let Now = JSON.parse(JSON.stringify(NowData));
-      let update = [],
-        insert = [],
-        deleted = [],
-        common = [];
-      //获取原来的和现在的公有数据
-      //公有数据就是修改的数据
-      Back.forEach(item => {
-        Now.forEach(child => {
-          if (item[that.fTableViewHead[1]] == child[that.fTableViewHead[1]]) {
-            common.push(child);
-          }
-        });
-      });
-      //公有数据和现在数据对比，把相同的删掉，剩下的就是新增的
-      common.forEach(item1 => {
-        Now.forEach((item2, idx2) => {
-          if (item1[that.fTableViewHead[1]] == item2[that.fTableViewHead[1]]) {
-            Now.splice(idx2, 1);
-          }
-        });
-      });
-      //公有数据和原有数据对比，把相同是删掉，剩下的就是删掉的
-      common.forEach(child1 => {
-        Back.forEach((child2, idx2) => {
-          if (
-            child1[that.fTableViewHead[1]] == child2[that.fTableViewHead[1]]
-          ) {
-            Back.splice(idx2, 1);
-          }
-        });
-      });
-      if (common.length < 1) {
-        common = null;
-      }
-      if (Now.length < 1) {
-        Now = null;
-      }
-      if (Back.length < 1) {
-        Back = null;
-      }
-      return [common, Now, Back];
-    },
+
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
 
-  
-      let wantData = this.handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       let deletedArr = wantData[2];
@@ -220,7 +178,7 @@ export default {
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.Message);
+            this.$message.error(res.message);
           }
         }
       });
@@ -247,12 +205,9 @@ export default {
     },
     //下载模板
     downloadTemp() {
-      if (this.strType.includes("Inbound")) {
-        window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/入库单导入模板.xlsx";
-      } else if (this.strType.includes("Outbound")) {
-        window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/出库单导入模板.xlsx";
+      if (this.strType.includes("Outbound")) {
+        window.location.href =`${tempUrl}/ImportTempModFile/出库单导入模板.xlsx`
+        
       }
     },
     // excel导入
@@ -282,16 +237,7 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     },
-    //下载模板
-    downloadTemp() {
-      if (this.strType.includes("Inbound")) {
-        window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/入库单导入模板.xlsx";
-      } else if (this.strType.includes("Outbound")) {
-        window.location.href =
-          "http://8.129.208.95:8001/ImportTempModFile/出库单导入模板.xlsx";
-      }
-    },
+
 
     async importFile(strType, file) {
       let res = await imPortExcel({
@@ -324,6 +270,9 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
+     if (this.rowData.fMstState && this.rowData.fMstState == 3) {
+      this.isDisabled = true;
+    }
   }
 };
 </script>

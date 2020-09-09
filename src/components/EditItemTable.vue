@@ -1,6 +1,7 @@
 <template>
   <div>
     <el-table
+    :header-cell-style="{ background: '#eef1f6'}"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -289,7 +290,6 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.OrignData = JSON.parse(res.Data);
-
         this.$emit("update:backData", this.OrignData);
         this.OrignData.forEach(element => {
           for (const key in element) {

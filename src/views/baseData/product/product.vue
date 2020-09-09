@@ -9,8 +9,9 @@
       @openEditDrawer="openEditDrawer"
       @openBarCode="openBarCode"
       @openCarton="openCarton"
-       @openSeq="openSeq"
+      @openSeq="openSeq"
       :strType="'Goods'"
+      :isDownLoad='true'
     ></HomeTable>
 
     <!-- 新增侧滑框  v-if="newisDestory" -->
@@ -63,7 +64,7 @@
     >
       <Carton></Carton>
     </el-drawer>
-     <!--上架拣货设置  -->
+    <!--上架拣货设置  -->
     <el-drawer
       :modal-append-to-body="true"
       :visible.sync="drawerSeq"
@@ -96,7 +97,7 @@ export default {
       drawerValue: false,
       drawerCode: false,
       drawerCarton: false,
-      drawerSeq:false,
+      drawerSeq: false,
       direction: "rtl",
       //新增销毁创建
       newisDestory: false,
@@ -142,6 +143,21 @@ export default {
           fID: "fID",
           fAuto: ["fCustomerID"],
           fAutoID: ["fCustomerID"]
+        },
+        {
+          fName: "fPickingPlace",
+          fUrl: "v_Storage_Item",
+          fDes: "fStorageCode",
+          fID: "fID",
+          // fAuto: ["fID"],
+          // fAutoID: ["fID"],
+          searchWhere: [
+            {
+              Computer: "=",
+              DataFile: "fStorageType",
+              Value: 3
+            }
+          ]
         }
       ]
     };
@@ -180,7 +196,7 @@ export default {
     openCarton() {
       this.drawerCarton = true;
     },
-     //上架拣货设置弹窗
+    //上架拣货设置弹窗
     openSeq() {
       this.drawerSeq = true;
     },
@@ -193,7 +209,7 @@ export default {
       this.drawerValue = false;
       this.drawerCode = false;
       this.drawerCarton = false;
-      this.drawerSeq=false;
+      this.drawerSeq = false;
     },
     //关闭修改弹窗
     closeEditBox(val) {

@@ -71,8 +71,7 @@ export default {
       fTableView: "t_Vehicle_Rules",
       //是否新增成功
       isSaveSuccess: false,
-      userDes: this.$store.state.user.userInfo.userDes,
-    selectArr: [
+      selectArr: [
         {
           fName: "fSubjectName",
           fUrl: "v_CostSubject",
@@ -88,7 +87,8 @@ export default {
           fID: "fID",
           fAuto: ["fVehicleID"],
           fAutoID: ["fVehicleID"]
-        }]
+        }
+      ]
     };
   },
   watch: {
@@ -140,39 +140,7 @@ export default {
         this.isSaveSuccess = true;
       }
       this.drawer = false;
-    },
-    //获取类型
-    async getType(fTableView, fColumnType) {
-      let res = await getTableBodyData(fTableView);
-
-      res = JSON.parse(
-        decryptDesCbc(res.qureyDataResult, String(this.userDes))
-      );
-      if (res.State) {
-        let result = JSON.parse(res.Data);
-        let arr = [];
-        let asData = [];
-        let fID;
-        result.forEach(element => {
-          //   console.log(element);
-          let obj = {
-            fType: element.fID,
-            fColumnDes: element.fSubjectName || element.fLicenseNo
-          };
-          arr.push(obj);
-        });
-        let object = {
-          name: fColumnType,
-          data: arr
-        };
-        asData.push(object);
-        this.selData = [...this.selData, ...asData];
-      }
     }
-  },
-  created() {
-    this.getType("v_CostSubject", "fSubjectName");
-    this.getType("v_Vehcile_Driver", "fLicenseNo");
   }
 };
 </script>

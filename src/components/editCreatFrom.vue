@@ -31,6 +31,7 @@
             "
           >
             <el-select
+              :multiple="item.fColumn == 'fPickingPlace'"
               v-model="ruleForm[item.fColumn]"
               @change="getName(ruleForm[item.fColumn], item.fColumn)"
             >
@@ -124,6 +125,14 @@ export default {
             this.$set(this.ruleForm, "fPassWord", md5(this.newPassword));
           }
 
+          if (
+            "fPickingPlace" in this.ruleForm &&
+            this.ruleForm["fPickingPlace"].length > 0
+          ) {
+            let value = this.ruleForm["fPickingPlace"];
+            value = value.join(",");
+            this.$set(this.ruleForm, "fPickingPlace", value);
+          }
           let res = await collectionData([
             {
               headData: this.tableHead,
@@ -159,9 +168,7 @@ export default {
           searchWhere = [];
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
-        res = JSON.parse(
-          decryptDesCbc(res, String(this.userDes))
-        );
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段
@@ -207,7 +214,7 @@ export default {
     },
     //下拉选择框选择的值
     selectVal(v) {
-      // console.log(this.selectArr)
+      // console.log(v,"v")
       let str = "";
       this.selectArr.forEach(element => {
         if (element.fName == v) {
@@ -262,7 +269,16 @@ export default {
   created() {
     this.rules = creatRules(this.tableHead);
     this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
-    // console.log(this.rowData)
+    if (
+      "fPickingPlace" in this.ruleForm &&
+      this.ruleForm["fPickingPlace"] != ""
+    ) {
+      let value = this.ruleForm["fPickingPlace"];
+      if (value != null) {
+        value = value.split(",");
+        this.$set(this.ruleForm, "fPickingPlace", value);
+      }
+    }
     this.ruleForm.fModifyDate = new Date();
     let userInfo = JSON.parse(sessionStorage.getItem("user"));
     this.$set(this.ruleForm, "fModifierCode", userInfo.usercode);
@@ -295,6 +311,16 @@ export default {
   watch: {
     rowData(newVal, oldVal) {
       this.ruleForm = JSON.parse(JSON.stringify(newVal));
+      if (
+        "fPickingPlace" in this.ruleForm &&
+        this.ruleForm["fPickingPlace"] != ""
+      ) {
+        let value = this.ruleForm["fPickingPlace"];
+        if (value != null) {
+          value = value.split(",");
+          this.$set(this.ruleForm, "fPickingPlace", value);
+        }
+      }
       this.ruleForm.fModifyDate = new Date();
       let userInfo = JSON.parse(sessionStorage.getItem("user"));
       this.$set(this.ruleForm, "fModifier", userInfo.userId);
