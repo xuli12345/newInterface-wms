@@ -1,18 +1,6 @@
 <template>
   <div>
-    <div class="pan-btns">
-      <el-button
-        type="primary"
-        class="iconfont icon-baocun"
-        @click="submitForm()"
-        size="mini"
-        >确定</el-button
-      >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
-        >取消</el-button
-      >
-    </div>
-    <div class="page flex-wrap">
+    <!-- <div class="page flex-wrap">
       <div
         class="search-title flex-align-center"
         v-for="(item, index) in searchData"
@@ -34,11 +22,12 @@
           >查询</el-button
         >
       </div>
-    </div>
+    </div> -->
 
+    <!-- | pagination(pageNum, pageSize) -->
     <el-table
       :header-cell-style="{ background: '#eef1f6' }"
-      :data="tableData | pagination(pageNum, pageSize)"
+      :data="tableData"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -77,21 +66,9 @@
           </template>
         </el-table-column>
       </template>
-      <el-table-column fixed="right" label="操作" align="center" width="120">
-        <template slot-scope="scope">
-          <div class="operation">
-            <el-button
-              type="text"
-              size="small"
-              @click.stop="handleDelete(scope.row, scope.$index)"
-              >删除</el-button
-            >
-          </div>
-        </template>
-      </el-table-column>
     </el-table>
     <!-- 分页 -->
-    <div class="page flex-justify-end">
+    <!-- <div class="page flex-justify-end">
       <el-pagination
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
@@ -101,7 +78,7 @@
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"
       ></el-pagination>
-    </div>
+    </div> -->
   </div>
 </template>
 <script>
@@ -224,7 +201,8 @@ export default {
     },
     //获取表格表头数据
     async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableView);
+      // this.fTableView
+      let res = await getTableHeadData("t_user_mst");
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {

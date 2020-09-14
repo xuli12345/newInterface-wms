@@ -2,7 +2,7 @@
   <div>
     <HomeTable
       :fTableView="fTableView"
-      :tableName="'t_Type_PickingState'"
+      :tableName="'t_Type_RGPreExamState'"
       :isSaveSuccess="isSaveSuccess"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
@@ -18,7 +18,7 @@
       <CreatFrom
         @closeBox="closeBox"
         :tableHead="tableHeadData"
-        :tableName="'t_Type_PickingState'"
+        :tableName="'t_Type_RGPreExamState'"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -30,7 +30,7 @@
       <editCreatFrom
         @closeBox="closeEditBox"
         :tableHead="tableHeadData"
-        :tableName="'t_Type_PickingState'"
+        :tableName="'t_Type_RGPreExamState'"
         :rowData="editForm"
       ></editCreatFrom>
     </el-drawer>
@@ -58,7 +58,7 @@ export default {
       tableData: [],
       //当前行的数据
       editForm: {},
-      fTableView: "t_Type_PickingState",
+      fTableView: "t_Type_RGPreExamState",
       //是否新增成功
       isSaveSuccess: false
     };
@@ -101,8 +101,7 @@ export default {
       }
       this.drawer = false;
     }
-  },
- 
+  }
 };
 </script>
 <style lang="scss"></style>

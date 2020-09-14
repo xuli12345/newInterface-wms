@@ -2,12 +2,13 @@
   <div>
     <el-table
     :header-cell-style="{ background: '#eef1f6'}"
-      :data="tableList | pagination(pageNum, pageSize)"
+      :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
+       @row-dblclick="dblclick"
     >
       <el-table-column type="index" width="50"></el-table-column>
       <template v-for="(item, index) in tableHeadData">
@@ -26,14 +27,19 @@
               @change="changeA(scope.row, item.fColumn)"
               v-if="item.fDataType == 'bit'"
               :value="scope.row[item.fColumn] == 0 ? false : true"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :disabled="isDisabled"
             ></el-checkbox>
             <el-select
-              @change="selectDataType(scope.row, scope.row[item.fColumn])"
-              v-else-if="item.fColumn == 'fDataType'"
+              @change="
+                selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
+              "
+              v-else-if="
+                item.fColumn == 'fNumUnitName' ||
+                  item.fColumn == 'fBoxNumUniName'
+              "
               v-model="scope.row[item.fColumn]"
               placeholder="请选择"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :disabled="isDisabled"
             >
               <el-option
                 v-for="optionItem in selectOptions"
@@ -42,19 +48,13 @@
                 :value="optionItem.value"
               ></el-option>
             </el-select>
+
             <el-input
-              v-else-if="item.fColumn === 'fSort'"
-              v-model="scope.row[item.fColumn]"
-              @change="ruleContent(scope.row[item.fColumn])"
-              :disabled="item.fReadOnly == 0 ? false : true"
-            ></el-input>
-            <div  v-else> {{scope.row[item.fColumn]}}</div>
-            <!-- <el-input
               v-else
               v-model="scope.row[item.fColumn]"
               :maxlength="scope.row[item.fLength]"
-              :disabled="item.fReadOnly == 0 ? false : true"
-            ></el-input> -->
+              :disabled="isDisabled"
+            ></el-input>
           </template>
         </el-table-column>
       </template>
@@ -62,6 +62,7 @@
         <template slot-scope="scope">
           <div class="operation">
             <el-button
+            :disabled="isDisabled"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
@@ -88,52 +89,38 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import { addParams, batchDelete, compare } from "@/utils/common";
+import { compare } from "@/utils/common";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 export default {
-  props: [
-    "fTableView",
-    "tableName",
-    "isSaveSuccess",
-    "value",
-    "isSave",
-    "selBatchList",
-    "tableData"
-  ],
+  props: ["fTableView", "insertData", "fID", "changeData", "isDisabled"],
   data() {
     return {
       tableHeadData: [], //表头数据
-      //checkbox选中的数据
-      BatchList: [],
       //获取表格内容TableView的值,在获取headData中获取
-      fTableViewData: "",
       getRowKeys(row) {
-        //   console.log(row)
-        return row.fCompanyID || row.fModName;
+        return row.fSort || row.fID;
       },
       //表格数据
-      tableList: [],
+      tableData: [],
       // 当前页数
       pageNum: 1,
       // 每页条数
       pageSize: 10,
       // 总条数
       total: 0,
-      //权限表修改的数据
-      editTableData: [],
       userDes: this.$store.state.user.userInfo.userDes,
-      userId: this.$store.state.user.userInfo.userId,
-      sqlConn: sessionStorage.getItem("sqlConn"),
-      OrignData: [],
-      select: true,
-      //   kong
-      nullTable: [],
       //获取表格数据的fTableView
       fTableViewll: "",
-      asData: {}
+      backData: [],
+      selectOptions: [],
+      selData: []
     };
   },
   methods: {
+      //双击表格弹框
+    dblclick(row) {
+      this.$emit("openEditDrawer", row);
+    },
     // 页容量
     handleSizeChange(val) {
       this.pageSize = val;
@@ -143,13 +130,6 @@ export default {
       this.pageNum = val;
     },
     changeA(item, val) {
-      if (this.isAuthority) {
-        this.editTableData.push(item);
-        this.editTableData = Array.from(new Set(this.editTableData));
-        this.$emit("update:selBatchList", this.editTableData);
-        // console.log(this.editTableData);
-      }
-
       if (item[val] == 0) {
         item[val] = 1;
         this.$set(item, val, 1);
@@ -160,12 +140,12 @@ export default {
     },
     //表格筛选
     filtersF(val, row, column) {
-      // console.log(val)
       const property = column["property"];
       return row[property] === val;
     },
     //筛选的条件数组
     screenFuction(val) {
+      // console.log(val); 表格中传递过来表格的的字段
       let copyTable = this.tableData;
       var screenData = [];
       copyTable.forEach((item, idx) => {
@@ -183,61 +163,118 @@ export default {
     },
     //获取表格表头数据
     async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableView);
-      let userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-      res = JSON.parse(decryptDesCbc(res, String(userDes)));
+      let res = await getTableHeadData(this.fTableView[0]);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        console.log(this.tableHeadData, "字表表头数据");
-        // this.getTableData();
+        // console.log(this.tableHeadData, "字表表头");
+        this.getTableData();
       } else {
         this.$message.error(res.Message);
       }
     },
+    //获取表格内容数据
+    async getTableData() {
+      let searchWhereObj = [
+        {
+          Computer: "=",
+          DataFile: this.fTableView[1],
+          Value: this.fID
+        }
+      ];
+      // console.log(searchWhereObj, "searchWhereObj");
+      let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
+      if (res.State) {
+        this.tableData = JSON.parse(res.Data);
+        this.tableData = this.tableData.sort(compare);
+        this.tableData.forEach((element, index) => {
+          this.$set(element, "fSort", index + 1);
+          for (const key in element) {
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
+            }
+          }
+        });
+
+        this.backData = JSON.parse(JSON.stringify(this.tableData));
+        console.log(this.backData, "回显的数据");
+        this.total = this.tableData.length;
+      } else {
+        this.$message.error(res.Message);
+      }
+    },
     //下拉选择框
-    selectDataType(row, val) {
-      let isNullData = this.nullTable.some(item => {
-        return row.fColumn == item.fColumn;
+    selectDataType(row, val, key) {
+      this.changeData.forEach(item => {
+        if (item.key == key) {
+          row[item.fKey] = val;
+        }
       });
-      if (isNullData) {
-        this.insertRow.push(row);
-      } else {
-        let editIdx2 = this.editRow.indexOf(row);
-        if (editIdx2 == -1) {
-          this.editRow.push(row);
-        } else {
-          this.editRow.splice(editIdx2, 1, row);
-        }
-      }
     },
-    //验证表格内容不能为空
-    ruleContent(val) {
-      var reg = /^[1-9]\d*$|^0$/;
-      if (val.length > 0) {
-        if (!reg.test(val)) {
-          this.$message.warning("请在排序中输入数字!");
-        }
-      } else {
-        this.$message.warning("请在排序中输入数字!");
-      }
-    },
+
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
+    },
+    //获取类型
+    async getType(fTableView, fColumnType, value) {
+      let res = await getTableBodyData(fTableView, [
+        {
+          Computer: "=",
+          DataFile: "fUnitType",
+          Value: value
+        }
+      ]);
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        let result = JSON.parse(res.Data);
+        let arr = [];
+        result.forEach(element => {
+          let obj = {
+            value: element.fID,
+            label: element.fUnitName
+          };
+          arr.push(obj);
+        });
+
+        this.selectOptions = [...this.selData, ...arr];
+      }
     }
   },
   watch: {
-    tableData: function() {
-      this.tableList = [...this.tableData];
-      this.total = this.tableList.length;
+    insertData(n, o) {
+      if (Array.isArray(this.insertData)) {
+        let iData = JSON.parse(JSON.stringify(this.insertData));
+
+        iData.forEach((item, index) => {
+          this.$set(item, "fSort", this.tableData.length + index + 1);
+          this.$set(item, this.fTableView[1], this.fID);
+        });
+        this.tableData = this.tableData.concat(iData);
+      } else {
+        this.insertData[this.fTableView[1]] = this.fID;
+        this.tableData = this.tableData.concat(
+          JSON.parse(JSON.stringify(this.insertData))
+        );
+      }
+      this.total = this.tableData.length;
+      // console.log(this.tableData,"eieo")
     }
   },
 
   created() {
     this.getTableHeadData();
-    this.tableList = this.tableData;
+    this.getType("v_Unit", "fNumUnitName", 10);
+    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>

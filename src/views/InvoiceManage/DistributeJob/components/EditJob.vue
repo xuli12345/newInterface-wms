@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="btns">
-      <el-button
+      <!-- <el-button
         v-if="addItem"
         type="primary"
         size="mini"
@@ -9,8 +9,22 @@
         @click="addPopRight"
         :disabled="isDisabled"
         >筛选</el-button
+      > -->
+      <el-button
+        type="primary"
+        :disabled="isDisabled"
+        class="iconfont icon-ziyuan"
+        size="mini"
+        >排车</el-button
       >
-
+      <el-button
+        type="primary"
+        class="iconfont icon-danju"
+        @click="createNotice"
+        size="mini"
+        :disabled="isDisabled"
+        >生成补货单</el-button
+      >
       <el-button
         type="primary"
         class="iconfont icon-baocun"
@@ -33,7 +47,7 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
-      :fState='fState'
+      :fState="fState"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -42,7 +56,8 @@
       :insertData="insertData"
       :isDisabled="isDisabled"
       :fID="rowData.fID"
-      :fState='fState'
+      :fState="fState"
+      @openEditDrawer="openEditDrawer"
     ></child-table>
 
     <el-dialog
@@ -57,16 +72,50 @@
         :searchData="searchData"
       ></alert-table>
     </el-dialog>
+    <!-- 货品从表的从表 -->
+    <el-drawer
+      :modal="false"
+      :visible.sync="drawer"
+      direction="rtl"
+      :before-close="handleClose"
+      v-if="newisDestory"
+    >
+      <JobEditTable
+        ref="ItemData"
+        fTableView="t_JobProduct_Item"
+        :ItmeSelID="ItmeSelID"
+      ></JobEditTable>
+    </el-drawer>
+    <!-- 生成拣货单 :tableName="'t_OutboundOrder_Mst'"-->
+    <el-dialog :append-to-body="true" title="拣货单" :visible.sync="dialogForm">
+      <CreatFrom
+        :selectArr="selectArrD"
+        :fID="rowData.fID"
+        :tableHead="DialogTableHead"
+        ref="ruleForm"
+      ></CreatFrom>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogForm = false">取 消</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
+      </div>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import { compare, batchDelete, handelData } from "@/utils/common";
-import { getTableHeadData, collectionData, saveStockAdjust } from "@/api/index";
+import {
+  getTableHeadData,
+  collectionData,
+  saveStockAdjust,
+  DistributeJob
+} from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "@/components/EditChildFormHead";
-import ChildTable from "@/components/EditChildTable";
+import ChildTable from "./EditChildTable";
 import AlertTable from "./AlertTable";
+import JobEditTable from "./JobEditTable";
+import CreatFrom from "./CreatFrom";
 export default {
   //弹出框请求的表头字段fTableViewAlert searchData:搜索的字段
   props: [
@@ -78,12 +127,13 @@ export default {
     "rowData",
     "fTableViewAlert",
     "searchData"
-    
   ],
   components: {
     ChildFormHead,
     ChildTable,
-    AlertTable
+    AlertTable,
+    JobEditTable,
+    CreatFrom
   },
   data() {
     return {
@@ -91,6 +141,48 @@ export default {
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       userId: JSON.parse(sessionStorage.getItem("user")).userId,
       drawer: false,
+      newisDestory: false,
+      dialogForm: false,
+      // formLabelWidth: "120px",
+      DialogTableHead: [
+        {
+          fColumn: "OrderType",
+          fColumnDes: "单据类型名称",
+          fVisible: 1
+        },
+        {
+          fColumn: "Warehouse",
+          fColumnDes: "仓库名称",
+          fVisible: 1
+        },
+        {
+          fColumn: "fID",
+          fColumnDes: "ID",
+          fVisible: 1
+        }
+      ],
+      selectArrD: [
+        {
+          fName: "OrderType",
+          fUrl: "v_Type_OutboundOrder",
+          fDes: "fTypeName",
+          fID: "fID"
+        },
+        {
+          fName: "Warehouse",
+          fUrl: "v_Warehouse_Mst",
+          fDes: "fWarehouseName",
+          fID: "fID"
+        }
+        //{
+        //  fName: "fID",
+        //  fUrl: "v_DistributeJob_Mst",
+        //  fDes: "fID",
+        //  fID: "fID"
+        //  //fAuto: ["fState"],
+        //  //fAutoID: ["fState"]
+        //}
+      ],
       //表格添加的数据
       insertData: {},
       //表格数据表头
@@ -99,10 +191,16 @@ export default {
       openTitle: "选择货品",
       fMstID: "",
       isDisabled: false,
-       fState: 5
+      fState: 5,
+      //从表定单号
+      ItmeSelID: ""
     };
   },
   methods: {
+    openEditDrawer(row) {
+      this.ItmeSelID = row.fID;
+      this.drawer = true;
+    },
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead[0]);
@@ -202,6 +300,41 @@ export default {
         this.insertData = value;
       }
       this.dialogFormVisible = false;
+    },
+    //生成补货/拣货单
+    createNotice() {
+      this.dialogForm = true;
+    },
+    async save() {
+      let ruleForm = this.$refs.ruleForm.ruleForm;
+      let res = await DistributeJob([
+        {
+          OrderType: ruleForm.OrderType,
+          Warehouse: ruleForm.Warehouse,
+          fID: ruleForm.fID
+        },
+        { userDes: this.userDes, userId: this.userId }
+      ]);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      // console.log(res);
+      if (res.State) {
+        this.$message.success("保存成功!");
+        this.dialogForm=false;
+      } else {
+        this.$message.warning(res.Message);
+      }
+    }
+  },
+  watch: {
+    drawer: function(val, old) {
+      // console.log(val, old);
+      if (val) {
+        this.newisDestory = true;
+      } else {
+        setTimeout(() => {
+          this.newisDestory = false;
+        }, 500);
+      }
     }
   },
   created() {

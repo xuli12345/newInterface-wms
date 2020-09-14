@@ -86,56 +86,7 @@
           :disabled="userLimit('fPrint')"
           >打印</el-button
         >
-        <!-- @click="printShop()" -->
-        <el-button
-          v-if="OutboundPrint"
-          type="primary"
-          size="mini"
-          @click="printShop()"
-          class="iconfont icon-dayin1"
-          >打印门店标签</el-button
-        >
-        <el-button
-          v-if="product"
-          type="primary"
-          size="mini"
-          icon="el-icon-help"
-          @click="handleBarCode"
-          >货品条码绑定</el-button
-        >
-        <el-button
-          v-if="product"
-          icon="el-icon-goods"
-          type="primary"
-          size="mini"
-          @click="handleCarton"
-          >装箱信息</el-button
-        >
-        <el-button
-          v-if="product"
-          type="primary"
-          size="mini"
-          class="iconfont icon-setting "
-          @click="handleSeq"
-          >上架拣货设置</el-button
-        >
-        <el-button
-          v-if="containerNum"
-          type="primary"
-          size="mini"
-          icon="el-icon-suitcase-1"
-          @click="handleContainer"
-          >生成容器号</el-button
-        >
-        <el-button
-          v-if="storage"
-          type="primary"
-          size="mini"
-          class="iconfont icon-A"
-          :disabled="userLimit('fExport')"
-          @click="handleStorage"
-          >查询导出库位条码</el-button
-        >
+
         <el-button
           v-if="isCheck"
           type="primary"
@@ -337,23 +288,13 @@
         :title="title"
       ></print-table>
     </div>
-    <!-- 打印门店标签  -->
-    <div style="width:0;height:0;overflow:hidden">
-      <ShopPrint
-        ref="print"
-        :dataCode="printShopData"
-        id="toShopPrint"
-        v-if="isShopRender"
-      ></ShopPrint>
-    </div>
   </div>
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { addParams, batchDelete, userLimit } from "@/utils/common";
-import PrintTable from "@/components/PrintTable";
-import ShopPrint from "@/views/WarehouseManage/WarehouseOut/components/ShopPrint";
+import PrintTable from "./PrintTable";
 import { compare } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
 import PrintJS from "print-js";
@@ -392,12 +333,10 @@ export default {
     "putawayData",
     "importExcel",
     "Invalid",
-    "isDownLoad",
-    "OutboundPrint"
+    "isDownLoad"
   ],
   components: {
-    PrintTable,
-    ShopPrint
+    PrintTable
   },
   data() {
     return {
@@ -439,8 +378,7 @@ export default {
       sqlConn: sessionStorage.getItem("sqlConn"),
       newArr: [],
       //excel
-      fileTemp: null,
-      printShopData: []
+      fileTemp: null
     };
   },
   methods: {
@@ -656,26 +594,6 @@ export default {
       if (this.userLimit("fEdit") == false) {
         this.$emit("openEditDrawer", row, this.tableHeadData);
       }
-    },
-    //货品条码绑定
-    handleBarCode() {
-      this.$emit("openBarCode");
-    },
-    //装箱信息
-    handleCarton() {
-      this.$emit("openCarton");
-    },
-    //生成容器号
-    handleContainer() {
-      this.$emit("openContainer");
-    },
-    //上架拣货设置
-    handleSeq() {
-      this.$emit("openSeq");
-    },
-    //查询导出库位条码
-    handleStorage() {
-      this.$emit("openStorageCode");
     },
 
     //已审查,单据关闭,入库完成共用方法
@@ -988,38 +906,7 @@ export default {
         }, 600);
       }
     },
-    //门店打印
-    async printShop() {
-      if (this.BatchList.length == 0) {
-        this.$message.warning("请勾选您要打印的数据!");
-      } else {
-        let OrderNum = this.BatchList[0].fOutboundOrderNo;
-        let searchWhere = [
-          {
-            Computer: "=",
-            DataFile: "fOutboundOrderNo",
-            Value: OrderNum
-          }
-        ];
-        let res = await getTableBodyData("v_PrintOutboundOrder", searchWhere);
-        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-        if (res.State) {
-          this.printShopData = JSON.parse(res.Data);
-          this.isShopRender = true;
-          setTimeout(() => {
-            PrintJS({
-              printable: "toShopPrint",
-              type: "html",
-              scanStyles: false,
-              css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-            });
-          }, 500);
-          setTimeout(() => {
-            this.isShopRender = false;
-          }, 600);
-        }
-      }
-    },
+
     //获取从表回显的数据
     async getSearchItemData(fID) {
       let searchWhere = [

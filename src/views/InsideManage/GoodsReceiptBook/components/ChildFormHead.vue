@@ -102,7 +102,14 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData, getOrderNo } from "@/api/index";
 
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "alertArr", "fCustomerID"],
+  props: [
+    "fTableViewHead",
+    "addItem",
+    "selectArr",
+    "alertArr",
+    "wharf",
+    "time"
+  ],
   data() {
     return {
       //表单域标签的位置
@@ -119,7 +126,6 @@ export default {
   },
   created() {
     this.getTableHeadData();
-
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
@@ -137,6 +143,7 @@ export default {
 
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
+        console.log(this.tableHead, "biaotuo");
         this.ruleForm = defaultForm(this.tableHead);
         this.rules = creatRules(this.tableHead);
       } else {
@@ -151,7 +158,7 @@ export default {
       // console.log(res);
       if (res.State) {
         for (const key in this.ruleForm) {
-          if (key.indexOf("fJobid") != -1 || key.indexOf("fOrderNo") != -1) {
+          if (key.indexOf("fOrderNo") != -1) {
             this.ruleForm[key] = res.Data;
           }
         }
@@ -251,8 +258,30 @@ export default {
       return str;
     },
     // 下拉选择框选中值后，带出其他需要带出的值
-    getVal(val, n) {
-      // console.log(val,n)
+    async getVal(val, n) {
+      if (n == "fSupplierName") {
+        let where = [
+          {
+            Computer: "=",
+            DataFile: "fSupplierID",
+            Value: val
+          },
+          {
+            Computer: "=",
+            DataFile: "fMstStateName",
+            Value: "初始"
+          }
+        ];
+        let res = await getTableBodyData("v_InboundOrder_Mst", where);
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+        if (res.State) {
+          let tableData = JSON.parse(res.Data);
+          this.$emit("ItemTableData", tableData);
+          //  console.log(tableData,1111)
+        }
+      }
+
       //当前选择框对应的数据
       let arr = [];
       this.selectAllData.forEach(ele => {
@@ -339,6 +368,7 @@ export default {
   watch: {
     ruleForm: function(val) {
       this.ruleForm.fID = 0;
+      this.ruleForm.fBookDate = this.time;
     }
   }
 };

@@ -1,17 +1,20 @@
 <template>
   <div>
+    <!-- :strType="'PGAlcntc'" -->
     <HomeTable
       :fTableView="fTableView"
-      :tableName="'t_Picking_Mst'"
+      :tableName="'t_RGPreExam_Mst'"
       :isSaveSuccess="isSaveSuccess"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
       :isItem="true"
       :batchDelTableName="batchDelTableName"
       :isCheck="checkData"
+      :importExcel="true"
+      :Invalid="true"
     ></HomeTable>
 
-    <!-- 新增侧滑框  v-if="newisDestory" -->
+    <!-- 新增侧滑框   -->
     <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawer"
@@ -23,7 +26,7 @@
         @closeBox="closeBox"
         :fTableViewHead="fTableViewHead"
         :fTableViewItem="fTableViewItem"
-        :addItem="true"
+        :addItem="false"
         :selectArr="selectArr"
         :selectArr2="selectArr2"
       ></CreatFrom>
@@ -39,7 +42,7 @@
         @closeBox="closeEditBox"
         :fTableViewHead="fTableViewHead"
         :fTableViewItem="fTableViewItem"
-        :addItem="true"
+        :addItem="false"
         :selectArr="selectArr"
         :selectArr2="selectArr2"
         :rowData="editForm"
@@ -49,8 +52,8 @@
 </template>
 <script>
 import HomeTable from "@/components/HomeTable";
-import CreatFrom from "../components/FormTable";
-import EditFormTable from "../components/EditFormTable";
+import CreatFrom from "./components/FormTable";
+import EditFormTable from "./components/EditFormTable";
 export default {
   components: {
     CreatFrom,
@@ -70,63 +73,64 @@ export default {
       editForm: {},
       isDestory: false,
       newisDestory: false,
-      fTableView: "t_Picking_Mst",
-      //审核的数据 6审核 5作废
-      checkData: [true, 4],
+      fTableView: "t_RGPreExam_Mst",
+      //审核的数据 3审核 5作废
+      checkData: [true, 3, 5],
       //是否新增成功
       isSaveSuccess: false,
       //表头的字段，以及自增长字段
-      fTableViewHead: ["t_Picking_Mst", "fID"],
+      fTableViewHead: ["t_RGPreExam_Mst", "fID"],
       //表格的ftableview,自增长字段
-      fTableViewItem: ["t_Picking_Item", "fMstID"],
+      fTableViewItem: ["t_RGPreExam_Item", "fMstID"],
       selectArr: [
         {
-          fName: "fShopCode",
-          fUrl: "v_Shop",
-          fDes: "fShopCode",
+          fName: "fOrdeTypeName",
+          fUrl: "v_Type_InboundOrder",
+          fDes: "fTypeName",
           fID: "fID",
-          fAuto: ["fShopID", "fShopName"],
-          fAutoID: ["fShopID"]
+          fAuto: ["fInboundOrdeType"],
+          fAutoID: ["fInboundOrdeType"]
         },
         {
-          fName: "fJobid",
-          fUrl: "v_DistributeJob_Mst",
-          fDes: "fJobid",
-          fID: "fID"
-          // fAuto: ["fReasonID"],
-          // fAutoID: ["fReasonID"]
+          fName: "fOrdnum",
+          fUrl: "v_InboundOrder_Mst",
+          fDes: "fInboundOrderNo",
+          fID: "fID",
+        //   fAuto: ["fInboundOrdeType"],
+        //   fAutoID: ["fInboundOrdeType"]
         },
         {
-          fName: "fWarehouseName",
-          fUrl: "v_Warehouse_Mst",
-          fDes: "fWarehouseName",
+          fName: "fDockName",
+          fUrl: "v_Dock",
+          fDes: "fDockCode",
           fID: "fID",
-          fAuto: ["fWarehouseID"],
-          fAutoID: ["fWarehouseID"]
+          fAuto: ["fDockID"],
+          fAutoID: ["fDockID"]
         },
         {
-          fName: "fConsignorName",
-          fUrl: "v_Consignor",
-          fDes: "fConsignorName",
+          fName: "fSupplierName",
+          fUrl: "v_Supplier",
+          fDes: "fSupplierName",
           fID: "fID",
-          fAuto: ["fConsignorID"],
-          fAutoID: ["fConsignorID"]
+          fAuto: ["fSupplierID"],
+          fAutoID: ["fSupplierID"]
         },
+        {
+          fName: "fPalletTypeName",
+          fUrl: "v_Container",
+          fDes: "fContainerCode",
+          fID: "fID",
+          fAuto: ["fPalletType"],
+          fAutoID: ["fPalletType"]
+        },
+
         {
           fName: "fStateName",
-          fUrl: "v_Type_DistributeMstState",
+          fUrl: "v_Type_RGPreExamState",
           fDes: "fTypeName",
           fID: "fID",
           fAuto: ["fState"],
           fAutoID: ["fState"]
-        },
-        {
-          fName: "fSendName",
-          fUrl: "v_Type_fsend",
-          fDes: "fTypeName",
-          fID: "fID",
-          fAuto: ["fSend"],
-          fAutoID: ["fSend"]
         }
       ],
       //新增字表需要下拉选择的数据
@@ -146,22 +150,6 @@ export default {
           fID: "fID",
           fAuto: ["fProductName", "fProductID"],
           fAutoID: ["fProductID"]
-        },
-        {
-          fName: "fStorageCode",
-          fUrl: "v_Storage_Item",
-          fDes: "fStorageCode",
-          fID: "fID"
-          // fAuto: []
-        },
-
-        {
-          fName: "fAlcntcNo",
-          fUrl: "v_DistributeNotice_Mst",
-          fDes: "fOrderNo",
-          fID: "fID"
-          // fAuto: ["fSend"],
-          // fAutoID: ["fSend"]
         },
         {
           fName: "fUnitName",

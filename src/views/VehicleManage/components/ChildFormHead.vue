@@ -154,10 +154,7 @@ export default {
       // console.log(res);
       if (res.State) {
         for (const key in this.ruleForm) {
-          if (
-            key.indexOf("boundOrderNo") != -1 ||
-            key.indexOf("CheckOrderNO") != -1
-          ) {
+          if (key.indexOf("fOrderNo") != -1) {
             this.ruleForm[key] = res.Data;
           }
         }

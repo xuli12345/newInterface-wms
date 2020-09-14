@@ -2,56 +2,19 @@
   <div>
     <div class="btns">
       <el-button
-        type="primary"
-        class="el-icon-bottom"
-        @click="downloadTemp"
-        :disabled="isDisabled"
-        size="mini"
-        >下载模板</el-button
-      >
-      <el-upload
-        style="margin-right:5px;float:left"
-        ref="upload"
-        class="upload"
-        action=""
-        :on-change="handleChange"
-        :on-remove="handleRemove"
-        :auto-upload="false"
-        :show-file-list="false"
-        accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-      >
-        <el-button
-          type="primary"
-          :disabled="isDisabled"
-          class="iconfont icon-excel"
-          size="mini"
-          >导入excel</el-button
-        >
-      </el-upload>
-      <el-button
         v-if="addItem"
-        :disabled="isDisabled"
         type="primary"
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
+        :disabled="isDisabled"
         >新增</el-button
       >
       <el-button
-        v-if="addItem"
-        :disabled="isDisabled"
-        type="primary"
-        size="mini"
-        class="iconfont icon-xinzeng add"
-        @click="creatPopRight"
-        >生成补货单</el-button
-      >
-      <el-button
-        :disabled="isDisabled"
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
+        :disabled="isDisabled"
         size="mini"
         >保存</el-button
       >
@@ -69,6 +32,8 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
+      :fState="fState"
+      @ItemTableData="ItemTableData"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -78,6 +43,7 @@
       :fID="rowData.fID"
       :changeData="changeData"
       :isDisabled="isDisabled"
+      :fState="fState"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -95,20 +61,6 @@
         :selectArr="selectArr2"
       ></child-form-head>
     </el-drawer>
-    <!-- 生成补货单 -->
-
-    <el-dialog
-      :append-to-body="true"
-      title="补货单"
-      :visible.sync="dialogForm"
-      class="dialog"
-    >
-      <span>拣货单ID</span> <el-input v-model="inputValue"></el-input>
-      <div slot="footer" class="dialog-footer">
-        <el-button @click="dialogForm = false">取 消</el-button>
-        <el-button type="primary" @click="save">保存</el-button>
-      </div>
-    </el-dialog>
   </div>
 </template>
 
@@ -116,15 +68,10 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare, handelData } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import {
-  getTableHeadData,
-  collectionData,
-  imPortExcel,
-  savePickingList
-} from "@/api/index";
+import { getTableHeadData, collectionData} from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import ChildFormHead from "../../component/EditChildFormHead";
-import ChildTable from "../../component/EditChildTable";
+import ChildFormHead from "./EditChildFormHead";
+import ChildTable from "./EditChildTable";
 
 export default {
   props: [
@@ -143,9 +90,6 @@ export default {
   },
   data() {
     return {
-      //   fTableView: "",
-      inputValue: "",
-      dialogForm: false,
       tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
@@ -153,8 +97,9 @@ export default {
       insertData: {},
       //表格数据表头
       tableHead: [],
-      //
-      isDisabled: false
+      //已审核状态
+      isDisabled: false,
+      fState: 3
     };
   },
   methods: {
@@ -216,7 +161,7 @@ export default {
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
           } else {
-            this.$message.error(res.message);
+            this.$message.error(res.Message);
           }
         }
       });
@@ -241,100 +186,29 @@ export default {
       }
       this.drawer = false;
     },
-    //下载模板
-    downloadTemp() {
-      if (this.strType.includes("Outbound")) {
-        window.location.href = `${tempUrl}/ImportTempModFile/出库单导入模板.xlsx`;
-      }
-    },
-    // excel导入
-    handleChange(file, fileList) {
-      this.fileTemp = file.raw;
-      if (this.fileTemp) {
-        if (
-          this.fileTemp.type ==
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          this.fileTemp.type == "application/vnd.ms-excel"
-        ) {
-          this.importFile(this.strType, this.fileTemp);
-        } else {
-          this.$message({
-            type: "warning",
-            message: "附件格式错误，请删除后重新上传！"
-          });
-        }
-      } else {
-        this.$message({
-          type: "warning",
-          message: "请上传附件！"
-        });
-      }
-    },
-
-    handleRemove(file, fileList) {
-      this.fileTemp = null;
-    },
-
-    async importFile(strType, file) {
-      let res = await imPortExcel({
-        strType: strType,
-        file: file
+    //根据定单号选择的从表数据
+    ItemTableData(val) {
+      console.log(val, "val");
+      val.forEach(item => {
+        this.$set(item, "fUnitName", item.fNumUnitName);
+        this.$set(item, "fQty", item.fInboundNum);
+        this.$set(item, "fRcvQty", item.fInboundNum);
+        this.$set(item, "fInprice", item.fPrice);
+        this.$set(item, "fInAmount", item.fAmount);
       });
 
-      if (res.state) {
-        this.$message.success("导入成功!");
-        let tableData = JSON.parse(res.Data).sort(compare);
-        tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
-        this.insertData = [...tableData, ...this.insertData];
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    creatPopRight() {
-      this.dialogForm = true;
-    },
-    async save() {
-      let res = await savePickingList([
-        {
-          fID: this.inputValue
-        },
-        { userDes: this.userDes, userId: this.userId }
-      ]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
-      if (res.State) {
-        this.$message.success("保存成功!");
-        this.dialogForm = false;
-      } else {
-        this.$message.warning(res.Message);
-      }
+      this.insertData = val;
     }
   },
 
   created() {
     this.getTableHeadData();
     this.getTableHead();
-    this.inputValue = this.rowData.fID;
-    if (this.rowData.fMstState && this.rowData.fMstState == 3) {
+    if (this.rowData.fState && this.rowData.fState == this.fState) {
       this.isDisabled = true;
     }
   }
 };
 </script>
 
-<style lang="scss" scoped>
-.dialog .el-input {
-  width: 200px;
-}
-</style>
+<style></style>

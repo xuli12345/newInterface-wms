@@ -5,14 +5,10 @@
         v-if="addItem"
         type="primary"
         size="mini"
-        class="iconfont icon-shuaixuan "
+        class="iconfont icon-xinzeng add"
         @click="addPopRight"
-        >筛选</el-button
+        >新增</el-button
       >
-      <!-- <el-button type="primary" class="iconfont icon-ziyuan" size="mini"
-        >排车</el-button
-      > -->
-
       <el-button
         type="primary"
         class="iconfont icon-baocun"
@@ -29,54 +25,44 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :time="time"
+      @ItemTableData="ItemTableData"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
-      @openEditDrawer="openEditDrawer"
     ></child-table>
     <!-- 新增字表数据 -->
-    <el-dialog
-      :title="openTitle"
-      :visible.sync="dialogFormVisible"
+    <!-- <el-drawer
       :append-to-body="true"
-      :destroy-on-close="true"
-    >
-      <alert-table
-        @closeBox="closeItemBox"
-        :fTableView="fTableViewAlert[0]"
-        :searchData="searchData"
-      ></alert-table>
-    </el-dialog>
-    <!-- 货品从表的从表 -->
-    <el-drawer
-      :modal="false"
       :visible.sync="drawer"
       direction="rtl"
       :before-close="handleClose"
-      v-if="newisDestory"
+      v-if="addItem"
     >
-      <JobItemTable
-        ref="ItemData"
-        fTableView="t_JobProduct_Item"
-        :ItmeOrderNO="ItmeOrderNO"
-      ></JobItemTable>
-    </el-drawer>
+      <child-form-head
+        @closeBox="closeItemBox"
+        :fTableViewHead="fTableViewItem[0]"
+        ref="ItemRuleForm"
+        :addItem="addItem"
+        :selectArr="selectArr2"
+        :alertArr="alertArr"
+      ></child-form-head>
+    </el-drawer> -->
   </div>
 </template>
 
 <script>
-import { compare } from "@/utils/common";
-import { getTableHeadData, collectionData } from "@/api/index";
+import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
+import { userLimit, compare } from "@/utils/common";
+import { tempUrl } from "@/utils/tempUrl";
+import { getTableHeadData, collectionData,saveRGBookRegData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import ChildFormHead from "@/components/ChildFormHead";
-import JobItemTable from "./JobItemTable";
-
-import ChildTable from "./ChildTable";
-import alertTable from "./AlertTable";
-
+import ChildFormHead from "./ChildFormHead";
+import ChildTable from "@/components/ChildTable";
 export default {
+  //strType:导入文件的类型
   props: [
     "fTableViewHead",
     "fTableViewItem",
@@ -84,41 +70,40 @@ export default {
     "selectArr",
     "selectArr2",
     "alertArr",
-    "searchData",
-    "fTableViewAlert"
+    "strType",
+    "time"
   ],
   components: {
     ChildFormHead,
-    ChildTable,
-    alertTable,
-    JobItemTable
+    ChildTable
   },
   data() {
     return {
       tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
-
-      newisDestory: false,
       //表格数据
       tableData: [],
       //表格数据表头
       tableHead: [],
-      dialogFormVisible: false,
-      openTitle: "选择配货单",
-      insertData: [],
-      //从表定单号
-      ItmeOrderNO: "",
-      selItemHead: [],
-      selItemList: []
+      //excel
+      fileTemp: null,
+      file: null,
+      fileName: ""
     };
   },
   methods: {
+    //根据用户权限，查询按钮是否禁用
+    userLimit(val) {
+      return userLimit(val);
+    },
     //获取form表单数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableViewHead[0]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
+        // this.fTableView = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
       } else {
         this.$message.error(res.Message);
@@ -128,7 +113,9 @@ export default {
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      //   console.log(res);
       if (res.State) {
+        // this.fTableView = res.fTableViewData;
         this.tableHead = res.lstRet.sort(compare);
       } else {
         this.$message.error(res.Message);
@@ -137,11 +124,10 @@ export default {
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
-      console.log(this.selItemHead, this.selItemList);
-
+      // console.log(formData)
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
-          let res = await collectionData([
+          let res = await saveRGBookRegData([
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
@@ -153,18 +139,14 @@ export default {
               insertData: this.tableData,
               headData: this.tableHead,
               IdentityColumn: this.fTableViewItem[1]
-            },
-            {
-              TableName: "t_JobProduct_Item",
-              insertData: this.selItemList,
-              headData: this.selItemHead,
-              IdentityColumn: "fMstID"
             }
           ]);
+          //   console.log(res)
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+         
           if (res.State === true) {
             this.$message.success("新增成功!");
-            this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
+            this.$emit("closeBox", res.State);
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
           } else {
             this.$message.error(res.Message);
@@ -179,58 +161,63 @@ export default {
     },
     //新增按钮
     addPopRight() {
-      this.dialogFormVisible = true;
-    },
-    openEditDrawer(row) {
-      this.ItmeOrderNO = row.fOrderNo;
       this.drawer = true;
     },
-    // closeDrawer() {
-    //   this.drawerValue = false;
-    // },
+    //根据供应商选择的从表数据
+    ItemTableData(val) {
+      val.forEach((item,index)=> {
+        this.$set(item, "fOrdnum", item.fInboundOrderNo);
+        this.$set(item, "fTotal", item.fTotalAmount);
+        this.$set(item,"fSort",index+1);
+        this.$set(item,"fOrdID",item.fID);
+      });
+
+      this.tableData = val;
+    },
     //点击x关闭弹窗
     handleClose(done) {
-      this.selItemList = this.$refs.ItemData.BatchList;
-      this.selItemHead = this.$refs.ItemData.tableHeadData;
       this.drawer = false;
     },
-    //关闭子表新增弹窗
+    //关闭字表新增弹窗
     closeItemBox(value) {
       if (value) {
-        value.forEach(item => {
-          this.$set(item, "fStockID", item.fID);
-        });
-        this.tableData = [...this.tableData, ...value];
-        //动态将tableData中不存在的键添加
-        this.tableData.forEach(item => {
-          this.tableHead.forEach(ele => {
-            for (const key in item) {
-              if (item[ele.fColumn] == undefined) {
-                this.$set(item, ele.fColumn, 0);
-              }
-            }
+        this.tableData.unshift(value);
+      }
+      this.drawer = false;
+    },
+    // excel导入
+    handleChange(file, fileList) {
+      this.fileTemp = file.raw;
+      if (this.fileTemp) {
+        //xlsx
+        if (
+          this.fileTemp.type ==
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
+        ) {
+          this.importFile(this.strType, this.fileTemp);
+        } else {
+          this.$message({
+            type: "warning",
+            message: "附件格式错误，请删除后重新上传！"
           });
+        }
+      } else {
+        this.$message({
+          type: "warning",
+          message: "请上传附件！"
         });
       }
-      this.dialogFormVisible = false;
+    },
+
+    handleRemove(file, fileList) {
+      this.fileTemp = null;
     }
   },
 
   created() {
     this.getTableHeadData();
     this.getTableHead();
-  },
-  watch: {
-    drawer: function(val, old) {
-      // console.log(val, old);
-      if (val) {
-        this.newisDestory = true;
-      } else {
-        setTimeout(() => {
-          this.newisDestory = false;
-        }, 500);
-      }
-    }
   }
 };
 </script>

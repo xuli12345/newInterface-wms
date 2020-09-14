@@ -47,6 +47,7 @@
         :selectArr="selectArr"
         :selectArr2="selectArr2"
         :rowData="editForm"
+        :checkState="checkState"
       ></edit-form-table>
     </el-drawer>
   </div>
@@ -65,7 +66,6 @@ export default {
     return {
       drawer: false,
       drawerValue: false,
-
       direction: "rtl",
       //表格列头数据
       tableHeadData: [],
@@ -78,6 +78,7 @@ export default {
       fTableView: "t_DistributeNotice_Mst",
       //审核的数据 6审核 5作废
       checkData: [true, 6, 5],
+        checkState:6,
       //是否新增成功
       isSaveSuccess: false,
       //表头的字段，以及自增长字段

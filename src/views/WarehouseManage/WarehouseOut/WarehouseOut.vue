@@ -9,6 +9,7 @@
       :isItem="true"
       :batchDelTableName="batchDelTableName"
       :isPrint="true"
+      :OutboundPrint="true"
       :printView="printView"
       :title="title"
       :isCheck="checkData"
@@ -214,6 +215,14 @@ export default {
           fID: "fID",
           fAuto: ["fItemState"],
           fAutoID: ["fItemState"]
+        },
+        {
+          fName: "fShopName",
+          fUrl: "v_Shop",
+          fDes: "fShopName",
+          fID: "fID",
+          fAuto: ["fShopID"],
+          fAutoID: ["fShopID"]
         }
       ],
       batchDelTableName: [
@@ -291,7 +300,6 @@ export default {
       }
     }
   }
- 
 };
 </script>
 <style lang="scss"></style>

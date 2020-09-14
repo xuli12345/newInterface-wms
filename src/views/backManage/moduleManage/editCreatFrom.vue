@@ -69,7 +69,7 @@
 </template>
 <script>
 import { decryptDesCbc, encryptDesCbc } from "@/utils/cryptoJs.js";
-import { addformSaveData, collectionData } from "@/api/index";
+import { collectionData } from "@/api/index";
 import { addParams, creatRules } from "@/utils/common";
 
 export default {

@@ -28,7 +28,7 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
-      :fState='fState'
+      :fState='checkState'
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -38,7 +38,7 @@
       :fID="rowData.fID"
       :changeData="changeData"
       :isDisabled="isDisabled"
-      :fState='fState'
+      :fState='checkState'
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -77,7 +77,8 @@ export default {
     "selectArr2",
     "rowData",
     "changeData",
-    "strType"
+    "strType",
+    "checkState"
   ],
   components: {
     ChildFormHead,
@@ -94,7 +95,7 @@ export default {
       tableHead: [],
       //已审核状态
       isDisabled: false,
-      fState: 6
+      // fState: 6
     };
   },
   methods: {
@@ -186,7 +187,7 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
-    if (this.rowData.fState && this.rowData.fState == this.fState) {
+    if (this.rowData.fState && this.rowData.fState == this.checkState) {
       this.isDisabled = true;
     }
   }

@@ -1,13 +1,14 @@
 <template>
   <div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableList | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
+      @row-dblclick="dblclick"
     >
       <el-table-column type="index" width="50"></el-table-column>
       <template v-for="(item, index) in tableHeadData">
@@ -48,13 +49,7 @@
               @change="ruleContent(scope.row[item.fColumn])"
               :disabled="item.fReadOnly == 0 ? false : true"
             ></el-input>
-            <div  v-else> {{scope.row[item.fColumn]}}</div>
-            <!-- <el-input
-              v-else
-              v-model="scope.row[item.fColumn]"
-              :maxlength="scope.row[item.fLength]"
-              :disabled="item.fReadOnly == 0 ? false : true"
-            ></el-input> -->
+            <div v-else>{{ scope.row[item.fColumn] }}</div>
           </template>
         </el-table-column>
       </template>
@@ -134,6 +129,10 @@ export default {
     };
   },
   methods: {
+    //双击表格弹框
+    dblclick(row) {
+      this.$emit("openEditDrawer", row);
+    },
     // 页容量
     handleSizeChange(val) {
       this.pageSize = val;

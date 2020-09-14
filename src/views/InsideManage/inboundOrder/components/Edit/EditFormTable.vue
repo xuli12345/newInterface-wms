@@ -170,6 +170,18 @@ export default {
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
       let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
+      // console.log(formData, "xuli");
+      let Amount = 0;
+      let Qtystr = 0;
+      let num = 0;
+      tableData.forEach(item => {
+        Amount += Number(item.fAmount);
+        Qtystr += Number(item.fQtystr);
+        num += Number(item.fInboundNum);
+      });
+      formData.fQtystr = Qtystr;
+      formData.fTotalAmount = Amount;
+      formData.fTotalNum = num;
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       let deletedArr = wantData[2];

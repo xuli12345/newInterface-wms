@@ -6,9 +6,13 @@
       :isSaveSuccess="isSaveSuccess"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
-      :isItem="true"
       :batchDelTableName="batchDelTableName"
+      :isItem="true"
       :isCheck="checkData"
+      :importExcel="true"
+      :isPrint="true"
+      :printView="printView"
+      :title="title"
     ></HomeTable>
 
     <!-- 新增侧滑框  v-if="newisDestory" -->
@@ -43,12 +47,13 @@
         :selectArr="selectArr"
         :selectArr2="selectArr2"
         :rowData="editForm"
+        :checkState="checkState"
       ></edit-form-table>
     </el-drawer>
   </div>
 </template>
 <script>
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "./components/HomeTable";
 import CreatFrom from "../components/FormTable";
 import EditFormTable from "../components/EditFormTable";
 export default {
@@ -71,62 +76,50 @@ export default {
       isDestory: false,
       newisDestory: false,
       fTableView: "t_PGRpl_Mst",
-      //审核的数据 6审核 5作废
+      //审核的数据 4审核
       checkData: [true, 4],
+      checkState: 4,
       //是否新增成功
       isSaveSuccess: false,
+      printView: ["t_PGRplData", "v_PGRplData", "v_PGRpl_Item", "t_PGRpl_Item"],
+      title: ["金百物流有限公司", "商品补货单"],
       //表头的字段，以及自增长字段
       fTableViewHead: ["t_PGRpl_Mst", "fID"],
       //表格的ftableview,自增长字段
       fTableViewItem: ["t_PGRpl_Item", "fMstID"],
       selectArr: [
         {
-          fName: "fShopCode",
-          fUrl: "v_Shop",
-          fDes: "fShopCode",
+          fName: "fRplwayName",
+          fUrl: "v_Type_PGRplWay",
+          fDes: "fTypeName",
           fID: "fID",
-          fAuto: ["fShopID", "fShopName"],
-          fAutoID: ["fShopID"]
+          fAuto: ["fRplway"],
+          fAutoID: ["fRplway"]
         },
         {
           fName: "fJobid",
           fUrl: "v_DistributeJob_Mst",
           fDes: "fJobid",
-          fID: "fID"
-          // fAuto: ["fReasonID"],
-          // fAutoID: ["fReasonID"]
+          fID: "fID",
+          fAuto: [],
+          fAutoID: []
         },
         {
-          fName: "fWarehouseName",
-          fUrl: "v_Warehouse_Mst",
-          fDes: "fWarehouseName",
+          fName: "fRpldirectionName",
+          fUrl: "v_Type_PGRplDirection",
+          fDes: "fTypeName",
           fID: "fID",
-          fAuto: ["fWarehouseID"],
-          fAutoID: ["fWarehouseID"]
+          fAuto: ["fRpldirection"],
+          fAutoID: ["fRpldirection"]
         },
-        {
-          fName: "fConsignorName",
-          fUrl: "v_Consignor",
-          fDes: "fConsignorName",
-          fID: "fID",
-          fAuto: ["fConsignorID"],
-          fAutoID: ["fConsignorID"]
-        },
+
         {
           fName: "fStateName",
-          fUrl: "v_Type_DistributeMstState",
+          fUrl: "v_Type_PGRplState",
           fDes: "fTypeName",
           fID: "fID",
           fAuto: ["fState"],
           fAutoID: ["fState"]
-        },
-        {
-          fName: "fSendName",
-          fUrl: "v_Type_fsend",
-          fDes: "fTypeName",
-          fID: "fID",
-          fAuto: ["fSend"],
-          fAutoID: ["fSend"]
         }
       ],
       //新增字表需要下拉选择的数据
@@ -147,22 +140,7 @@ export default {
           fAuto: ["fProductName", "fProductID"],
           fAutoID: ["fProductID"]
         },
-        {
-          fName: "fStorageCode",
-          fUrl: "v_Storage_Item",
-          fDes: "fStorageCode",
-          fID: "fID"
-          // fAuto: []
-        },
 
-        {
-          fName: "fAlcntcNo",
-          fUrl: "v_DistributeNotice_Mst",
-          fDes: "fOrderNo",
-          fID: "fID"
-          // fAuto: ["fSend"],
-          // fAutoID: ["fSend"]
-        },
         {
           fName: "fUnitName",
           fUrl: "v_Unit",
@@ -177,6 +155,23 @@ export default {
               Value: 10
             }
           ]
+        },
+        {
+          fName: "fSupplierName",
+          fUrl: "v_Supplier",
+          fDes: "fSupplierName",
+          fID: "fID",
+          fAuto: ["fSupplierID"],
+          fAutoID: ["fSupplierID"]
+        },
+
+        {
+          fName: "fConsignorName",
+          fUrl: "v_Consignor",
+          fDes: "fConsignorName",
+          fID: "fID",
+          fAuto: ["fConsignorID"],
+          fAutoID: ["fConsignorID"]
         }
       ],
       batchDelTableName: [

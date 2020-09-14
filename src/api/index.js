@@ -168,7 +168,7 @@ function getTableBodyData(str, condition = []) {
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
   };
-//  console.log(JSON.stringify(obj),"加密查询")
+  //  console.log(JSON.stringify(obj),"加密查询")
   return http({
     url: "/QureyData",
     method: "POST",
@@ -177,8 +177,8 @@ function getTableBodyData(str, condition = []) {
   });
 }
 //EXCEL导出
-function exportData(str, condition = [],InterfaceName) {
-  console.log(InterfaceName,"InterfaceName")
+function exportData(str, condition = [], InterfaceName) {
+  console.log(InterfaceName, "InterfaceName");
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
 
   let obj1 = {
@@ -187,7 +187,7 @@ function exportData(str, condition = [],InterfaceName) {
     SqlConn: sqlConn,
     TableView: str,
     Where: condition,
-    InterfaceName:InterfaceName,
+    InterfaceName: InterfaceName
   };
   // console.log(JSON.stringify(obj1), "获取表格内容");
   let obj = {
@@ -236,6 +236,7 @@ function queryViewData(str, condition = []) {
 function getOrderNo(str) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   let fTableView = '["' + str + '"]';
+  console.log(fTableView,"自动生成单号")
   let object = {
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
@@ -252,6 +253,7 @@ function getOrderNo(str) {
  *
  */
 function addformSaveData(data) {
+  console.log(data)
   let obj = {
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
@@ -320,7 +322,6 @@ function savePartsOutboundData(data) {
  */
 function collectionData(data) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
-
   let saveObj = [];
   let globalColumns;
   data.forEach(element => {
@@ -463,6 +464,155 @@ function saveStockAdjust(data) {
 }
 
 /**
+ *
+ * @param {*} data
+ * 收货预检保存
+ */
+function saveRGPreExamData(data) {
+  userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
+
+  let saveObj = [];
+  let globalColumns;
+  data.forEach(element => {
+    // console.log(element.updateData)
+    let obj = {};
+    let update = null,
+      deleted = null,
+      insert = null;
+    if (element.insertData && element.insertData.length > 0) {
+      insert = batchDelete(element.headData, element.insertData);
+      globalColumns = insert.columns;
+    }
+    if (element.updateData && element.updateData.length > 0) {
+      update = batchDelete(element.headData, element.updateData);
+      globalColumns = update.columns;
+    }
+    if (element.deleteData && element.deleteData.length > 0) {
+      deleted = batchDelete(element.headData, element.deleteData);
+      globalColumns = deleted.columns;
+    }
+    // console.log(insert,update,deleted)
+    obj = {
+      TableName: element.TableName,
+      IdentityColumn: element.IdentityColumn ? element.IdentityColumn : null,
+      InsertRow: insert ? insert.arr : null,
+      UpdateRow: update ? update.arr : null,
+      DeleteRow: deleted ? deleted.arr : null,
+      Columns: globalColumns
+    };
+    saveObj.push(obj);
+  });
+  let savaData = {
+    lstSaveData: saveObj
+  };
+  console.log(savaData);
+
+  let obj = {
+    ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
+  };
+  // console.log(JSON.stringify(savaData));
+  return http({
+    url: "/saveRGPreExamData",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
+ *
+ * @param {*} data
+ * 收货预约保存
+ */
+function saveRGBookRegData(data) {
+  userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
+  let saveObj = [];
+  let globalColumns;
+  data.forEach(element => {
+    // console.log(element.updateData)
+    let obj = {};
+    let update = null,
+      deleted = null,
+      insert = null;
+    if (element.insertData && element.insertData.length > 0) {
+      insert = batchDelete(element.headData, element.insertData);
+      globalColumns = insert.columns;
+    }
+    if (element.updateData && element.updateData.length > 0) {
+      update = batchDelete(element.headData, element.updateData);
+      globalColumns = update.columns;
+    }
+    if (element.deleteData && element.deleteData.length > 0) {
+      deleted = batchDelete(element.headData, element.deleteData);
+      globalColumns = deleted.columns;
+    }
+    // console.log(insert,update,deleted)
+    obj = {
+      TableName: element.TableName,
+      IdentityColumn: element.IdentityColumn ? element.IdentityColumn : null,
+      InsertRow: insert ? insert.arr : null,
+      UpdateRow: update ? update.arr : null,
+      DeleteRow: deleted ? deleted.arr : null,
+      Columns: globalColumns
+    };
+    saveObj.push(obj);
+  });
+  let savaData = {
+    lstSaveData: saveObj
+  };
+  console.log(savaData);
+
+  let obj = {
+    ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
+  };
+  // console.log(JSON.stringify(savaData));
+  return http({
+    url: "/saveRGBookRegData",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
+ * 
+ * @param {*} data 
+ * 生成拣货单
+ * 
+ */
+function DistributeJob(data) {
+  console.log(data[0],33)
+  let obj = {
+    ParameterDes: encryptDesCbc(
+      JSON.stringify(data[0]),
+      String(data[1].userDes)
+    )
+  };
+
+  return http({
+    url: "/DistributeJob",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
+ * 
+ * @param {*} data 
+ * 生成补货单
+ * 
+ */
+function savePickingList(data) {
+  console.log(data[0])
+  let obj = {
+    ParameterDes: encryptDesCbc(
+      JSON.stringify(data[0]),
+      String(data[1].userDes)
+    )
+  };
+
+  return http({
+    url: "/savePickingList",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
  * 修改页面中获取从表数据
  *
  *
@@ -552,7 +702,9 @@ export {
   imPortExcel,
   savePartsInboundData,
   savePartsOutboundData,
-  exportData
+  exportData,
+  saveRGBookRegData,
+  saveRGPreExamData,
+  DistributeJob,
+  savePickingList
 };
-
-

@@ -1,17 +1,5 @@
 <template>
   <div>
-    <div class="pan-btns">
-      <el-button
-        type="primary"
-        class="iconfont icon-baocun"
-        @click="submitForm()"
-        size="mini"
-        >确定</el-button
-      >
-      <el-button class="iconfont icon-quxiao" size="mini" @click="resetForm()"
-        >取消</el-button
-      >
-    </div>
     <div class="page flex-wrap">
       <div
         class="search-title flex-align-center"
@@ -19,10 +7,19 @@
         :key="index"
       >
         {{ item.fColumnDes }}:
+
+        <el-date-picker
+          v-if="item.fDataType == 'datetime'"
+          v-model.trim="asData[item.fColumn]"
+          type="datetime"
+          placeholder="选择日期时间"
+          min-width="300"
+        ></el-date-picker>
+
         <el-input
-          v-model="asData[item.fColumn]"
+          v-else
+          v-model.trim="asData[item.fColumn]"
           :placeholder="`请输入${item.fColumnDes}`"
-          clearable
         ></el-input>
       </div>
       <div style="margin-top:10px">
@@ -31,64 +28,47 @@
           size="mini"
           class="iconfont icon-A"
           @click="search"
+          :disabled="userLimit('fQurey')"
           >查询</el-button
         >
       </div>
     </div>
-
     <el-table
       :header-cell-style="{ background: '#eef1f6' }"
-      :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
       border
+      style="width: 100%"
       :row-key="getRowKeys"
-      style="width: 100%;"
+      :data="tableData | pagination(pageNum, pageSize)"
       @selection-change="handleSelectionChange"
       @filter-change="filterTagTable"
     >
       <el-table-column type="selection" width="50"></el-table-column>
-      <!-- :filter-method="filtersF" -->
+
       <template v-for="(item, index) in tableHeadData">
         <el-table-column
-          v-if="item.fVisible == 1 ? true : false"
+          v-if="item.fVisible == 1"
           :key="index"
           :label="item.fColumnDes"
           :prop="item.fColumn"
+          min-width="160px"
           sortable
-          min-width="120px"
-          :filters="screenFuction(item.fColumn)"
           :column-key="item.fColumn"
+          :filters="userLimit('fFiler') ? null : screenFuction(item.fColumn)"
         >
           <template slot-scope="scope">
             <el-checkbox
               @change="changeA(scope.row, item.fColumn)"
               v-if="item.fDataType == 'bit'"
-              :value="scope.row[item.fColumn] == 0 ? false : true"
-              :disabled="item.fReadOnly == 0 ? false : true"
+              :value="scope.row[item.fColumn] == 1 ? true : false"
+              disabled
             ></el-checkbox>
 
-            <el-input
-              v-else
-              v-model="scope.row[item.fColumn]"
-              :maxlength="scope.row[item.fLength]"
-              :disabled="item.fReadOnly == 0 ? false : true"
-            ></el-input>
+            <div v-else>{{ scope.row[item.fColumn] }}</div>
           </template>
         </el-table-column>
       </template>
-      <el-table-column fixed="right" label="操作" align="center" width="120">
-        <template slot-scope="scope">
-          <div class="operation">
-            <el-button
-              type="text"
-              size="small"
-              @click.stop="handleDelete(scope.row, scope.$index)"
-              >删除</el-button
-            >
-          </div>
-        </template>
-      </el-table-column>
     </el-table>
     <!-- 分页 -->
     <div class="page flex-justify-end">
@@ -106,14 +86,27 @@
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
-import { timeCycle } from "@/utils/updateTime"; //格式化时间
+import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
+import { addParams, batchDelete, userLimit } from "@/utils/common";
 import { compare } from "@/utils/common";
-import { getTableHeadData, getTableBodyData } from "@/api/index";
+import {
+  addformSaveData,
+  getTableBodyData,
+  getTableHeadData
+} from "@/api/index";
 export default {
-  props: ["fTableView", "searchData"],
+  props: ["fTableView", "isSaveSuccess", "ItmeOrderNO"],
   data() {
     return {
+      //查询的数据
+      searchData: [],
       tableHeadData: [], //表头数据
+      //搜索条件
+      searchWhere: [],
+      //获取表格内容TableView的值,在获取headData中获取
+      fTableViewData: "",
+      //批量
+      BatchList: [],
       getRowKeys(row) {
         return row.fID;
       },
@@ -125,39 +118,64 @@ export default {
       pageSize: 10,
       // 总条数
       total: 0,
-      //权限表修改的数据
-      userDes: this.$store.state.user.userInfo.userDes,
-      //   kong
-      nullTable: [],
-      //获取表格数据的fTableView
-      fTableViewll: "",
       asData: {},
-      //传递过去的数据
-      sendData: [],
+      userDes: this.$store.state.user.userInfo.userDes,
+      userId: this.$store.state.user.userInfo.userId,
+      sqlConn: sessionStorage.getItem("sqlConn"),
       newArr: []
     };
   },
   methods: {
-    // 页容量
-    handleSizeChange(val) {
-      this.pageSize = val;
+    //用户表格列头
+    async getTableHeadData() {
+      let res = await getTableHeadData(this.fTableView);
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.fTableViewData = res.fTableViewData;
+        this.tableHeadData = res.lstRet.sort(compare);
+        console.log(this.tableHeadData, "表头1");
+        let searchArr = [];
+        searchArr = this.tableHeadData.filter(element => {
+          return element.fQureyCol == 1;
+        });
+        let ColumnArr = [];
+        searchArr.forEach(item => {
+          ColumnArr.push(item.fColumn);
+        });
+        // console.log(ColumnArr, "搜索的字段");
+        let arr = [];
+        ColumnArr.forEach((element, index) => {
+          this.tableHeadData.forEach((item, index) => {
+            // if (item.fColumn.includes(element)) {
+            //这里用相等 当勾选的字段名相近时就会把没勾选的值给添加进来
+            if (item.fColumn == element) {
+              let obj = {
+                fColumnDes: item.fColumnDes,
+                fColumn: item.fColumn,
+                fComputer: item.fComputer,
+                fDataType: item.fDataType
+              };
+              arr.push(obj);
+            }
+          });
+        });
+        this.searchData = arr;
+      } else {
+        this.$message.error(res.Message);
+      }
     },
-    // 当前页
-    handleCurrentChange(val) {
-      this.pageNum = val;
-    },
+
     changeA(item, val) {
       if (item[val] == 0) {
         item[val] = 1;
-        this.$set(item, val, 1);
       } else if (item[val] == 1) {
         item[val] = 0;
-        this.$set(item, val, 0);
       }
     },
     //表格筛选
+
     async filterTagTable(filters) {
-      // console.log(filters);
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -176,6 +194,7 @@ export default {
           }
         });
       }
+
       let searchData = [];
       let objData;
       this.newArr.forEach(ele => {
@@ -186,29 +205,36 @@ export default {
             Value: ele[key]
           };
         }
+
         searchData.push(objData);
       });
-      let res = await getTableBodyData(this.fTableViewll, searchData);
+
+      let res = await getTableBodyData(this.fTableViewData, searchData);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         this.tableData.forEach(element => {
           for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
+            if (
+              (key.indexOf("Date") != -1 ||
+                key.indexOf("time") != -1 ||
+                key.indexOf("LifeDays") != -1) &&
+              element[key] != null
+            ) {
+              element[key] = element[key].replace(/T/, " ");
             }
           }
         });
-        console.log(this.tableData, "筛选表体内容");
+
+        console.log(this.tableData, "过滤表体内容");
       }
     },
 
     //筛选的条件数组
     screenFuction(val) {
       let copyTable = this.tableData;
-      let screenData = [];
+      var screenData = [];
       copyTable.forEach((item, idx) => {
         let obj = {
           text: item[val],
@@ -222,89 +248,93 @@ export default {
       });
       return newData;
     },
-    //获取表格表头数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-      if (res.State) {
-        this.fTableViewll = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(compare);
-        console.log(this.tableHeadData, "dailog表头数据");
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
+    //查询
     search() {
       this.getTableData();
     },
-    //获取表格内容数据
+    //获取table表格内容数据
     async getTableData() {
       let searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         searchWhere = [
           {
             Computer: "=",
-            DataFile: "fState",
-            Value: 2
+            DataFile: "fOrderNo",
+            Value: this.ItmeOrderNO
           }
         ];
       } else {
         this.searchData.forEach(element => {
           if (this.asData[element.fColumn]) {
+            let result = this.asData[element.fColumn];
+            if (result instanceof Date) {
+              result = timeCycle(result);
+            }
             let obj = {
-              Computer: "=",
+              Computer: element.fComputer,
               DataFile: element.fColumn,
-              Value: this.asData[element.fColumn]
+              Value: result
             };
             searchWhere.push(obj);
           }
         });
+        let baseWhere = {
+          Computer: "=",
+          DataFile: "fOrderNo",
+          Value: this.ItmeOrderNO
+        };
+        searchWhere.push(baseWhere);
       }
-      let baseWhere = {
-        Computer: "=",
-        DataFile: "fState",
-        Value: 2
-      };
-      searchWhere.push(baseWhere);
-      let res = await getTableBodyData(this.fTableViewll, searchWhere);
+
+      // this.fTableViewData
+      let res = await getTableBodyData("v_DistributeNotice_Item", searchWhere);
+
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
-        this.tableData = JSON.parse(res.Data);
-        console.log(this.tableData);
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
-      } else {
-        this.$message.error(res.Message);
+        let result = JSON.parse(res.Data);
+        result.forEach((item,index)=>{
+            this.$set(item,"fSort",index+1);
+            this.$set(item,"fAlcntcNo",item.fOrderNo)
+        })
+        this.tableData=result;
+        this.total = this.tableData.length;
+       
+        console.log(this.tableData, "表体内容");
       }
     },
 
-    handleDelete(val, index) {
-      this.tableData.splice(index, 1);
-    },
-    submitForm() {
-      // console.log(this.sendData)
-      this.$emit("closeBox", JSON.parse(JSON.stringify(this.sendData)));
-    },
-    resetForm() {
-      this.$emit("closeBox");
-    },
+    // 手动选中Checkbox
     handleSelectionChange(val) {
-      this.sendData = val;
+      this.BatchList = val;
+     
+    },
+
+    // 页容量
+    handleSizeChange(val) {
+      this.pageSize = val;
+    },
+    // 当前页
+    handleCurrentChange(val) {
+      this.pageNum = val;
+    },
+
+    //根据用户权限，查询按钮是否禁用
+    userLimit(val) {
+      return userLimit(val);
     }
   },
   watch: {
-    tableData: function() {
-      this.total = this.tableData.length;
-    }
+    isSaveSuccess(newVal, oldVal) {
+      if (newVal) {
+        this.getTableData();
+      }
+    },
+  
   },
   created() {
     this.getTableHeadData();
+    this.getTableData();
+    console.log(this.ItmeOrderNO);
   }
 };
 </script>

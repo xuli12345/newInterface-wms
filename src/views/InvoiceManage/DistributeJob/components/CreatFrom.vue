@@ -1,14 +1,5 @@
 <template>
-  <div>
-    <div class="btns">
-      <el-button type="primary" size="mini" @click="submitForm('ruleForm')">
-        <i class="iconfont icon-baocun"></i>保存</el-button
-      >
-      <el-button size="mini" @click="resetForm('ruleForm')">
-        <i class="iconfont icon-quxiao"></i>取消</el-button
-      >
-    </div>
-
+  <div id="form">
     <el-form
       label-position="right"
       label-width="180px"
@@ -19,6 +10,7 @@
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
+          style="width:50%"
           v-if="item.fVisible == 1"
           :key="index"
           :label="item.fColumnDes"
@@ -42,41 +34,10 @@
               ></el-option>
             </el-select>
           </template>
-
-          <el-date-picker
-            v-else-if="item.fDataType == 'datetime'"
-            v-model="ruleForm[item.fColumn]"
-            type="datetime"
-            placeholder="选择日期时间"
-            :disabled="item.fReadOnly == 0 ? false : true"
-          ></el-date-picker>
-
-          <el-input
-            v-else-if="item.fDataType == 'int'"
-            v-model.number="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
-          ></el-input>
-          <el-input
-            v-else-if="item.fDataType == 'decimal'"
-            v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
-          ></el-input>
-          <el-checkbox
-            v-else-if="item.fDataType == 'bit'"
-            @change="showColumn(item.fColumn, ruleForm[item.fColumn], item)"
-            v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
-          ></el-checkbox>
-          <el-input
-            v-else-if="item.fColumn == 'fPassWord'"
-            v-model="ruleForm[item.fColumn]"
-            type="password"
-          ></el-input>
-
           <el-input
             v-else
             v-model="ruleForm[item.fColumn]"
-            :disabled="item.fReadOnly == 0 ? false : true"
+            :disabled="true"
           ></el-input>
         </el-form-item>
       </template>
@@ -87,7 +48,7 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { collectionData, getTableBodyData, getOrderNo } from "@/api/index";
 import { creatRules, defaultForm } from "@/utils/common";
-import md5 from "js-md5";
+
 export default {
   data() {
     return {
@@ -108,69 +69,16 @@ export default {
       default: () => []
     },
     //保存的tableName字段
-    tableName: {
-      type: String,
-      default: () => ""
+    fID: {
+      type: Number
     },
     //需要做下拉框的数据
     selectArr: {
       type: Array,
       default: () => []
-    },
-
-    showfColumn: {
-      type: Array,
-      default: () => []
     }
   },
   methods: {
-    submitForm(formName) {
-      this.$refs[formName].validate(async valid => {
-        if (valid) {
-          if (this.ruleForm.fPassWord != undefined) {
-            this.$set(
-              this.ruleForm,
-              "fPassWord",
-              md5(this.ruleForm["fPassWord"])
-            );
-          }
-
-          if (
-            "fPickingPlace" in this.ruleForm &&
-            this.ruleForm["fPickingPlace"].length > 0
-          ) {
-            let value = this.ruleForm["fPickingPlace"];
-            value = value.join(",");
-            this.$set(this.ruleForm, "fPickingPlace", value);
-          }
-          let res = await collectionData([
-            {
-              TableName: this.tableName,
-              headData: this.tableHead,
-              insertData: [this.ruleForm]
-            }
-          ]);
-
-          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-          if (res.State) {
-            this.$message.success("新增成功!");
-            this.$emit("closeBox", res.State, res.Identity);
-            this.$refs[formName].resetFields();
-            this.ruleForm = defaultForm(this.tableHead);
-          } else {
-            this.$message.error(res.Message);
-          }
-        } else {
-          return false;
-        }
-      });
-    },
-
-    resetForm(formName) {
-      this.$refs[formName].resetFields();
-      this.$emit("closeBox");
-    },
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
@@ -279,54 +187,22 @@ export default {
           });
         }
       });
-    },
-    showColumn(val, status, headItem) {
-      // console.log(val, status);
-      this.showfColumn.forEach(item => {
-        if ((item.name = val && status)) {
-          this.tableHead.forEach(child => {
-            if (item.hidden.includes(child.fColumn)) {
-              this.$set(child, "fVisible", 1);
-            }
-          });
-        } else {
-          this.tableHead.forEach(child => {
-            if (item.hidden.includes(child.fColumn)) {
-              this.$set(child, "fVisible", 0);
-            }
-          });
-        }
-      });
-    },
-    //获取入库单号
-    async getOrderNoData() {
-      let res = await getOrderNo(this.tableName);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
-      if (res.State) {
-        for (const key in this.ruleForm) {
-          if (key.indexOf("fOrderNo") != -1) {
-            this.ruleForm[key] = res.Data;
-          }
-        }
-      }
     }
   },
 
   created() {
     this.ruleForm = defaultForm(this.tableHead);
-    this.ruleForm.fStockNum = 0;
-    this.ruleForm.fStockAmount = 0;
     this.rules = creatRules(this.tableHead);
+    this.ruleForm.fID=this.fID;
+    // console.log(this.fID);
     if (this.selectArr && this.selectArr.length > 0) {
       this.getSelectData();
     }
-  },
-  mounted() {
-    setTimeout(() => {
-      this.getOrderNoData();
-    }, 100);
   }
 };
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+#form /deep/ .el-form-item {
+  width: 50% !important;
+}
+</style>
