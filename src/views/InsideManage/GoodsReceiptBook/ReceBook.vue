@@ -34,23 +34,23 @@
             {{ item1.StartTime }}~{{ item1.EndTime }}
           </td>
           <td
-            style=""
+            style="position: relative;"
             v-for="(item, index) in headData"
             :key="index"
             @dblclick="dblclick(item, item1)"
           >
-            <div v-for="(item2, i) in BackTableData" :key="i">
+            <div  v-for="(item2, i) in BackTableData" :key="i">
               <div
-                class="content"
+                class="content "
                 :style="{
                   background:
                     item2.fStateName == '已预约'
                       ? '#ebb563'
-                      : item2.fStateName == '已预拣'
+                      : item2.fStateName == '已预检'
                       ? '#65b1ff'
                       : item2.fStateName == '进行中'
                       ? '#ffff00'
-                      : item2.fStateName == '已完成'
+                      : item2.fStateName == '已上架'
                       ? '#85ce61'
                       : ''
                 }"
@@ -92,6 +92,9 @@
         :addItem="false"
         :selectArr="selectArr"
         :time="value"
+        :StartTime="StartTime"
+        :EndTime="EndTime"
+        :Dock="Dock"
       ></CreatFrom>
     </el-drawer>
     <!-- 修改预约 -->
@@ -151,14 +154,14 @@ export default {
           fDes: "fDockName",
           fID: "fID",
           fAuto: ["fDockID"],
-          fAutoID: ["fDockID"],
-          searchWhere: [
-            {
-              Computer: "=",
-              DataFile: "fID",
-              Value: ""
-            }
-          ]
+          fAutoID: ["fDockID"]
+          // searchWhere: [
+          //   {
+          //     Computer: "=",
+          //     DataFile: "fID",
+          //     Value: ""
+          //   }
+          // ]
         },
         {
           fName: "fSupplierName",
@@ -227,6 +230,9 @@ export default {
         { StartTime: "23:00", EndTime: "23:30" },
         { StartTime: "23:30", EndTime: "24:00" }
       ],
+      StartTime: "",
+      EndTime: "",
+      Dock: {},
       userDes: this.$store.state.user.userInfo.userDes
     };
   },
@@ -270,8 +276,11 @@ export default {
     },
     //双击表格弹框
     dblclick(row, item1) {
-      // console.log(row, item1, "dblclick");
-      this.selectArr[0].searchWhere[0].Value = row.fID;
+      console.log(row, item1, "dblclick");
+      // this.selectArr[0].searchWhere[0].Value = row.fID;
+      this.StartTime = item1.StartTime;
+      this.EndTime = item1.EndTime;
+      this.Dock = row;
       if ("fSupplierName" in item1) {
       } else {
         this.drawer = true;
@@ -359,9 +368,6 @@ export default {
   created() {
     this.getTabelHead();
     this.getBackData();
-    // let val = "00:00:00";
-    // this.value = this.changeTime(val);
-    // console.log(new Date(),res)
   },
 
   watch: {
@@ -436,7 +442,7 @@ tr {
     background: #cbc5c5;
   }
   .content {
-    padding: 15px 5px;
+    // padding: 0px 5px;
   }
 }
 </style>

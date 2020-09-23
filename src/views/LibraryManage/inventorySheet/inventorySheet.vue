@@ -11,6 +11,9 @@
       :batchDelTableName="batchDelTableName"
       :isCheck="checkData"
       :isClose="closeData"
+      :isPrint="true"
+      :title="title"
+      :printView="printView"
     ></HomeTable>
 
     <!-- 新增侧滑框  v-if="newisDestory" -->
@@ -35,7 +38,6 @@
         :selectArr="selectArr"
         :searchData="searchData"
         :alertArr="alertArr"
-        
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -53,14 +55,14 @@
         :fTableViewAlert="fTableViewAlert"
         :searchData="searchData"
         :addItem="true"
-        :selectArr="selectArr"   
+        :selectArr="selectArr"
         :rowData="editForm"
       ></edit-form-table>
     </el-drawer>
   </div>
 </template>
 <script>
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "./component/HomeTable";
 import CreatFrom from "./component/add";
 import EditFormTable from "./component/edit";
 export default {
@@ -108,7 +110,7 @@ export default {
           fAuto: ["fMstState"],
           fAutoID: ["fMstState"]
         },
-         {
+        {
           fName: "fCustomerName",
           fUrl: "v_Consignor",
           fDes: "fConsignorName",
@@ -135,13 +137,20 @@ export default {
         // { fName: "fProductID", fUrl: "v_Product" },
         // { fName: "fCheckUnit", fUrl: "v_Unit" }
       ],
+      printView: [
+        "t_CheckOrderData",
+        "v_CheckOrderData",
+        "v_CheckOrder_Item",
+        "t_CheckOrder_Item"
+      ],
+      title: ["金百物流有限公司", "商品盘点单"],
       //弹框查询的条件
       searchData: [
         { fColumnDes: "货品名称", fColumn: "fProductName" },
         { fColumnDes: "货品批次", fColumn: "fBatchNo" },
         { fColumnDes: "货品代码", fColumn: "fProductCode" },
         { fColumnDes: "库位编码", fColumn: "fStorageCode" },
-        { fColumnDes: "区域名称", fColumn: "fAreaName" },
+        { fColumnDes: "区域名称", fColumn: "fAreaName" }
       ]
     };
   },

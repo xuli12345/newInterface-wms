@@ -71,7 +71,7 @@ export default {
       //当前行的数据
       editForm: {},
       //新增从表数据
-      formData:{},
+      formData: {},
       fTableView: "t_Electronictag_Mst",
       //是否新增成功
       isSaveSuccess: false,
@@ -101,20 +101,14 @@ export default {
         // }
       ],
       selectArr2: [
-        // {
-        //   fName: "fPartsCode",
-        //   fUrl: "t_Vehicle_Parts",
-        //   fDes: "fPartsCode",
-        //   fID: "fID",
-        //   fAuto: [
-        //     "fVehiclePartID",
-        //     "fPartsUnit",
-        //     "fPartsName",
-        //     "fStockAmount",
-        //     "fStockNum"
-        //   ],
-        //   fAutoID: ["fVehiclePartID"]
-        // }
+        {
+          fName: "fTypeName",
+          fUrl: "v_Type_Electronictag",
+          fDes: "fTypeName",
+          fID: "fID",
+          fAuto: ["fType"],
+          fAutoID: ["fType"]
+        }
       ]
     };
   },

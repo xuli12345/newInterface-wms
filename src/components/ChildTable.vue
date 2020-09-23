@@ -29,6 +29,7 @@
               :disabled="item.fReadOnly == 0 ? false : true"
             ></el-checkbox>
             <el-select
+            
               @change="selectDataType(scope.row, scope.row[item.fColumn])"
               v-else-if="item.fColumn == 'fDataType'"
               v-model="scope.row[item.fColumn]"

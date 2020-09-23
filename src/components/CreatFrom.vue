@@ -60,7 +60,9 @@
             v-else-if="item.fDataType == 'decimal'"
             v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
+            @change="computeValue(item.fColumn)"
           ></el-input>
+
           <el-checkbox
             v-else-if="item.fDataType == 'bit'"
             @change="showColumn(item.fColumn, ruleForm[item.fColumn], item)"
@@ -142,7 +144,10 @@ export default {
             let value = this.ruleForm["fPickingPlace"];
             value = value.join(",");
             this.$set(this.ruleForm, "fPickingPlace", value);
+          } else {
+            this.$set(this.ruleForm, "fPickingPlace", null);
           }
+
           let res = await collectionData([
             {
               TableName: this.tableName,
@@ -156,7 +161,7 @@ export default {
           if (res.State) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", res.State, res.Identity);
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
             this.ruleForm = defaultForm(this.tableHead);
           } else {
             this.$message.error(res.Message);
@@ -168,8 +173,28 @@ export default {
     },
 
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
+    },
+    computeValue(val) {
+      //fContainerLength fContainerWidth fContainerHigh fContainerVolumet
+      let length = 0;
+      let Width = 0;
+      let height = 0;
+     
+      if (this.ruleForm.fContainerLength) {
+        length = this.ruleForm.fContainerLength;
+      } 
+       if (this.ruleForm.fContainerWidth) {
+        Width = this.ruleForm.fContainerWidth;
+      } 
+       if (this.ruleForm.fContainerHigh) {
+        height = this.ruleForm.fContainerHigh;
+      }
+
+      let value = length * Width * height;
+      this.$set(this.ruleForm, "fContainerVolumet", value);
+     
     },
     // 获取所有需要下拉选择的内容
     async getSelectData() {
@@ -183,7 +208,7 @@ export default {
         }
         let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-        console.log(JSON.parse(res.Data));
+        // console.log(JSON.parse(res.Data));
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段

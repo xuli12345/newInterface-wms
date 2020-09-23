@@ -7,18 +7,22 @@
         size="mini"
         class="iconfont icon-xinzeng add"
         @click="addPopRight"
-         :disabled="isDisabled"
+        :disabled="isDisabled"
         >新增</el-button
       >
       <el-button
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
-         :disabled="isDisabled"
+        :disabled="isDisabled"
         size="mini"
         >保存</el-button
       >
-      <el-button class="iconfont icon-quxiao"  :disabled="isDisabled" size="mini" @click="resetForm()"
+      <el-button
+        class="iconfont icon-quxiao"
+        :disabled="isDisabled"
+        size="mini"
+        @click="resetForm()"
         >取消</el-button
       >
     </div>
@@ -28,7 +32,7 @@
       :rowData="rowData"
       ref="ruleForm"
       :selectArr="selectArr"
-      :fState='checkState'
+      :fState="checkState"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -38,7 +42,7 @@
       :fID="rowData.fID"
       :changeData="changeData"
       :isDisabled="isDisabled"
-      :fState='checkState'
+      :fState="checkState"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -60,14 +64,12 @@
 </template>
 
 <script>
-import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { compare, handelData } from "@/utils/common";
+import { handelData } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
+import { collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "@/components/EditChildFormHead";
 import ChildTable from "@/components/EditChildTable";
-
 export default {
   props: [
     "fTableViewHead",
@@ -77,7 +79,6 @@ export default {
     "selectArr2",
     "rowData",
     "changeData",
-    "strType",
     "checkState"
   ],
   components: {
@@ -86,46 +87,20 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
-      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格添加的数据
       insertData: {},
-      //表格数据表头
-      tableHead: [],
       //已审核状态
       isDisabled: false,
-      // fState: 6
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes
     };
   },
   methods: {
-    //获取form表单数据
-    async getTableHeadData() {
-      // console.log(this.fTableViewHead)
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头，保存的时候需要用到
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
 
@@ -139,20 +114,20 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             },
             {
               TableName: this.fTableViewItem[0],
               updateData: updateArr,
               insertData: insertArr,
               deleteData: deletedArr,
-              headData: this.tableHead
+              headData: childTableData
             }
           ]);
 
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-          if (res.State === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -185,8 +160,6 @@ export default {
   },
 
   created() {
-    this.getTableHeadData();
-    this.getTableHead();
     if (this.rowData.fState && this.rowData.fState == this.checkState) {
       this.isDisabled = true;
     }

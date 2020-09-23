@@ -99,7 +99,7 @@ export default {
         if (valid) {
           this.$message.success("新增成功!");
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
           this.defaultForm();
         } else {
           return false;
@@ -107,7 +107,7 @@ export default {
       });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     }
   },

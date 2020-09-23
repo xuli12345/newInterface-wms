@@ -142,7 +142,7 @@ export default {
             type: "success"
           });
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
         } else {
           return false;
         }
@@ -150,7 +150,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
     //判断当前字段是否需要做下拉框
@@ -220,6 +220,7 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
+              this.ruleForm[n] = data[ele.fDes];
             } else {
               this.ruleForm[item] = data[item];
             }

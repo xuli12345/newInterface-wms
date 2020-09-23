@@ -1,11 +1,7 @@
 <template>
+ 
   <div ref="toPrint">
-    <div
-      :span="8"
-      v-for="(item, index) in tableData"
-      :key="index"
-      style="text-align: center;margin:15px 0"
-    >
+    <div  v-for="(item, index) in tableData" :key="index" style="text-align:center;">
       <div>商品标签</div>
       <svg
         :key="index"

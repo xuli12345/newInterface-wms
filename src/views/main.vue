@@ -14,7 +14,9 @@
       <el-main>
         <main-tabs></main-tabs>
         <transition name="fade-transform" mode="out-in">
-          <router-view></router-view>
+          <keep-alive>
+            <router-view  :key="key"></router-view>
+          </keep-alive>
         </transition>
       </el-main>
     </el-container>
@@ -56,9 +58,11 @@ export default {
       set(val) {
         this.$store.commit("user/updateName", val);
       }
+    },
+     key() {
+      return this.$route.fullPath
     }
-  },
- 
+  }
 };
 </script>
 <style lang="scss" scoped>

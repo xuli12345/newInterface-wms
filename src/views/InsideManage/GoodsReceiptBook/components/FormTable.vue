@@ -26,12 +26,16 @@
       ref="ruleForm"
       :selectArr="selectArr"
       :time="time"
+      :StartTime="StartTime"
+      :EndTime="EndTime"
+      :Dock="Dock"
       @ItemTableData="ItemTableData"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
+      ref="childTable"
     ></child-table>
     <!-- 新增字表数据 -->
     <!-- <el-drawer
@@ -57,7 +61,7 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData,saveRGBookRegData } from "@/api/index";
+import { collectionData, saveRGBookRegData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
 import ChildTable from "@/components/ChildTable";
@@ -71,7 +75,10 @@ export default {
     "selectArr2",
     "alertArr",
     "strType",
-    "time"
+    "time",
+    "StartTime",
+    "EndTime",
+    "Dock"
   ],
   components: {
     ChildFormHead,
@@ -97,53 +104,36 @@ export default {
     userLimit(val) {
       return userLimit(val);
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
-      // console.log(formData)
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
+      
+      if (this.tableData.length <= 0) {
+        this.$message.warning("请选择有货品信息的供应商!");
+        return;
+      }
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           let res = await saveRGBookRegData([
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
               TableName: this.fTableViewItem[0],
               insertData: this.tableData,
-              headData: this.tableHead,
+              headData: childTableData,
               IdentityColumn: this.fTableViewItem[1]
             }
           ]);
           //   console.log(res)
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-         
+
           if (res.State === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", res.State);
@@ -165,11 +155,11 @@ export default {
     },
     //根据供应商选择的从表数据
     ItemTableData(val) {
-      val.forEach((item,index)=> {
+      val.forEach((item, index) => {
         this.$set(item, "fOrdnum", item.fInboundOrderNo);
         this.$set(item, "fTotal", item.fTotalAmount);
-        this.$set(item,"fSort",index+1);
-        this.$set(item,"fOrdID",item.fID);
+        this.$set(item, "fSort", index + 1);
+        this.$set(item, "fOrdID", item.fID);
       });
 
       this.tableData = val;
@@ -213,11 +203,6 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     }
-  },
-
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
   }
 };
 </script>

@@ -73,8 +73,8 @@ export default {
       isDestory: false,
       newisDestory: false,
       fTableView: "t_DistributeJob_Mst",
-      //审核的数据 5审核 
-      checkData: [true,5],
+      //审核的数据 5审核
+      checkData: [true, 5],
       //是否新增成功
       isSaveSuccess: false,
       //表头的字段，以及自增长字段
@@ -100,7 +100,7 @@ export default {
           fAuto: ["fRouteSystemID"],
           fAutoID: ["fRouteSystemID"]
         },
-          {
+        {
           fName: "fLoadGradeName",
           fUrl: "v_Type_LoadGrade",
           fDes: "fTypeName",
@@ -132,10 +132,18 @@ export default {
           fAuto: ["fState"],
           fAutoID: ["fState"]
         }
-      ],   
+      ],
       batchDelTableName: [
         {
           Key: "t_DistributeJob_Item",
+          Value: [{ Key: "fID", Value: "fMstID" }]
+        },
+        {
+          Key: "t_JobErrorLog",
+          Value: [{ Key: "fID", Value: "fMstID" }]
+        },
+        {
+          Key: "t_JobProduct_Item",
           Value: [{ Key: "fID", Value: "fMstID" }]
         }
       ],

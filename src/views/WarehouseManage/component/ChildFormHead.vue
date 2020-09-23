@@ -44,6 +44,7 @@
             "
           >
             <el-select
+              filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -152,7 +153,7 @@ export default {
             type: "success"
           });
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
         } else {
           return false;
         }
@@ -160,7 +161,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
     //判断当前字段是否需要做下拉框
@@ -237,6 +238,7 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
+              this.ruleForm[n] = data[ele.fDes];
             } else {
               this.ruleForm[item] = data[item];
             }
@@ -255,14 +257,14 @@ export default {
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
-       let searchWhere = [];
+      let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
-          if (this.selectArr[i].searchWhere) {
+        if (this.selectArr[i].searchWhere) {
           searchWhere = this.selectArr[i].searchWhere;
         } else {
           searchWhere = [];
         }
-        let res = await getTableBodyData(this.selectArr[i].fUrl,searchWhere);
+        let res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           let obj = {

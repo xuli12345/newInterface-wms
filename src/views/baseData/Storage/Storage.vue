@@ -48,6 +48,7 @@
       :visible.sync="drawerCode"
       :direction="direction"
       :before-close="handleEditClose"
+      v-if="CodeDestory"
     >
       <StorageCode></StorageCode>
     </el-drawer>
@@ -78,6 +79,7 @@ export default {
       newisDestory: false,
       //修改销毁创建
       isDestory: false,
+      CodeDestory: false,
       //表格列头数据
       tableHeadData: [],
       //表格内容
@@ -158,6 +160,11 @@ export default {
     drawer(newval, oldval) {
       setTimeout(() => {
         this.newisDestory = newval;
+      }, 10);
+    },
+    drawerCode(newval, oldval) {
+      setTimeout(() => {
+        this.CodeDestory = newval;
       }, 10);
     }
   },

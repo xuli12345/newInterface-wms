@@ -50,21 +50,6 @@
       :fID="rowData.fID"
     ></child-table>
     <!-- 新增字表数据 -->
-    <!-- <el-drawer
-      :append-to-body="true"
-      :visible.sync="drawer"
-      direction="rtl"
-      :before-close="handleClose"
-      v-if="addItem"
-    >
-      <child-form-head
-        @closeBox="closeItemBox"
-        :fTableViewHead="fTableViewItem[0]"
-        ref="ItemRuleForm"
-        :addItem="addItem"
-        :selectArr="selectArr2"
-      ></child-form-head>
-    </el-drawer>-->
     <el-dialog
       :title="openTitle"
       :visible.sync="dialogFormVisible"
@@ -106,48 +91,24 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
       kucHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       userId: JSON.parse(sessionStorage.getItem("user")).userId,
       drawer: false,
       //表格添加的数据
       insertData: {},
-      //表格数据表头
-      tableHead: [],
       dialogFormVisible: false,
       openTitle: "选择货品",
       fMstID: "",
-      //
+
       isDisabled: false
     };
   },
   methods: {
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头，保存的时候需要用到
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-
     //保存
     submitForm() {
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
@@ -168,7 +129,6 @@ export default {
       });
 
       let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
-
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       if (insertArr && insertArr.length > 0) {
@@ -184,19 +144,19 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             },
             {
               TableName: this.fTableViewItem[0],
               updateData: updateArr,
               insertData: insertArr,
               deleteData: deletedArr,
-              headData: this.tableHead
+              headData: childTableData
             }
           ]);
           //   console.log(res)
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          console.log(res);
+          // console.log(res);
           if (res.State === true) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
@@ -214,7 +174,6 @@ export default {
     },
     //新增按钮
     addPopRight() {
-      //   this.drawer = true;
       this.dialogFormVisible = true;
     },
     //点击x关闭弹窗
@@ -231,7 +190,6 @@ export default {
     //设置盘点更新库存表头
     async kucunHeadData() {
       let res = await getTableHeadData("t_Stock_Adjust");
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.kucHeadData = res.lstRet.sort(compare);
@@ -262,7 +220,10 @@ export default {
         };
       });
       let result = batchDelete(this.kucHeadData, newArr);
-      // console.log(result);
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let ruleForm = this.$refs.ruleForm.ruleForm; //表单数据
+      ruleForm.fMstState = 7;
+      let data = batchDelete(formHeadData, [ruleForm]);
       let res = await saveStockAdjust([
         {
           lstSaveData: [
@@ -273,6 +234,14 @@ export default {
               UpdateRow: null,
               DeleteRow: null,
               Columns: result.columns
+            },
+            {
+              TableName: "t_CheckOrder_Mst",
+              IdentityColumn: "fID",
+              InsertRow: null,
+              UpdateRow: data.arr,
+              DeleteRow: null,
+              Columns: data.columns
             }
           ]
         },
@@ -280,17 +249,16 @@ export default {
       ]);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      console.log(res);
-      if (res.State === true) {
+      // console.log(res);
+      if (res.State) {
         this.$message.success("更新库存成功!");
+        this.$emit("closeBox", res.State);
       } else {
         this.$message.error(res.Message);
       }
     }
   },
   created() {
-    this.getTableHeadData();
-    this.getTableHead();
     this.kucunHeadData();
     if (this.rowData.fMstState && this.rowData.fMstState == 7) {
       this.isDisabled = true;

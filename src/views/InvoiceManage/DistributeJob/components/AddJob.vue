@@ -31,10 +31,18 @@
       :selectArr="selectArr"
     ></child-form-head>
     <!-- 表格 -->
+    <el-alert
+      title="请双击表格中的内容选择对应的货品信息!"
+      type="warning"
+      :closable="false"
+    >
+    </el-alert>
     <child-table
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
+      :ishow="true"
       @openEditDrawer="openEditDrawer"
+      ref="childTable"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-dialog
@@ -61,18 +69,17 @@
         ref="ItemData"
         fTableView="t_JobProduct_Item"
         :ItmeOrderNO="ItmeOrderNO"
+        @closeDrawer="closeDrawer"
       ></JobItemTable>
     </el-drawer>
   </div>
 </template>
 
 <script>
-import { compare } from "@/utils/common";
-import { getTableHeadData, collectionData } from "@/api/index";
+import { collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "@/components/ChildFormHead";
 import JobItemTable from "./JobItemTable";
-
 import ChildTable from "./ChildTable";
 import alertTable from "./AlertTable";
 
@@ -95,63 +102,45 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
-      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
-
       newisDestory: false,
       //表格数据
       tableData: [],
-      //表格数据表头
-      tableHead: [],
       dialogFormVisible: false,
       openTitle: "选择配货单",
       insertData: [],
       //从表定单号
       ItmeOrderNO: "",
+      //从表中的货品信息字段
       selItemHead: [],
-      selItemList: []
+      selItemList: [],
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes
     };
   },
   methods: {
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
-      console.log(this.selItemHead, this.selItemList);
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
 
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
+          if (this.selItemList.length == 0) {
+            this.$message.warning("请选择货品信息!");
+            return;
+          }
           let res = await collectionData([
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
               TableName: this.fTableViewItem[0],
               insertData: this.tableData,
-              headData: this.tableHead,
+              headData: childTableData,
               IdentityColumn: this.fTableViewItem[1]
             },
             {
@@ -162,7 +151,7 @@ export default {
             }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          if (res.State === true) {
+          if (res.State) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -185,9 +174,11 @@ export default {
       this.ItmeOrderNO = row.fOrderNo;
       this.drawer = true;
     },
-    // closeDrawer() {
-    //   this.drawerValue = false;
-    // },
+    closeDrawer() {
+      this.selItemList = this.$refs.ItemData.BatchList;
+      this.selItemHead = this.$refs.ItemData.tableHeadData;
+      this.drawer = false;
+    },
     //点击x关闭弹窗
     handleClose(done) {
       this.selItemList = this.$refs.ItemData.BatchList;
@@ -201,28 +192,13 @@ export default {
           this.$set(item, "fStockID", item.fID);
         });
         this.tableData = [...this.tableData, ...value];
-        //动态将tableData中不存在的键添加
-        this.tableData.forEach(item => {
-          this.tableHead.forEach(ele => {
-            for (const key in item) {
-              if (item[ele.fColumn] == undefined) {
-                this.$set(item, ele.fColumn, 0);
-              }
-            }
-          });
-        });
       }
       this.dialogFormVisible = false;
     }
   },
 
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
-  },
   watch: {
     drawer: function(val, old) {
-      // console.log(val, old);
       if (val) {
         this.newisDestory = true;
       } else {

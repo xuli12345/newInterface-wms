@@ -44,6 +44,7 @@
             "
           >
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
                :disabled="isDisabled"
@@ -168,7 +169,7 @@ export default {
             type: "success"
           });
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
         } else {
           return false;
         }
@@ -176,7 +177,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
     getPartsValue() {

@@ -10,8 +10,7 @@ import "element-ui/lib/theme-chalk/index.css";
 Vue.use(ElementUI);
 import XLSX from "xlsx";
 Vue.use(XLSX);
-import print from "vue-print-nb";
-Vue.use(print);
+
 
 
 // 避免路由重复点击时报错或npm i vue-router@3.0 -S

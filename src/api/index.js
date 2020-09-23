@@ -87,7 +87,7 @@ function getTableHeadData(str) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let fTableView = '["' + str + '"]';
-
+  console.log(fTableView)
   let obj = {
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
@@ -146,6 +146,7 @@ function tableBodyData(data) {
   return http({
     url: "/QureyData",
     method: "POST",
+
     data: JSON.stringify(obj)
   });
 }
@@ -172,7 +173,7 @@ function getTableBodyData(str, condition = []) {
   return http({
     url: "/QureyData",
     method: "POST",
-    // loading:true,
+    loading:true,
     data: JSON.stringify(obj)
   });
 }
@@ -236,7 +237,7 @@ function queryViewData(str, condition = []) {
 function getOrderNo(str) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   let fTableView = '["' + str + '"]';
-  console.log(fTableView,"自动生成单号")
+  console.log(fTableView, "自动生成单号");
   let object = {
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
@@ -253,7 +254,7 @@ function getOrderNo(str) {
  *
  */
 function addformSaveData(data) {
-  console.log(data)
+  console.log(data);
   let obj = {
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
@@ -361,7 +362,7 @@ function collectionData(data) {
   let obj = {
     ParameterDes: encryptDesCbc(JSON.stringify(savaData), String(userDes))
   };
-  // console.log(JSON.stringify(savaData));
+  console.log(JSON.stringify(savaData));
   return http({
     url: "/SaveData",
     method: "POST",
@@ -450,6 +451,7 @@ function saveContainerCode(data) {
  *
  */
 function saveStockAdjust(data) {
+  console.log(data[0]);
   let obj = {
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
@@ -571,20 +573,20 @@ function saveRGBookRegData(data) {
   });
 }
 /**
- * 
- * @param {*} data 
+ *
+ * @param {*} data
  * 生成拣货单
- * 
+ *
  */
 function DistributeJob(data) {
-  console.log(data[0],33)
+  console.log(data[0], 33);
   let obj = {
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
       String(data[1].userDes)
     )
   };
-
+  console.log(JSON.stringify(obj));
   return http({
     url: "/DistributeJob",
     method: "POST",
@@ -592,13 +594,13 @@ function DistributeJob(data) {
   });
 }
 /**
- * 
- * @param {*} data 
+ *
+ * @param {*} data
  * 生成补货单
- * 
+ *
  */
 function savePickingList(data) {
-  console.log(data[0])
+  console.log(data[0]);
   let obj = {
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
@@ -608,6 +610,27 @@ function savePickingList(data) {
 
   return http({
     url: "/savePickingList",
+    method: "POST",
+    data: JSON.stringify(obj)
+  });
+}
+/**
+ *
+ * @param {*} data
+ * 删除库位接口
+ *
+ */
+function deleteStorageItem(data) {
+  console.log(JSON.stringify(data[0]));
+  let obj = {
+    ParameterDes: encryptDesCbc(
+      JSON.stringify(data[0]),
+      String(data[1].userDes)
+    )
+  };
+
+  return http({
+    url: "/deleteStorageItem",
     method: "POST",
     data: JSON.stringify(obj)
   });
@@ -639,6 +662,7 @@ function getInterfaceItemData(data) {
  */
 
 function imPortExcel(data) {
+  console.log(data);
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let formData = new FormData();
@@ -706,5 +730,6 @@ export {
   saveRGBookRegData,
   saveRGPreExamData,
   DistributeJob,
-  savePickingList
+  savePickingList,
+  deleteStorageItem
 };

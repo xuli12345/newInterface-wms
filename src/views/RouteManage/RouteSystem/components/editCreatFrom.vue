@@ -21,6 +21,7 @@
             "
           >
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getName(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -148,7 +149,7 @@ export default {
           if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", res.State);
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
             this.ruleForm = defaultForm(this.tableHead);
           } else {
             this.$message.error(res.Message);
@@ -160,7 +161,7 @@ export default {
     },
 
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
     GetUserId(data) {

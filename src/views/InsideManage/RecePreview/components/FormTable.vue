@@ -29,6 +29,7 @@
     ></child-form-head>
     <!-- 表格 -->
     <child-table
+      ref="childTable"
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
     ></child-table>
@@ -56,7 +57,7 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData,saveRGPreExamData } from "@/api/index";
+import { collectionData, saveRGPreExamData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
 import ChildTable from "@/components/ChildTable";
@@ -77,13 +78,10 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格数据
       tableData: [],
-      //表格数据表头
-      tableHead: [],
       //excel
       fileTemp: null,
       file: null,
@@ -95,47 +93,28 @@ export default {
     userLimit(val) {
       return userLimit(val);
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
-      // console.log(formData)
+      let formHeadData = this.$refs.ruleForm.tableHead; //form表头数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
+      console.log(formData)
+      this.$set(formData, "fOrdID", formData.fOrdnum);
+      // this.$set(formData, "fOrdID", formData.fOrdnum);
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           let res = await saveRGPreExamData([
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
               TableName: this.fTableViewItem[0],
               insertData: this.tableData,
-              headData: this.tableHead,
+              headData: childTableData,
               IdentityColumn: this.fTableViewItem[1]
             }
           ]);
@@ -213,11 +192,6 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     }
-  },
-
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
   }
 };
 </script>

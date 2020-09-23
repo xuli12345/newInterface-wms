@@ -3,7 +3,7 @@
     <div
       v-for="(item, index) in tableData"
       :key="index"
-      style="text-align:center;margin:15px 0"
+      style="text-align:center;"
     >
       <div>托盘标签</div>
       <svg
@@ -31,6 +31,7 @@ export default {
   },
 
   mounted() {
+    console.log(this.tableData)
     setTimeout(() => {
       JsBarcode(".barcode").init();
     }, 150);

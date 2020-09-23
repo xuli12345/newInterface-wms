@@ -28,25 +28,6 @@
               :value="scope.row[item.fColumn] == 0 ? false : true"
               :disabled="isDisabled"
             ></el-checkbox>
-            <el-select
-              @change="
-                selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
-              "
-              v-else-if="
-                item.fColumn == 'fNumUnitName' ||
-                  item.fColumn == 'fBoxNumUniName'
-              "
-              v-model="scope.row[item.fColumn]"
-              placeholder="请选择"
-              :disabled="isDisabled"
-            >
-              <el-option
-                v-for="optionItem in selectOptions"
-                :key="optionItem.value"
-                :label="optionItem.label"
-                :value="optionItem.value"
-              ></el-option>
-            </el-select>
 
             <el-input
               v-else
@@ -111,7 +92,7 @@ export default {
       //获取表格数据的fTableView
       fTableViewll: "",
       backData: [],
-      selectOptions: [],
+
       selData: []
     };
   },
@@ -260,14 +241,11 @@ export default {
         this.tableData = JSON.parse(JSON.stringify(this.insertData));
       }
       this.total = this.tableData.length;
- 
     }
   },
 
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName", 10);
-    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>

@@ -38,17 +38,16 @@
               :disabled="isDisabled"
             ></el-date-picker>
             <el-select
+             filterable
               @change="
                 selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
               "
-              v-else-if="
-                item.fColumn == 'fNumUnitName' ||
-                  item.fColumn == 'fBoxNumUniName'
-              "
+              v-else-if="item.fColumn == 'fNumUnitName'"
               v-model="scope.row[item.fColumn]"
               placeholder="请选择"
               :disabled="isDisabled"
             >
+              {{ scope.row[item.fColumn] }}
               <el-option
                 v-for="optionItem in selectOptions"
                 :key="optionItem.value"
@@ -58,6 +57,7 @@
             </el-select>
             <!-- 体积单位 -->
             <el-select
+             filterable
               @change="
                 selectType(scope.row, scope.row[item.fColumn], item.fColumn)
               "
@@ -73,7 +73,24 @@
                 :value="optionItem.value"
               ></el-option>
             </el-select>
-
+            <!-- 重量单位 -->
+            <el-select
+             filterable
+              @change="
+                selectType(scope.row, scope.row[item.fColumn], item.fColumn)
+              "
+              v-else-if="item.fColumn == 'fWeightUnitName'"
+              v-model="scope.row[item.fColumn]"
+              placeholder="请选择"
+              :disabled="isDisabled"
+            >
+              <el-option
+                v-for="optionItem in selectWeight"
+                :key="optionItem.value"
+                :label="optionItem.label"
+                :value="optionItem.value"
+              ></el-option>
+            </el-select>
             <el-input
               v-else
               v-model="scope.row[item.fColumn]"
@@ -139,6 +156,7 @@ export default {
       backData: [],
       selectOptions: [],
       selectOpts: [],
+      selectWeight: [],
       selData: []
     };
   },
@@ -210,14 +228,6 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        //原来的数据
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
         this.backData = JSON.parse(JSON.stringify(this.tableData));
         this.total = this.tableData.length;
         console.log(this.backData, "回显的数据");
@@ -301,6 +311,7 @@ export default {
     this.getTableHeadData();
     this.selectOptions = await this.getType("v_Unit", "fNumUnitName", 10);
     this.selectOpts = await this.getType("v_Unit", "fVolumetUnitName", 7);
+    this.selectWeight = await this.getType("v_Unit", "fWeightUnitName", 9);
   }
 };
 </script>

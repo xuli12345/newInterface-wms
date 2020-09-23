@@ -61,7 +61,7 @@
     <el-tabs v-model="activeName" @tab-click="handleClick(activeName)">
       <el-tab-pane label="权限公司" name="first">
         <el-table
-        :header-cell-style="{ background: '#eef1f6'}"
+          :header-cell-style="{ background: '#eef1f6' }"
           :data="secondtableData"
           class="table-wrapper"
           ref="secondTable"
@@ -469,7 +469,7 @@ export default {
           if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
             this.ruleForm = defaultForm(this.tableHead);
           } else {
             this.$message.error(res.Message);
@@ -480,7 +480,7 @@ export default {
       });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
 
       this.$emit("closeBox");
     },
@@ -560,7 +560,7 @@ export default {
         this.itemSceondTableHead = res.lstRet.sort(compare);
         this.total = this.itemSceondTableHead.length;
         this.TableView = res.fTableViewData;
-        this.getModData();
+        // this.getModData();
         this.getSearchItemData();
       } else {
         this.$message.error(res.Message);
@@ -597,13 +597,15 @@ export default {
 
       let res = await getTableBodyData(this.TableView, searchWhereObj);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(JSON.parse(res.Data));
+
       if (res.State) {
         let resultData = JSON.parse(res.Data);
+        // console.log(resultData, this.tableData, 33333);
         resultData.forEach(item => {
           //权限组回选
           if (this.tableData.length > 0) {
             this.tableData.forEach(ele => {
+              // console.log(item, ele, "权限组");
               if (ele.fGroupID == item.fGroupID) {
                 this.$refs.singleTable.toggleRowSelection(ele);
                 this.GroupBackData = resultData;
@@ -611,8 +613,10 @@ export default {
             });
           }
           //权限公司回选
+          // console.log(this.secondtableData)
           if (this.secondtableData.length > 0) {
             this.secondtableData.forEach(elemt => {
+              // console.log(elemt,item,"权限公司")
               if (elemt.fCompanyID == item.fCompanyID) {
                 this.$refs.secondTable.toggleRowSelection(elemt);
                 this.CompanyBackData = resultData;
@@ -661,6 +665,8 @@ export default {
     }
   },
   created() {
+    // console.log(111)
+    this.getModData();
     this.getTableHeadData();
     this.getSecondTableHead();
     this.ruleForm = defaultForm(this.tableHead);

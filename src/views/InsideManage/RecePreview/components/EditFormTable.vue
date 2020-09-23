@@ -68,7 +68,7 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare, handelData } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData} from "@/api/index";
+import { getTableHeadData, collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
@@ -90,49 +90,23 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
-      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格添加的数据
       insertData: {},
-      //表格数据表头
-      tableHead: [],
       //已审核状态
       isDisabled: false,
-      fState: 3
+      fState: 3,
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes
     };
   },
   methods: {
-    //获取form表单数据
-    async getTableHeadData() {
-      // console.log(this.fTableViewHead)
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头，保存的时候需要用到
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-
     //保存
     submitForm() {
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
-
       let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
@@ -143,14 +117,14 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             },
             {
               TableName: this.fTableViewItem[0],
               updateData: updateArr,
               insertData: insertArr,
               deleteData: deletedArr,
-              headData: this.tableHead
+              headData: childTableData
             }
           ]);
 
@@ -202,8 +176,6 @@ export default {
   },
 
   created() {
-    this.getTableHeadData();
-    this.getTableHead();
     if (this.rowData.fState && this.rowData.fState == this.fState) {
       this.isDisabled = true;
     }

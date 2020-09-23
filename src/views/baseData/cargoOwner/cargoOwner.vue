@@ -107,14 +107,7 @@ export default {
           fAuto: ["fTypeName","fConsignorType"],
           fAutoID: ["fConsignorType"]
         }
-        // {
-        //   fName: "fCostMethod",
-        //   fUrl: "v_Type_CustomerPayment",
-        //   fDes: "fTypeName",
-        //   fID: "fID",
-        //   fAuto: ["fCostMethod"],
-        //   fAutoID: ["fConsignorType"]
-        // }
+    
       ]
     };
   },

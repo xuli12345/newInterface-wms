@@ -26,6 +26,7 @@
         >
           <template v-if="fColumn.length > 0 && fColumn.includes(item.fColumn)">
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getName(ruleForm[item.fColumn], item.fColumn)"
             >
@@ -132,7 +133,7 @@ export default {
     },
 
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
 

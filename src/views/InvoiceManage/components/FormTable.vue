@@ -20,16 +20,18 @@
         >取消</el-button
       >
     </div>
-    <!-- 头部表单 -->
+    <!-- 头部表单  -->
     <child-form-head
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :StateObj="StateObj"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
+      ref="childTable"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -52,10 +54,9 @@
 </template>
 
 <script>
-import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { userLimit, compare } from "@/utils/common";
+import { userLimit } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData } from "@/api/index";
+import { collectionData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "@/components/ChildFormHead";
 import ChildTable from "@/components/ChildTable";
@@ -68,7 +69,8 @@ export default {
     "selectArr",
     "selectArr2",
     "alertArr",
-    "strType"
+    "strType",
+    "StateObj"
   ],
   components: {
     ChildFormHead,
@@ -76,17 +78,14 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
-      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格数据
       tableData: [],
-      //表格数据表头
-      tableHead: [],
       //excel
       fileTemp: null,
       file: null,
-      fileName: ""
+      fileName: "",
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes
     };
   },
   methods: {
@@ -94,33 +93,12 @@ export default {
     userLimit(val) {
       return userLimit(val);
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       // console.log(formData)
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
@@ -128,20 +106,19 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
               TableName: this.fTableViewItem[0],
               insertData: this.tableData,
-              headData: this.tableHead,
+              headData: childTableData,
               IdentityColumn: this.fTableViewItem[1]
             }
           ]);
-          //   console.log(res)
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          console.log(res);
-          if (res.State === true) {
+          // console.log(res);
+          if (res.State) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -199,11 +176,6 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     }
-  },
-
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
   }
 };
 </script>

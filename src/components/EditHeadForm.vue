@@ -21,6 +21,7 @@
             "
           >
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getName(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"

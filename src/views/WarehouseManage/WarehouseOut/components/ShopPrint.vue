@@ -1,10 +1,9 @@
 <template>
   <div ref="toPrint">
     <div
-      :span="8"
       v-for="(item, index) in tableData"
       :key="index"
-      style="margin:15px 0;display:flex;flex-direction:column;align-items:center"
+      style="display:flex;flex-direction:column;align-items:center"
     >
       <div>
         <svg
@@ -16,15 +15,18 @@
           jsbarcode-displayvalue="false"
         ></svg>
       </div>
-      <div style="display:flex">
-        <div>
-          <p>门店代码:{{ item.fShopCode }}</p>
-          <p>门店名称:{{ item.fShopName }}</p>
-        </div>
-        <div style="margin-left:30px">
-          <p>拣货单号:{{ item.fOutboundOrderNo }}</p>
-          <p>数量:{{ item.fSkus }}</p>
-        </div>
+
+      <!-- <div
+        style="display:flex;flex-direction:row;  margin:0; padding:0"
+      >
+        <p style="margin:0; padding:0">门店代码:{{ item.fShopCode }}</p>
+        <p style="margin:0;padding:0">数量:{{ item.fSkus }}</p>
+      </div> -->
+      <div style="margin:0; padding:0">
+        <p style="margin:0; padding:0">门店代码:{{ item.fShopCode }}</p>
+        <p style="margin:0; padding:0">门店名称:{{ item.fShopName }}</p>
+        <p style="margin:0; padding:0">拣货单号:{{ item.fOutboundOrderNo }}</p>
+        <p style="margin:0;padding:0">数量:{{ item.fSkus }}</p>
       </div>
     </div>
   </div>

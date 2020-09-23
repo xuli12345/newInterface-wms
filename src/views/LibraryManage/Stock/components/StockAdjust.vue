@@ -115,7 +115,7 @@ export default {
           if (res.State) {
             this.$message.success("保存成功!");
             this.$emit("closeBox", res.State);
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
           } else {
             this.$message.error(res.Message);
           }
@@ -125,7 +125,7 @@ export default {
       });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     }
   },

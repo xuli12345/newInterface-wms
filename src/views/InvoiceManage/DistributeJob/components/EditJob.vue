@@ -10,20 +10,20 @@
         :disabled="isDisabled"
         >筛选</el-button
       > -->
-      <el-button
+      <!-- <el-button
         type="primary"
         :disabled="isDisabled"
         class="iconfont icon-ziyuan"
         size="mini"
         >排车</el-button
-      >
+      > -->
       <el-button
         type="primary"
         class="iconfont icon-danju"
         @click="createNotice"
         size="mini"
         :disabled="isDisabled"
-        >生成补货单</el-button
+        >生成拣货单</el-button
       >
       <el-button
         type="primary"
@@ -50,16 +50,34 @@
       :fState="fState"
     ></child-form-head>
     <!-- 表格 -->
-    <child-table
-      ref="childTable"
-      :fTableView="fTableViewItem"
-      :insertData="insertData"
-      :isDisabled="isDisabled"
-      :fID="rowData.fID"
-      :fState="fState"
-      @openEditDrawer="openEditDrawer"
-    ></child-table>
+    <el-alert
+      title="请双击表格中的内容查看货品信息!"
+      type="warning"
+      :closable="false"
+    ></el-alert>
 
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+      <el-tab-pane label="配货信息" name="first">
+        <child-table
+          ref="childTable"
+          :fTableView="fTableViewItem"
+          :insertData="insertData"
+          :isDisabled="isDisabled"
+          :fID="rowData.fID"
+          :fState="fState"
+          @openEditDrawer="openEditDrawer"
+        ></child-table>
+      </el-tab-pane>
+      <el-tab-pane label="错误日志" name="second">
+        <ErrorTable
+          :ishow="false"
+          :fTableView="'t_JobErrorLog'"
+          :tableData="tableData"
+        ></ErrorTable>
+      </el-tab-pane>
+    </el-tabs>
+    <!-- 筛选 -->
+    <!-- 
     <el-dialog
       :title="openTitle"
       :visible.sync="dialogFormVisible"
@@ -71,7 +89,7 @@
         :fTableView="fTableViewAlert[0]"
         :searchData="searchData"
       ></alert-table>
-    </el-dialog>
+    </el-dialog> -->
     <!-- 货品从表的从表 -->
     <el-drawer
       :modal="false"
@@ -86,7 +104,7 @@
         :ItmeSelID="ItmeSelID"
       ></JobEditTable>
     </el-drawer>
-    <!-- 生成拣货单 :tableName="'t_OutboundOrder_Mst'"-->
+    <!-- 生成拣货单 -->
     <el-dialog :append-to-body="true" title="拣货单" :visible.sync="dialogForm">
       <CreatFrom
         :selectArr="selectArrD"
@@ -103,16 +121,12 @@
 </template>
 
 <script>
-import { compare, batchDelete, handelData } from "@/utils/common";
-import {
-  getTableHeadData,
-  collectionData,
-  saveStockAdjust,
-  DistributeJob
-} from "@/api/index";
+import { handelData } from "@/utils/common";
+import { collectionData, DistributeJob, getTableBodyData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "@/components/EditChildFormHead";
 import ChildTable from "./EditChildTable";
+import ErrorTable from "./ChildTable";
 import AlertTable from "./AlertTable";
 import JobEditTable from "./JobEditTable";
 import CreatFrom from "./CreatFrom";
@@ -123,7 +137,6 @@ export default {
     "fTableViewItem",
     "addItem",
     "selectArr",
-    "selectArr2",
     "rowData",
     "fTableViewAlert",
     "searchData"
@@ -133,17 +146,16 @@ export default {
     ChildTable,
     AlertTable,
     JobEditTable,
-    CreatFrom
+    CreatFrom,
+    ErrorTable
   },
   data() {
     return {
-      tableHeadData: [],
-      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
-      userId: JSON.parse(sessionStorage.getItem("user")).userId,
       drawer: false,
       newisDestory: false,
       dialogForm: false,
-      // formLabelWidth: "120px",
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
+      userId: JSON.parse(sessionStorage.getItem("user")).userId,
       DialogTableHead: [
         {
           fColumn: "OrderType",
@@ -159,6 +171,11 @@ export default {
           fColumn: "fID",
           fColumnDes: "ID",
           fVisible: 1
+        },
+        {
+          fColumn: "PickingPlanID",
+          fColumnDes: "拣货位方案名称",
+          fVisible: 1
         }
       ],
       selectArrD: [
@@ -173,76 +190,65 @@ export default {
           fUrl: "v_Warehouse_Mst",
           fDes: "fWarehouseName",
           fID: "fID"
+        },
+        {
+          fName: "PickingPlanID",
+          fUrl: "v_PickingPlan_Mst",
+          fDes: "fPlanName",
+          fID: "fID"
+          //fAuto: ["fState"],
+          //fAutoID: ["fState"]
         }
-        //{
-        //  fName: "fID",
-        //  fUrl: "v_DistributeJob_Mst",
-        //  fDes: "fID",
-        //  fID: "fID"
-        //  //fAuto: ["fState"],
-        //  //fAutoID: ["fState"]
-        //}
       ],
       //表格添加的数据
       insertData: {},
-      //表格数据表头
-      tableHead: [],
+      //错误日志的数据
+      tableData: [],
       dialogFormVisible: false,
       openTitle: "选择货品",
       fMstID: "",
       isDisabled: false,
       fState: 5,
       //从表定单号
-      ItmeSelID: ""
+      ItmeSelID: "",
+      activeName: "first"
     };
   },
   methods: {
+    handleClick(tab, event) {
+      if (this.activeName == "second") {
+        this.getErrorData();
+      } else if (this.activeName == "first") {
+      }
+    },
     openEditDrawer(row) {
       this.ItmeSelID = row.fID;
       this.drawer = true;
-    },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头，保存的时候需要用到
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
     },
 
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
+
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
       this.fMstID = this.$refs.ruleForm.ruleForm.fID; //字表添加数据时,需要手动添加的键
-      backData.forEach(element => {
-        for (const key in element) {
-          if (element[key] == null) {
-            this.$set(element, key, 0);
-          }
-        }
-      });
-      tableData.forEach(element => {
-        for (const key in element) {
-          if (element[key] == null) {
-            this.$set(element, key, 0);
-          }
-        }
-      });
+      // backData.forEach(element => {
+      //   for (const key in element) {
+      //     if (element[key] == null) {
+      //       this.$set(element, key, 0);
+      //     }
+      //   }
+      // });
+      // tableData.forEach(element => {
+      //   for (const key in element) {
+      //     if (element[key] == null) {
+      //       this.$set(element, key, 0);
+      //     }
+      //   }
+      // });
 
       let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
@@ -260,18 +266,18 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             },
             {
               TableName: this.fTableViewItem[0],
               updateData: updateArr,
               insertData: insertArr,
               deleteData: deletedArr,
-              headData: this.tableHead
+              headData: childTableData
             }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          if (res.State === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -307,11 +313,17 @@ export default {
     },
     async save() {
       let ruleForm = this.$refs.ruleForm.ruleForm;
+
+      if ("PickingPlanID" in ruleForm) {
+      } else {
+        this.$set(ruleForm, "PickingPlanID", "");
+      }
       let res = await DistributeJob([
         {
           OrderType: ruleForm.OrderType,
           Warehouse: ruleForm.Warehouse,
-          fID: ruleForm.fID
+          fID: ruleForm.fID,
+          PickingPlanID: ruleForm.PickingPlanID
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
@@ -319,9 +331,25 @@ export default {
       // console.log(res);
       if (res.State) {
         this.$message.success("保存成功!");
-        this.dialogForm=false;
+        this.dialogForm = false;
       } else {
         this.$message.warning(res.Message);
+      }
+    },
+    //获取错误日志的数据
+    async getErrorData() {
+      let searchWhere = [
+        {
+          Computer: "=",
+          DataFile: "fMstID",
+          Value: this.rowData.fID
+        }
+      ];
+      let res = await getTableBodyData("v_JobErrorLog", searchWhere);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.tableData = JSON.parse(res.Data);
+        this.total = this.tableData.length;
       }
     }
   },
@@ -338,8 +366,6 @@ export default {
     }
   },
   created() {
-    this.getTableHeadData();
-    this.getTableHead();
     if (this.rowData.fState && this.rowData.fState == 5) {
       this.isDisabled = true;
     }

@@ -12,7 +12,7 @@
       :Invalid="true"
       :importExcel="true"
       :strType="'PGAlcntc'"
-      :isDownLoad='true'
+      :isDownLoad="true"
     ></HomeTable>
 
     <!-- 新增侧滑框  v-if="newisDestory" -->
@@ -30,6 +30,7 @@
         :addItem="true"
         :selectArr="selectArr"
         :selectArr2="selectArr2"
+        :StateObj="StateObj"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -78,7 +79,12 @@ export default {
       fTableView: "t_DistributeNotice_Mst",
       //审核的数据 6审核 5作废
       checkData: [true, 6, 5],
-        checkState:6,
+      checkState: 6,
+      //主表状态
+      StateObj: [
+        { key: "fState", val: 2 },
+        { key: "fStateName", val: "初始" }
+      ],
       //是否新增成功
       isSaveSuccess: false,
       //表头的字段，以及自增长字段
@@ -145,7 +151,7 @@ export default {
           fDes: "fProductName",
           fID: "fID",
           fAuto: ["fProductCode", "fProductID"],
-              fAutoID: ["fProductID"]
+          fAutoID: ["fProductID"]
         },
         {
           fName: "fProductCode",
@@ -153,7 +159,7 @@ export default {
           fDes: "fProductCode",
           fID: "fID",
           fAuto: ["fProductName", "fProductID"],
-              fAutoID: ["fProductID"]
+          fAutoID: ["fProductID"]
         },
         {
           fName: "fUnitName",

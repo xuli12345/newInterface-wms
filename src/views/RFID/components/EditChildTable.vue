@@ -163,7 +163,7 @@ export default {
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "字表表头");
+        console.log(this.tableHeadData, "字表表头");
         this.getTableData();
       } else {
         this.$message.error(res.Message);

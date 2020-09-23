@@ -57,10 +57,17 @@
           :disabled="userLimit('fPrint')"
           >打印</el-button
         >
+        <el-button
+          type="primary"
+          size="mini"
+          @click="entryPrint"
+          class="iconfont icon-dayin1"
+          >录入打印库位标签</el-button
+        >
       </div>
     </div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -97,6 +104,26 @@
           </el-table-column>
         </template>
       </template>
+      <el-table-column fixed="right" label="操作" align="center" width="120">
+        <template slot-scope="scope">
+          <div class="operation">
+            <el-button
+              type="text"
+              size="small"
+              @click.stop="handleDelete(scope.row, scope.$index)"
+              :disabled="userLimit('fDel')"
+              >删除</el-button
+            >
+            <el-button
+              type="text"
+              size="small"
+              @click="handleEdit(scope.row, scope.$index)"
+              :disabled="userLimit('fEdit')"
+              >修改</el-button
+            >
+          </div>
+        </template>
+      </el-table-column>
     </el-table>
     <!-- 分页 -->
     <div class="page flex-justify-end">
@@ -119,18 +146,35 @@
         :dataCode="dataCode"
       ></PrintTable>
     </div>
+    <!-- dailog -->
+    <el-dialog
+      title="打印库位标签"
+      append-to-body
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <el-input v-model="inputValue" placeholder="请输入内容"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="dialogVisible = false">取 消</el-button>
+        <el-button size="mini" type="primary" @click="confirm()"
+          >确 定</el-button
+        >
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import { userLimit, compare } from "@/utils/common";
+import { userLimit, compare, addParams } from "@/utils/common";
 import PrintTable from "./PrintStorage";
 import PrintJS from "print-js";
 import {
   getTableBodyData,
   getTableHeadData,
-  BathcDeleteData
+  BathcDeleteData,
+  deleteStorageItem
 } from "@/api/index";
 import Sortable from "sortablejs";
 export default {
@@ -142,6 +186,8 @@ export default {
   },
   data() {
     return {
+      dialogVisible: false,
+      inputValue: "",
       //是否临时库位
       fIsTemporaryStorage: false,
       //查询的数据
@@ -184,31 +230,51 @@ export default {
         this.$message.warning("请勾选您要打印的数据!");
       } else {
         this.dataCode = this.BatchList;
-        this.isRender = true;
-        setTimeout(() => {
-          PrintJS({
-            printable: "toPrint",
-            type: "html",
-            scanStyles: false,
-            css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-          });
-        }, 500);
-        setTimeout(() => {
-          this.isRender = false;
-        }, 600);
+        // this.dataCode.forEach(item => {
+        //   item.fStorageBarCode = item.fStorageBarCode.replace("-", "");
+        // });
+        this.common();
       }
+    },
+    confirm() {
+      if (!this.inputValue) {
+        this.$message.warning("请输入打印的库位编码!");
+      } else {
+        this.dataCode = [{ fStorageBarCode: this.inputValue }];
+        this.common();
+      }
+    },
+    common() {
+      this.isRender = true;
+      setTimeout(() => {
+        PrintJS({
+          printable: "toPrint",
+          type: "html",
+          scanStyles: false,
+          css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+        });
+      }, 500);
+      setTimeout(() => {
+        this.isRender = false;
+      }, 600);
+    },
+    //手工
+    entryPrint() {
+      this.dialogVisible = true;
+    },
+    handleClose(done) {
+      this.dialogVisible = false;
     },
     //用户表格列头
     async getTableHeadData() {
+      
       let res = await getTableHeadData(this.fTableView);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-
+    console.log(this.tableHeadData)
         let newArr = [];
         newArr = this.tableHeadData.filter(element => {
           return element.fKey == 1;
@@ -295,23 +361,12 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
+       
       }
     },
 
@@ -340,7 +395,13 @@ export default {
     async getTableData() {
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
-        this.searchWhere = [];
+        this.searchWhere = [
+          {
+            Computer: "=",
+            DataFile: "fStorageState",
+            Value: "1"
+          }
+        ];
       } else {
         this.searchData.forEach(element => {
           if (this.asData[element.fColumn]) {
@@ -358,12 +419,19 @@ export default {
               DataFile: element.fColumn,
               Value: result
             };
+            let baseWhere = {
+              Computer: "=",
+              DataFile: "fStorageState",
+              Value: "1"
+            };
             this.searchWhere.push(obj);
+            this.searchWhere.push(baseWhere);
           }
         });
       }
       let startobj = {};
       let endobj = {};
+      let where = {};
       let arr = [];
       for (const key in this.startData) {
         for (const Ikey in this.endData) {
@@ -378,9 +446,14 @@ export default {
               DataFile: key,
               Value: this.endData[Ikey]
             };
-
+            where = {
+              Computer: "=",
+              DataFile: "fStorageState",
+              Value: "1"
+            };
             arr.push(startobj);
             arr.push(endobj);
+            arr.push(where);
           }
         }
       }
@@ -389,9 +462,7 @@ export default {
         this.searchWhere.push(...arr);
       }
       let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -403,21 +474,13 @@ export default {
         });
         this.tableData.forEach(element => {
           for (const key in element) {
-            // if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-            //   element[key] = timeCycle(element[key]);
-            // }
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
+           
             if (key === "fIsTemporaryStorage" && element[key] == null) {
               this.$set(element, "fIsTemporaryStorage", 0);
             }
           }
         });
-        // console.log(this.tableData, "表体内容");
+        console.log(this.tableData, "表体内容");
       }
     },
     //表格拖拽
@@ -441,9 +504,57 @@ export default {
     },
     //双击表格弹框
     dblclick(row) {
+      console.log(row);
       if (this.userLimit("fEdit") == false) {
         this.$emit("openEditDrawer", row, this.tableHeadData);
       }
+    },
+    //修改
+    handleEdit(row, index) {
+      console.log(row);
+      this.$emit("openEditDrawer", row, this.tableHeadData);
+    },
+    // 删除
+    handleDelete(row, index) {
+      // console.log(row,11)
+      let RowData = JSON.parse(JSON.stringify(row));
+      let resultData = addParams(this.tableHeadData, row);
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(async () => {
+          let res = await deleteStorageItem([
+            {
+              lstSaveData: [
+                {
+                  TableName: this.tableName,
+                  IdentityColumn: "fID",
+                  InsertRow: null,
+                  UpdateRow: null,
+                  DeleteRow: [resultData.arr],
+                  Columns: resultData.columns
+                }
+              ]
+            },
+            { userDes: this.userDes, userId: this.userId }
+          ]);
+
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State) {
+            this.$message.success("删除成功!");
+            this.getTableData();
+          } else {
+            this.$message.error(res.Message);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
     },
 
     // 手动选中Checkbox
@@ -467,9 +578,7 @@ export default {
     //获取打印表头的数据
     async getPrintHeadData() {
       let res = await getTableHeadData(this.printView[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.printHeadData = res.lstRet;
         // console.log(this.printHeadData, "打印的表头");

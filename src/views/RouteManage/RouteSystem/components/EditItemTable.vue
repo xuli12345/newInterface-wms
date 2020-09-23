@@ -53,7 +53,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { collectionData, getTableHeadData } from "@/api/index";
-import { compare ,handelData} from "@/utils/common";
+import {handelData } from "@/utils/common";
 import EditChildFormHead from "@/components/EditChildFormHead";
 import EditChildTable from "@/components/EditChildTable";
 import AlertTable from "./AlertTable";
@@ -69,10 +69,6 @@ export default {
       tableData: [],
       openTitle: "选择门店",
       dialogFormVisible: false,
-      //form表单数据
-      tableHeadData: [],
-      //表格表头
-      tableHead: [],
       //表格添加的数据
       insertData: [],
       userDes: this.$store.state.user.userInfo.userDes
@@ -81,6 +77,8 @@ export default {
   methods: {
     submitForm(formName) {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
       this.fID = this.$refs.ruleForm.ruleForm.fID; //字表添加数据时,需要手动添加的键
@@ -101,7 +99,7 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             }
           ]);
           let res2 = JSON.parse(decryptDesCbc(res, String(this.userDes)));
@@ -113,7 +111,7 @@ export default {
                 updateData: updateArr,
                 insertData: insertArr,
                 deleteData: deletedArr,
-                headData: this.tableHead
+                headData: childTableData
               }
             ]);
             res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
@@ -137,28 +135,7 @@ export default {
       this.$refs.ruleForm.$refs.ruleForm.resetFields();
       this.$emit("closeBox");
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //新增按钮
     addPopRight() {
       this.dialogFormVisible = true;
@@ -174,12 +151,7 @@ export default {
         this.insertData = value;
       }
       this.dialogFormVisible = false;
-    },
-   
-  },
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
+    }
   }
 };
 </script>

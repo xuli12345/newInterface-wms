@@ -172,7 +172,23 @@ export default {
           fID: "fID",
           fAuto: ["fConsignorID"],
           fAutoID: ["fConsignorID"]
-        }
+        },
+        {
+          fName: "fTobinName",
+          fUrl: "v_Storage_Item",
+          fDes: "fStorageBarCode",
+          fID: "fID",
+          fAuto: ["fTobin"],
+          fAutoID: ["fTobin"]
+        },
+         {
+          fName: "fFrombinName",
+          fUrl: "v_Storage_Item",
+          fDes: "fStorageBarCode",
+          fID: "fID",
+          fAuto: ["fFrombin"],
+          fAutoID: ["fFrombin"]
+        },
       ],
       batchDelTableName: [
         {

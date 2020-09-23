@@ -268,4 +268,7 @@ export default {
 .el-dialog__body {
   padding-top: 0 !important;
 }
+// .el-dialog{
+//   width: 100% !important;
+// }
 </style>

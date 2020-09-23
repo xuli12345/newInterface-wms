@@ -33,7 +33,6 @@
       :fTableView="fTableViewItem"
       :insertData="insertData"
       :fID="rowData.fIP"
-      @getAmount="getAmount"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-drawer
@@ -59,7 +58,11 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare, handleRFIDData } from "@/utils/common";
-import { getTableHeadData, collectionData } from "@/api/index";
+import {
+  getTableHeadData,
+  getTableBodyData,
+  collectionData
+} from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
@@ -70,9 +73,7 @@ export default {
     "fTableViewItem",
     "addItem",
     "selectArr",
-    "selectArr2",
     "rowData",
-    "strType",
     "formData"
   ],
   components: {
@@ -82,42 +83,17 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格添加的数据
       insertData: {},
       //表格数据表头
       tableHead: [],
-      totalAmount: 0,
-      fColumn: ["fType"],
-      selData: [
-        {
-          name: "fType",
-          data: [
-            { fType: 0, fColumnDes: "从标签" },
-            { fType: 1, fColumnDes: "主标签" }
-          ]
-        }
-      ]
+      fColumn: ["fTypeName", "fStorageCode"],
+      selData: []
     };
   },
   methods: {
-    getAmount(value) {
-      // console.log(value, 99);
-      this.totalAmount = value;
-    },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //获取表格的表头，保存的时候需要用到
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
@@ -132,25 +108,26 @@ export default {
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
 
-      backData.forEach(element => {
-        for (const key in element) {
-          if (element[key] == null) {
-            this.$set(element, key, 0);
-          }
-        }
-      });
-      tableData.forEach(element => {
-        for (const key in element) {
-          if (element[key] == null) {
-            this.$set(element, key, 0);
-          }
-        }
-      });
+      // backData.forEach(element => {
+      //   for (const key in element) {
+      //     if (element[key] == null) {
+      //       this.$set(element, key, 0);
+      //     }
+      //   }
+      // });
+      // tableData.forEach(element => {
+      //   for (const key in element) {
+      //     if (element[key] == null) {
+      //       this.$set(element, key, 0);
+      //     }
+      //   }
+      // });
       let wantData = handleRFIDData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
-      // console.log(wantData,"wat")
+
       let updateArr = wantData[0];
       let insertArr = wantData[1];
       let deletedArr = wantData[2];
@@ -160,7 +137,7 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             },
             {
               TableName: this.fTableViewItem[0],
@@ -199,16 +176,67 @@ export default {
     //关闭字表新增弹窗
     closeItemBox(value) {
       if (value) {
+        this.$set(value, "fType", value.fTypeName);
+        this.$set(value, "fPlaceID", value.fStorageCode);
         this.insertData = value;
-        this.totalAmount += value.fAmount;
       }
       this.drawer = false;
+    },
+    //获取类型名称
+    async getType() {
+      let res = await getTableBodyData("v_Type_Electronictag");
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        let result = JSON.parse(res.Data);
+        let CustomerType = [];
+        let data = [];
+        result.forEach(element => {
+          let parmsObj = {
+            fType: element.fID,
+            fColumnDes: element.fTypeName
+          };
+          data.push(parmsObj);
+        });
+        let object = {
+          name: "fTypeName",
+          data: data
+        };
+        CustomerType.push(object);
+        this.selData = [...this.selData, ...CustomerType];
+      }
+    },
+    //获取库位类型
+    async getStorageType() {
+      let res = await getTableBodyData("v_Storage_Item");
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+      if (res.State) {
+        let result = JSON.parse(res.Data);
+        // console.log(result, "原数据");
+        let InvoiceType = [];
+        let data = [];
+        result.forEach(element => {
+          let obj = {
+            fType: element.fID,
+            fColumnDes: element.fStorageCode
+          };
+          data.push(obj);
+        });
+        let object = {
+          name: "fStorageCode",
+          data: data
+        };
+        InvoiceType.push(object);
+        this.selData = [...this.selData, ...InvoiceType];
+      }
     }
   },
 
   created() {
-    this.getTableHeadData();
     this.getTableHead();
+    this.getType();
+    this.getStorageType();
   }
 };
 </script>

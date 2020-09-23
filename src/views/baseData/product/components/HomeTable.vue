@@ -67,15 +67,6 @@
           :disabled="userLimit('fDel')"
           >批量删除</el-button
         >
-        <el-button
-          v-if="isItem"
-          type="primary"
-          size="mini"
-          class="iconfont icon-shanchu"
-          @click="BatchFormsDelete"
-          :disabled="userLimit('fDel')"
-          >批量删除</el-button
-        >
 
         <el-button
           v-if="isPrint"
@@ -87,60 +78,17 @@
           >打印</el-button
         >
 
-        <el-button
-          v-if="product"
+        <!-- <el-button
           type="primary"
           size="mini"
-          icon="el-icon-help"
-          @click="handleBarCode"
-          >货品条码绑定</el-button
-        >
-        <el-button
-          v-if="product"
-          icon="el-icon-goods"
-          type="primary"
-          size="mini"
-          @click="handleCarton"
-          >装箱信息</el-button
-        >
-
-        <el-button
-          v-if="containerNum"
-          type="primary"
-          size="mini"
-          icon="el-icon-suitcase-1"
-          @click="handleContainer"
-          >生成容器号</el-button
-        >
-        <el-button
-          v-if="storage"
-          type="primary"
-          size="mini"
-          class="iconfont icon-A"
-          @click="handleStorage"
-          >查询导出库位条码</el-button
-        >
-        <el-button
-          v-if="product"
-          type="primary"
-          size="mini"
-          class="iconfont icon-setting "
-          @click="handleSeq"
-          >上架拣货设置</el-button
-        >
-        <el-button
-          v-if="isCheck"
-          type="primary"
-          size="mini"
-          class="iconfont icon-yishenhe"
-          @click="handleCheck"
-          :disabled="userLimit('fApp')"
-          >审核</el-button
-        >
+          @click="entryPrint"
+          class="iconfont icon-dayin1"
+          >录入打印商品标签</el-button
+        > -->
       </div>
     </div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -222,14 +170,6 @@
               :disabled="userLimit('fDel')"
               >删除</el-button
             >
-            <el-button
-              v-if="isItem"
-              type="text"
-              size="small"
-              @click.stop="haveItemDelete(scope.row, scope.$index)"
-              :disabled="userLimit('fDel')"
-              >删除</el-button
-            >
 
             <el-button
               type="text"
@@ -263,6 +203,22 @@
         :dataCode="dataCode"
       ></PrintTable>
     </div>
+    <!-- dailog -->
+    <el-dialog
+      title="打印库位标签"
+      append-to-body
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <el-input v-model="inputValue" placeholder="请输入内容"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="dialogVisible = false">取 消</el-button>
+        <el-button size="mini" type="primary" @click="confirm()"
+          >确 定</el-button
+        >
+      </span>
+    </el-dialog>
   </div>
 </template>
 <script>
@@ -272,6 +228,7 @@ import { addParams, batchDelete, userLimit } from "@/utils/common";
 import PrintTable from "./PrintProduct";
 import { compare } from "@/utils/common";
 import Sortable from "sortablejs";
+import PrintJS from "print-js";
 import {
   tableBodyData,
   addformSaveData,
@@ -304,6 +261,8 @@ export default {
   },
   data() {
     return {
+      inputValue: "",
+      dialogVisible:false,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -535,7 +494,7 @@ export default {
             }
           }
         });
-        // console.log(this.tableData, "表体内容");
+        console.log(this.tableData, "表体内容");
       }
     },
     //新增
@@ -548,63 +507,13 @@ export default {
         this.$emit("openEditDrawer", row, this.tableHeadData);
       }
     },
-    //货品条码绑定
-    handleBarCode() {
-      this.$emit("openBarCode");
+    //手工
+    entryPrint() {
+      this.dialogVisible = true;
     },
-    //装箱信息
-    handleCarton() {
-      this.$emit("openCarton");
+    handleClose(done) {
+      this.dialogVisible = false;
     },
-    //生成容器号
-    handleContainer() {
-      this.$emit("openContainer");
-    },
-    //上架拣货设置
-    handleSeq() {
-      this.$emit("openSeq");
-    },
-    //查询导出库位条码
-    handleStorage() {
-      this.$emit("openStorageCode");
-    },
-
-    //已审查
-    async handleCheck() {
-      // console.log(this.isCheck[1]);
-      if (this.BatchList.length == 0) {
-        this.$message.warning("请选择要审核的数据!");
-      } else {
-        this.BatchList.forEach(item => {
-          this.$set(item, "fMstState", this.isCheck[1]);
-        });
-        let result = batchDelete(this.tableHeadData, this.BatchList);
-        let res = await addformSaveData([
-          {
-            lstSaveData: [
-              {
-                TableName: this.tableName,
-                IdentityColumn: null,
-                InsertRow: null,
-                UpdateRow: result.arr,
-                DeleteRow: null,
-                Columns: result.columns
-              }
-            ]
-          },
-          { userDes: this.userDes, userId: this.userId }
-        ]);
-        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-        // console.log(res);
-        if (res.state) {
-          this.$message.success("审核成功!");
-          this.getTableData();
-        } else {
-          this.$message.error(res.errstr);
-        }
-      }
-    },
-
     // 手动选中Checkbox
     handleSelectionChange(val) {
       this.BatchList = val;
@@ -653,54 +562,7 @@ export default {
           });
       }
     },
-    //删除从表
-    BatchFormsDelete() {
-      if (this.BatchList.length == 0) {
-        this.$message.warning("请选择要删除的数据!");
-      } else {
-        this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
-          confirmButtonText: "确定",
-          cancelButtonText: "取消",
-          type: "warning"
-        })
-          .then(async () => {
-            let objectArr = [];
-            this.BatchList.forEach(item => {
-              let obj = [
-                {
-                  Key: "fID",
-                  Value: item.fID
-                }
-              ];
-              objectArr.push(obj);
-            });
-            // console.log(objectArr);
-            let res = await BathcDeleteData([
-              {
-                MstItemKey: this.batchDelTableName,
-                MstKeyValue: objectArr,
-                MstTableView: this.fTableView
-              },
-              { userDes: this.userDes, userId: this.userId }
-            ]);
 
-            res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-            if (res.state) {
-              this.$message.success("删除成功!");
-              this.getTableData();
-            } else {
-              this.$message.error(res.errstr);
-            }
-          })
-          .catch(() => {
-            this.$message({
-              type: "info",
-              message: "已取消删除"
-            });
-          });
-      }
-    },
     //修改
     handleEdit(row, index) {
       this.$emit("openEditDrawer", row, this.tableHeadData);
@@ -746,48 +608,7 @@ export default {
           });
         });
     },
-    //有从表数据的删除
-    haveItemDelete(row, index) {
-      let RowData = JSON.parse(JSON.stringify(row));
-      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(async () => {
-          let objectArr = [];
-          let obj = [
-            {
-              Key: "fID",
-              Value: RowData.fID
-            }
-          ];
-          objectArr.push(obj);
 
-          let res = await BathcDeleteData([
-            {
-              MstItemKey: this.batchDelTableName,
-              MstKeyValue: objectArr,
-              MstTableView: this.fTableView
-            },
-            { userDes: this.userDes, userId: this.userId }
-          ]);
-          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-          if (res.state) {
-            this.$message.success("删除成功!");
-            this.getTableData();
-          } else {
-            this.$message.error(res.errstr);
-          }
-        })
-        .catch(() => {
-          this.$message({
-            type: "info",
-            message: "已取消删除"
-          });
-        });
-    },
     // 页容量
     handleSizeChange(val) {
       this.pageSize = val;
@@ -807,19 +628,30 @@ export default {
         this.$message.warning("请勾选您要打印的数据!");
       } else {
         this.dataCode = this.BatchList;
-        this.isRender = true;
-        setTimeout(() => {
-          PrintJS({
-            printable: "toPrint",
-            type: "html",
-            scanStyles: false,
-            css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-          });
-        }, 500);
-        setTimeout(() => {
-          this.isRender = false;
-        }, 600);
+        this.common();
       }
+    },
+    confirm() {
+      if (!this.inputValue) {
+        this.$message.warning("请输入打印的商品编码!");
+      } else {
+        this.dataCode = [{ fProductBarCode: this.inputValue }];
+        this.common();
+      }
+    },
+    common() {
+      this.isRender = true;
+      setTimeout(() => {
+        PrintJS({
+          printable: "toPrint",
+          type: "html",
+          scanStyles: false,
+          css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+        });
+      }, 500);
+      setTimeout(() => {
+        this.isRender = false;
+      }, 600);
     },
     //获取从表回显的数据
     async getSearchItemData(fID) {

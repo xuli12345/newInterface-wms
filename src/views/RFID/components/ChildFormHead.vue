@@ -44,6 +44,7 @@
             "
           >
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -56,7 +57,7 @@
               ></el-option>
             </el-select>
           </template>
-         
+
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"
@@ -89,7 +90,7 @@ export default {
     "selectArr",
     "alertArr",
     "fCustomerID",
-    "Amount",
+
     "formData"
   ],
   data() {
@@ -113,15 +114,6 @@ export default {
     }
   },
 
-  watch: {
-    ruleForm: function(val) {
-      // this.ruleForm.fID = 0;
-    },
-    Amount(newVal, oldVal) {
-      this.$set(this.ruleForm, "fInboundAmount", newVal);
-      this.$set(this.ruleForm, "fOutboundAmount", newVal);
-    }
-  },
   methods: {
     //获取form表单数据
     async getTableHeadData() {
@@ -130,9 +122,9 @@ export default {
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         let ruleForm = defaultForm(this.tableHead);
-       
-       this.ruleForm=Object.assign({},ruleForm,this.formData);
-  
+
+        this.ruleForm = Object.assign({}, ruleForm, this.formData);
+
         this.rules = creatRules(this.tableHead);
       } else {
         this.$message.error(res.Message);
@@ -153,7 +145,7 @@ export default {
             JSON.parse(JSON.stringify(this.ruleForm)),
             this.fTableViewHead
           );
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
         } else {
           return false;
         }
@@ -161,10 +153,10 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
-   
+
     //判断当前字段是否需要做下拉框
     //v表头所有的字段
     selectFunction(v) {

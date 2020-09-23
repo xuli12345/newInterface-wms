@@ -37,7 +37,7 @@
     </div>
 
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -227,11 +227,7 @@ export default {
         console.log(this.tableData, "筛选表体内容");
       }
     },
-    // filtersF(val, row, column) {
-    //   // console.log(val)
-    //   const property = column["property"];
-    //   return row[property] === val;
-    // },
+
     //筛选的条件数组
     screenFuction(val) {
       let copyTable = this.tableData;
@@ -329,7 +325,6 @@ export default {
       this.tableData.splice(index, 1);
     },
     submitForm() {
-      // console.log(this.sendData)
       this.$emit("closeBox", JSON.parse(JSON.stringify(this.sendData)));
     },
     resetForm() {
@@ -346,8 +341,7 @@ export default {
   },
   created() {
     this.getTableHeadData();
-  },
-
+  }
 };
 </script>
 <style lang="scss" scoped>
@@ -356,5 +350,9 @@ export default {
 }
 .table-wrapper /deep/.el-input__inner {
   border: none !important;
+}
+.page{
+  margin: 0px 10px 10px 10px;
+  width: 100%;
 }
 </style>

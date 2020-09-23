@@ -337,7 +337,7 @@
         :title="title"
       ></print-table>
     </div>
-    <!-- 打印门店标签  -->
+    <!-- 打印门店标签 -->
     <div style="width:0;height:0;overflow:hidden">
       <ShopPrint
         ref="print"
@@ -532,18 +532,7 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
+       
 
         console.log(this.tableData, "过滤表体内容");
       }
@@ -629,25 +618,17 @@ export default {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-          if (
-            element.fPickingPlace &&
-            element.fPickingPlace == "System.Object[]"
-          ) {
-            this.$set(element, "fPickingPlace", "");
-          }
+          // if (
+          //   element.fPickingPlace &&
+          //   element.fPickingPlace == "System.Object[]"
+          // ) {
+          //   this.$set(element, "fPickingPlace", "");
+          // }
         });
         console.log(this.tableData, "表体内容");
       }
     },
-    //新增
+    //新增npm
     addPopRight() {
       this.$emit("openDrawer", this.tableHeadData);
     },
@@ -980,7 +961,7 @@ export default {
             type: "html",
             scanStyles: false,
             style:
-              "table tr td,th { border-collapse: collapse; border: 1px #000 solid;font-size: 12px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;}; "
+              "table td,th {border: 1px #000 solid;font-size: 22px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;min-width:140px}; "
           });
         }, 500);
         setTimeout(() => {

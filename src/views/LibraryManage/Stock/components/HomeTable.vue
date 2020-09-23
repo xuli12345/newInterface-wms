@@ -56,7 +56,7 @@
           @click="addPopRight"
           :disabled="userLimit('fAdd')"
           v-if="stock"
-          >设置在库数量</el-button
+          >库存数量调整</el-button
         >
         <el-button
           type="primary"
@@ -247,7 +247,8 @@ export default {
               let obj = {
                 fColumnDes: item.fColumnDes,
                 fColumn: item.fColumn,
-                fComputer: item.fComputer
+                fComputer: item.fComputer,
+                 fDataType: item.fDataType
               };
               arr.push(obj);
             }

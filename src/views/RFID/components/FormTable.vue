@@ -26,7 +26,6 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
-      :Amount="totalAmount"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -41,15 +40,6 @@
       :before-close="handleClose"
       v-if="addItem"
     >
-      <!-- <child-form-head
-        @closeBox="closeItemBox"
-        :fTableViewHead="fTableViewItem[0]"
-        ref="ItemRuleForm"
-        :addItem="addItem"
-        :selectArr="selectArr2"
-        :alertArr="alertArr"
-        :formData="ruleForm"
-      ></child-form-head> -->
       <CreatFrom
         ref="ItemRuleForm"
         @closeBox="closeItemBox"
@@ -66,12 +56,16 @@
 <script>
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
-import { getTableHeadData, collectionData } from "@/api/index";
+import {
+  getTableHeadData,
+  getTableBodyData,
+  collectionData
+} from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
 import ChildTable from "./ChildTable";
 import CreatFrom from "../Electronictag/components/CreatFrom";
-import VueBus from "../../../vueBus";
+
 export default {
   //strType:导入文件的类型
   props: [
@@ -90,8 +84,6 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
-      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格数据
       tableData: [],
@@ -99,18 +91,13 @@ export default {
       tableHead: [],
       //excel
       file: null,
-      //金额合计
-      totalAmount: "",
       ruleForm: {},
-      fColumn: ["fType"],
-      selData: [
-        {
-          name: "fType",
-          data: [
-            { fType: 0, fColumnDes: "从标签" },
-            { fType: 1, fColumnDes: "主标签" }
-          ]
-        }
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
+      fColumn: ["fTypeName", "fStorageCode"],
+      selData: [],
+      switchArr: [
+        { fColumn: "fTypeName", sfColumn: "fType" },
+        { fColumn: "fStorageCode", sfColumn: "fPlaceID" }
       ]
     };
   },
@@ -119,17 +106,7 @@ export default {
     userLimit(val) {
       return userLimit(val);
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //获取表格的表头
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
@@ -137,7 +114,7 @@ export default {
 
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
-        // console.log(this.tableHead,"表格表头")
+        console.log(this.tableHead, "从表表格表头");
       } else {
         this.$message.error(res.Message);
       }
@@ -145,13 +122,14 @@ export default {
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           let res = await collectionData([
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
@@ -200,15 +178,68 @@ export default {
     //关闭字表新增弹窗
     closeItemBox(value) {
       if (value) {
+        // console.log(11111,value)
+        this.$set(value, "fType", value.fTypeName);
+        this.$set(value, "fPlaceID", value.fStorageCode);
         this.tableData.push(value);
       }
       this.drawer = false;
+    },
+    //获取类型名称
+    async getType() {
+      let res = await getTableBodyData("v_Type_Electronictag");
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        let result = JSON.parse(res.Data);
+        let CustomerType = [];
+        let data = [];
+        result.forEach(element => {
+          let parmsObj = {
+            fType: element.fID,
+            fColumnDes: element.fTypeName
+          };
+          data.push(parmsObj);
+        });
+        let object = {
+          name: "fTypeName",
+          data: data
+        };
+        CustomerType.push(object);
+        this.selData = [...this.selData, ...CustomerType];
+      }
+    },
+    //获取库位类型
+    async getStorageType() {
+      let res = await getTableBodyData("v_Storage_Item");
+
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+      if (res.State) {
+        let result = JSON.parse(res.Data);
+        // console.log(result, "原数据");
+        let InvoiceType = [];
+        let data = [];
+        result.forEach(element => {
+          let obj = {
+            fType: element.fID,
+            fColumnDes: element.fStorageCode
+          };
+          data.push(obj);
+        });
+        let object = {
+          name: "fStorageCode",
+          data: data
+        };
+        InvoiceType.push(object);
+        this.selData = [...this.selData, ...InvoiceType];
+      }
     }
   },
 
   created() {
-    this.getTableHeadData();
     this.getTableHead();
+    this.getType();
+    this.getStorageType();
   }
 };
 </script>

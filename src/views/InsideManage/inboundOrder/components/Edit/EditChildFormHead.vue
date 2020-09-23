@@ -44,6 +44,7 @@
             "
           >
             <el-select
+              filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="isDisabled"
@@ -99,7 +100,8 @@ export default {
     "rowData",
     "Amount",
     "Qtystr",
-    "Num"
+    "Num",
+    "fCustomerID"
   ],
   data() {
     return {
@@ -113,7 +115,8 @@ export default {
       //需要下拉选择的所有数据
       selectAllData: [],
       //是否禁用(根据状态已审核为禁用状态)
-      isDisabled: false
+      isDisabled: false,
+      CustomerID: this.fCustomerID
     };
   },
   created() {
@@ -161,7 +164,7 @@ export default {
             type: "success"
           });
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-          this.$refs[formName].resetFields();
+          this.ruleForm = {};
         } else {
           return false;
         }
@@ -169,7 +172,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm = {};
       this.$emit("closeBox");
     },
     //判断当前字段是否需要做下拉框
@@ -239,6 +242,7 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
+              this.ruleForm[n] = data[ele.fDes];
             } else {
               this.ruleForm[item] = data[item];
             }
@@ -256,10 +260,27 @@ export default {
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
+      let where = [];
+      if (this.fCustomerID) {
+        where = [
+          {
+            Computer: "=",
+            DataFile: "fCustomerID",
+            Value: this.CustomerID
+          }
+        ];
+      }
+
       let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res;
-        if (this.selectArr[i].searchWhere) {
+
+        if (
+          this.selectArr[i].fName == "fProductName" ||
+          this.selectArr[i].fName == "fProductCode"
+        ) {
+          res = await getTableBodyData(this.selectArr[i].fUrl, where);
+        } else if (this.selectArr[i].searchWhere) {
           searchWhere = this.selectArr[i].searchWhere;
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         } else {
@@ -303,6 +324,11 @@ export default {
     },
     Amount(newVal, oldVal) {
       this.$set(this.ruleForm, "fTotalAmount", newVal);
+    },
+    fCustomerID(newVal, oldVal) {
+      console.log(newVal, oldVal);
+      this.CustomerID = newVal;
+      this.getSelectData();
     }
   }
 };

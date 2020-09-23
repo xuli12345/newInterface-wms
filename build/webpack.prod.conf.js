@@ -44,7 +44,8 @@ const webpackConfig = merge(baseWebpackConfig, {
         }
       },
       sourceMap: config.build.productionSourceMap,
-      parallel: true
+      parallel: true,
+      cache:true, //解决保存编译慢的问题
     }),
     // extract css into its own file
     new ExtractTextPlugin({

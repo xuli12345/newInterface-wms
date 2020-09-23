@@ -190,7 +190,7 @@ export default {
             this.$message.success("新增成功!");
             this.$emit("closeBox", res.State, res.Identity);
             this.changeColumn();
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
             this.ruleForm = defaultForm(this.tableHead);
           } else {
             this.$message.error(res.Message);
@@ -202,7 +202,7 @@ export default {
     },
 
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
       this.changeColumn();
     },

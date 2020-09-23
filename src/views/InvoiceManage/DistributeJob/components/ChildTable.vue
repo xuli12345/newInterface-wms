@@ -53,7 +53,13 @@
           </template>
         </el-table-column>
       </template>
-      <el-table-column fixed="right" label="操作" align="center" width="120">
+      <el-table-column
+        fixed="right"
+        label="操作"
+        align="center"
+        width="120"
+        v-if="ishow"
+      >
         <template slot-scope="scope">
           <div class="operation">
             <el-button
@@ -89,11 +95,11 @@ export default {
   props: [
     "fTableView",
     "tableName",
-    "isSaveSuccess",
     "value",
     "isSave",
     "selBatchList",
-    "tableData"
+    "tableData",
+    "ishow"
   ],
   data() {
     return {
@@ -103,7 +109,6 @@ export default {
       //获取表格内容TableView的值,在获取headData中获取
       fTableViewData: "",
       getRowKeys(row) {
-        //   console.log(row)
         return row.fCompanyID || row.fModName;
       },
       //表格数据
@@ -146,7 +151,6 @@ export default {
         this.editTableData.push(item);
         this.editTableData = Array.from(new Set(this.editTableData));
         this.$emit("update:selBatchList", this.editTableData);
-        // console.log(this.editTableData);
       }
 
       if (item[val] == 0) {

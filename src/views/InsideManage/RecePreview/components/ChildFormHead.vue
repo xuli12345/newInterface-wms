@@ -44,6 +44,7 @@
             "
           >
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -181,7 +182,7 @@ export default {
             JSON.parse(JSON.stringify(this.ruleForm)),
             this.fTableViewHead
           );
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
         } else {
           return false;
         }
@@ -189,7 +190,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
     getPartsValue() {
@@ -262,7 +263,7 @@ export default {
     },
     // 下拉选择框选中值后，带出其他需要带出的值
     async getVal(val, n) {
-      // console.log(val,n)
+      // console.log(n)
       if (n == "fOrdnum") {
         let where = [
           {
@@ -295,6 +296,8 @@ export default {
       });
 
       this.selectArr.forEach(ele => {
+        // console.log(ele.fName, n);
+        // console.log(ele.fAuto, "ele.fAuto");
         if (ele.fName == n && ele.fAuto) {
           ele.fAuto.forEach(item => {
             let i = false;
@@ -303,6 +306,10 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
+              this.ruleForm[n] = data[ele.fDes];
+              // if (item == "fSupplierID") {
+              //   this.ruleForm[item] = data.fSupplierID;
+              // }
             } else {
               this.ruleForm[item] = data[item];
             }

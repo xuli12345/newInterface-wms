@@ -110,7 +110,7 @@ export default {
       //fDes 下拉选择的label值 ,fID选择绑定的值
       //fAuto 需要自动带出的值
       //fAutoID 需要转换使用fID的值
-      //fEdit  需要转换使用的当前页面显示的字段名fInboundOrdeTypeName fInboundOrdeType
+      //fEdit  需要转换使用的当前页面显示的字段名fInboundOrdeTypeName
       selectArr: [
         {
           fName: "fMstStateName",
@@ -138,15 +138,7 @@ export default {
           fAuto: ["fCustomerID"],
           fAutoID: ["fCustomerID"]
         },
-        {
-          fName: "fInboundOrdeTypeName",
-          fUrl: "v_Type_InboundOrder",
-          fDes: "fTypeName",
-          fID: "fID",
-          // fEdit:[{key:'fInboundOrdeTypeName',value:'fInboundOrdeType'}],
-          fAuto: ["fInboundOrdeType"],
-          fAutoID: ["fInboundOrdeType"]
-        },
+
         {
           fName: "fSupplierName",
           fUrl: "v_Supplier",
@@ -171,7 +163,7 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductCode",
           fID: "fID",
-          fAuto: ["fProductID", "fProductName", "fProductBarCode"],
+          fAuto: ["fProductID", "fProductName", "fProductBarCode","fbrand"],
           fAutoID: ["fProductID"]
         },
         {
@@ -179,7 +171,7 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductName",
           fID: "fID",
-          fAuto: ["fProductID", "fProductCode", "fProductBarCode"],
+          fAuto: ["fProductID", "fProductCode", "fProductBarCode","fbrand"],
           fAutoID: ["fProductID"]
         },
         {
@@ -189,21 +181,6 @@ export default {
           fID: "fID",
           fAuto: ["fInboundNumUnit"],
           fAutoID: ["fInboundNumUnit"],
-          searchWhere: [
-            {
-              Computer: "=",
-              DataFile: "fUnitType",
-              Value: 10
-            }
-          ]
-        },
-        {
-          fName: "fBoxNumUniName",
-          fUrl: "v_Unit",
-          fDes: "fUnitName",
-          fID: "fID",
-          fAuto: ["fInboundBoxNumUnit"],
-          fAutoID: ["fInboundBoxNumUnit"],
           searchWhere: [
             {
               Computer: "=",
@@ -228,28 +205,26 @@ export default {
           ]
         },
         {
-          fName: "fItemStateaName",
-          fUrl: "v_Type_InboundItemState",
-          fDes: "fTypeName",
+          fName: "fWeightUnitName",
+          fUrl: "v_Unit",
+          fDes: "fUnitName",
           fID: "fID",
-          fAuto: ["fItemState"],
-          fAutoID: ["fItemState"]
-        },
-
-        {
-          fName: "fShelfLifeDays",
-          fUrl: "v_Type_ShelfLife",
-          fDes: "TypeName",
-          fID: "fID",
-          fAuto: [],
-          fAutoID: []
+          fAuto: ["fWeightUnit"],
+          fAutoID: ["fWeightUnit"],
+          searchWhere: [
+            {
+              Computer: "=",
+              DataFile: "fUnitType",
+              Value: 9
+            }
+          ]
         }
       ],
       //字表表格需要做下拉框的字段 及需要转换的id值
       // key:需要做下拉框的字段名  fKey:需要装换的id值
       changeData: [
         { key: "fNumUnitName", fKey: "fInboundNumUnit" },
-        { key: "fBoxNumUniName", fKey: "fInboundBoxNumUnit" },
+        { key: "fWeightUnitName", fKey: "fWeightUnit" },
         { key: "fVolumetUnitName", fKey: "fVolumetUnit" }
       ]
     };

@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
-       @row-dblclick="dblclick"
+      @row-dblclick="dblclick"
     >
       <el-table-column type="index" width="50"></el-table-column>
       <template v-for="(item, index) in tableHeadData">
@@ -62,7 +62,7 @@
         <template slot-scope="scope">
           <div class="operation">
             <el-button
-            :disabled="isDisabled"
+              :disabled="isDisabled"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
@@ -117,7 +117,7 @@ export default {
     };
   },
   methods: {
-      //双击表格弹框
+    //双击表格弹框
     dblclick(row) {
       this.$emit("openEditDrawer", row);
     },
@@ -223,31 +223,6 @@ export default {
 
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
-    },
-    //获取类型
-    async getType(fTableView, fColumnType, value) {
-      let res = await getTableBodyData(fTableView, [
-        {
-          Computer: "=",
-          DataFile: "fUnitType",
-          Value: value
-        }
-      ]);
-
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        let result = JSON.parse(res.Data);
-        let arr = [];
-        result.forEach(element => {
-          let obj = {
-            value: element.fID,
-            label: element.fUnitName
-          };
-          arr.push(obj);
-        });
-
-        this.selectOptions = [...this.selData, ...arr];
-      }
     }
   },
   watch: {
@@ -273,8 +248,6 @@ export default {
 
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName", 10);
-    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>

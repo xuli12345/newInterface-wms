@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -319,7 +319,9 @@ export default {
             }
           }
         });
+
         this.tableData = this.OrignData;
+        // console.log(this.tableData, "222");
         this.total = this.tableData.length;
       }
     },
@@ -338,11 +340,11 @@ export default {
       ]);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
+      // console.log(res, 2222);
       if (res.State) {
         this.resultData = JSON.parse(res.Data);
         this.$emit("update:backData", this.resultData);
-        console.log(this.resultData, "回显的数据");
+        // console.log(this.resultData, "回显的数据");
         if (this.tableData.length > 0) {
           this.tableData.forEach(element => {
             this.resultData.forEach(item => {
@@ -358,8 +360,6 @@ export default {
   },
   watch: {
     isHandleMenu(newVal, oldVal) {
-      //   console.log(newVal);
-      //   console.log(oldVal);
       if (newVal) {
         this.$emit("update:isHandleMenu", false);
         this.tableData = this.OrignData.filter(item => {

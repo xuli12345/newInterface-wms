@@ -95,7 +95,7 @@ export default {
         "v_OutboundOrder_Item",
         "t_OutboundOrder_Item"
       ],
-      title: ["知行易通(厦门)信息科技有限公司", "商品出仓单"],
+      title: ["金百物流有限公司", "商品出仓单"],
       //是否新增成功
       isSaveSuccess: false,
       //表头的字段，以及自增长字段
@@ -178,21 +178,21 @@ export default {
             }
           ]
         },
-        {
-          fName: "fBoxNumUniName",
-          fUrl: "v_Unit",
-          fDes: "fUnitName",
-          fID: "fID",
-          fAuto: ["fOutboundBoxNumUnit"],
-          fAutoID: ["fOutboundBoxNumUnit"],
-          searchWhere: [
-            {
-              Computer: "=",
-              DataFile: "fUnitType",
-              Value: 10
-            }
-          ]
-        },
+        // {
+        //   fName: "fBoxNumUniName",
+        //   fUrl: "v_Unit",
+        //   fDes: "fUnitName",
+        //   fID: "fID",
+        //   fAuto: ["fOutboundBoxNumUnit"],
+        //   fAutoID: ["fOutboundBoxNumUnit"],
+        //   searchWhere: [
+        //     {
+        //       Computer: "=",
+        //       DataFile: "fUnitType",
+        //       Value: 10
+        //     }
+        //   ]
+        // },
         {
           fName: "fVolumetUnitName",
           fUrl: "v_Unit",
@@ -209,12 +209,19 @@ export default {
           ]
         },
         {
-          fName: "fItemStateName",
-          fUrl: "v_Type_OutboundItemState",
-          fDes: "fTypeName",
+          fName: "fWeightUnitName",
+          fUrl: "v_Unit",
+          fDes: "fUnitName",
           fID: "fID",
-          fAuto: ["fItemState"],
-          fAutoID: ["fItemState"]
+          fAuto: ["fWeightUnit"],
+          fAutoID: ["fWeightUnit"],
+          searchWhere: [
+            {
+              Computer: "=",
+              DataFile: "fUnitType",
+              Value: 9
+            }
+          ]
         },
         {
           fName: "fShopName",
@@ -235,7 +242,7 @@ export default {
       // key:需要做下拉框的字段名  fKey:需要装换的id值
       changeData: [
         { key: "fNumUnitName", fKey: "fOutboundNumUnit" },
-        { key: "fBoxNumUniName", fKey: "fOutboundBoxNumUnit" },
+        { key: "fWeightUnitName", fKey: "fWeightUnit" },
         { key: "fVolumetUnitName", fKey: "fVolumetUnit" }
       ]
     };

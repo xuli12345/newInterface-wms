@@ -44,6 +44,7 @@
             "
           >
             <el-select
+              filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -100,9 +101,16 @@
 import { creatRules, defaultForm, compare } from "@/utils/common";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData, getOrderNo } from "@/api/index";
-
+//fState :主表状态值
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "alertArr", "fCustomerID"],
+  props: [
+    "fTableViewHead",
+    "addItem",
+    "selectArr",
+    "alertArr",
+    "fCustomerID",
+    "StateObj"
+  ],
   data() {
     return {
       //表单域标签的位置
@@ -139,6 +147,11 @@ export default {
         this.tableHead = res.lstRet.sort(compare);
         this.ruleForm = defaultForm(this.tableHead);
         this.rules = creatRules(this.tableHead);
+        // console.log(this.StateObj,this.StateObj&&this.StateObj.length > 0)
+        if (this.StateObj && this.StateObj.length > 0) {//设置状态默认值
+          this.$set(this.ruleForm, this.StateObj[0].key, this.StateObj[0].val);
+          this.$set(this.ruleForm, this.StateObj[1].key, this.StateObj[1].val);
+        }
       } else {
         this.$message.error(res.Message);
       }
@@ -171,7 +184,7 @@ export default {
             JSON.parse(JSON.stringify(this.ruleForm)),
             this.fTableViewHead
           );
-          this.$refs[formName].resetFields();
+          this.ruleForm = {};
         } else {
           return false;
         }
@@ -179,7 +192,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm = {};
       this.$emit("closeBox");
     },
     getPartsValue() {
@@ -277,6 +290,7 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
+              this.ruleForm[n] = data[ele.fDes];
             } else {
               this.ruleForm[item] = data[item];
             }
@@ -295,25 +309,11 @@ export default {
     // 获取所有需要下拉选择的内容
     async getSelectData() {
       let arr = [];
-      let where = [];
-      if (this.fCustomerID) {
-        where = [
-          {
-            Computer: "=",
-            DataFile: "fCustomerID",
-            Value: this.fCustomerID
-          }
-        ];
-      }
+
       let searchWhere = [];
       for (let i = 0; i < this.selectArr.length; i++) {
         let res;
-        if (
-          this.selectArr[i].fName == "fProductName" ||
-          this.selectArr[i].fName == "fProductCode"
-        ) {
-          res = await getTableBodyData(this.selectArr[i].fUrl, where);
-        } else if (this.selectArr[i].searchWhere) {
+        if (this.selectArr[i].searchWhere) {
           searchWhere = this.selectArr[i].searchWhere;
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         } else {

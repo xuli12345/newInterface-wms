@@ -44,6 +44,7 @@
             "
           >
             <el-select
+             filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -99,6 +100,7 @@
 <script>
 import { creatRules, defaultForm, compare } from "@/utils/common";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
+import { timeCycle } from "@/utils/updateTime.js";
 import { getTableHeadData, getTableBodyData, getOrderNo } from "@/api/index";
 
 export default {
@@ -108,7 +110,10 @@ export default {
     "selectArr",
     "alertArr",
     "wharf",
-    "time"
+    "time",
+    "StartTime",
+    "EndTime",
+    "Dock"
   ],
   data() {
     return {
@@ -178,7 +183,7 @@ export default {
             JSON.parse(JSON.stringify(this.ruleForm)),
             this.fTableViewHead
           );
-          this.$refs[formName].resetFields();
+          this.ruleForm={};
         } else {
           return false;
         }
@@ -186,7 +191,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
     },
     getPartsValue() {
@@ -362,6 +367,12 @@ export default {
       }
 
       this.selectAllData = arr;
+    },
+    changeTime(val) {
+      let strTime = String(this.time);
+      strTime = strTime.substring(0, 15);
+      let curTime = strTime + " " + val + ":00 " + "GMT+0800 (中国标准时间)";
+      return curTime;
     }
   },
 
@@ -369,6 +380,14 @@ export default {
     ruleForm: function(val) {
       this.ruleForm.fID = 0;
       this.ruleForm.fBookDate = this.time;
+      this.ruleForm.fDockID = this.Dock.fID;
+      this.ruleForm.fDockName = this.Dock.fColumnDes;
+      let a = this.changeTime(this.StartTime);
+      let b = this.changeTime(this.EndTime);
+      var StartTime = timeCycle(a);
+      var EndTime = timeCycle(b);
+      this.ruleForm.fStartTime = StartTime;
+      this.ruleForm.fEndTime = EndTime;
     }
   }
 };

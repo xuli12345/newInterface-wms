@@ -1,21 +1,24 @@
 <template>
   <div ref="toPrint">
     <h1
-      style="font-size:20px;display: flex;  align-items: center;  justify-content: center;"
+      style="font-size:34px;display: flex;  align-items: center;  justify-content: center;"
     >
       {{ title[0] }}
     </h1>
     <h3
-      style="font-size:16px;margin-bottom:10px;display: flex;  align-items: center;  justify-content: center;"
+      style="font-size:24px;margin-bottom:10px;display: flex;  align-items: center;  justify-content: center;"
     >
       {{ title[1] }}
     </h3>
-    <p class="page" style="display: flex; justify-content: flex-end;">
+    <p
+      class="page"
+      style="font-size:22px;display: flex; justify-content: flex-end;"
+    >
       单据打印时间:{{ dataTime }}
     </p>
     <div v-for="(item, index) in tableData" :key="index">
       <div
-        style="margin-top:15px; margin-left:20px;display: flex;align-items: center;"
+        style="margin-top:15px; margin-left:20px;display: flex;align-items: center;font-size:22px"
       >
         <span style="flex:1"
           >{{ tableHeadData[1] }}:{{ item.fCustomerName }}</span
@@ -41,7 +44,7 @@
       </div>
 
       <el-table
-      :header-cell-style="{ background: '#eef1f6'}"
+        :header-cell-style="{ background: '#eef1f6' }"
         class="singleTable"
         ref="singleTable"
         border
@@ -57,26 +60,27 @@
               :label="item.fColumnDes"
               :prop="item.fColumn"
             >
-              <!-- <template slot-scope="scope">
+              <template slot-scope="scope">
                 <svg
+                  style="width:100%"
                   v-if="item.fColumn == 'fProductBarCode'"
                   :key="index"
                   class="barcode"
                   :jsbarcode-value="scope.row.fProductBarCode"
                   jsbarcode-textmargin="0"
-                  jsbarcode-height="20"
+                  jsbarcode-height="40"
                   jsbarcode-displayvalue="false"
                   jsbarcode-width="1"
                 ></svg>
                 <div v-else>{{ scope.row[item.fColumn] }}</div>
-              </template> -->
+              </template>
             </el-table-column>
           </template>
         </template>
       </el-table>
     </div>
     <div
-      style="margin-top:15px; margin-left:20px;width:100%; display:flex;font-size:12px"
+      style="margin-top:15px; margin-left:20px;width:100%; display:flex;font-size:22px"
     >
       <span style="flex:1;">车牌号</span>
       <span style="flex:1;">开始时间:</span>
@@ -85,7 +89,7 @@
       <span style="flex:1;">实收木板&nbsp;&nbsp;&nbsp;&nbsp;块</span>
     </div>
     <div
-      style="margin-top:15px; margin-left:20px;width:100%; display:flex;font-size:12px"
+      style="margin-top:15px; margin-left:20px;width:100%; display:flex;font-size:22px"
     >
       <span style="flex:1">仓库主管签名:</span>
       <span style="flex:1">产品温度:</span>

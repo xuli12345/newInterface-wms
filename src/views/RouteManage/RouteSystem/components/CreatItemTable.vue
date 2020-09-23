@@ -32,6 +32,7 @@
     <child-table
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
+      ref="childTable"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-dialog
@@ -49,8 +50,7 @@
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
-import { collectionData, getTableHeadData } from "@/api/index";
-import { compare } from "@/utils/common";
+import { collectionData } from "@/api/index";
 import ChildFormHead from "@/components/ChildFormHead";
 import ChildTable from "@/components/ChildTable";
 import AlertTable from "./AlertTable";
@@ -66,18 +66,16 @@ export default {
       tableData: [],
       openTitle: "选择门店",
       dialogFormVisible: false,
-      //form表单数据
-      tableHeadData: [],
-      //表格表头
-      tableHead: [],
       userDes: this.$store.state.user.userInfo.userDes
     };
   },
   methods: {
     submitForm(formName) {
       let formData = this.$refs.ruleForm.ruleForm;
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       let fMstID = this.$store.state.common.changeValue;
-      console.log(fMstID);
+      // console.log(fMstID);
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           formData.fMstID = fMstID;
@@ -85,7 +83,7 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             }
           ]);
           let res2 = JSON.parse(decryptDesCbc(res, String(this.userDes)));
@@ -97,7 +95,7 @@ export default {
               {
                 TableName: this.fTableViewItem[0],
                 insertData: this.tableData,
-                headData: this.tableHead
+                headData: childTableData
               }
             ]);
             res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
@@ -119,30 +117,6 @@ export default {
     resetForm(formName) {
       this.$emit("closeBox");
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log("res1", res);
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-      if (res.State) {
-        // console.log(res);
-        this.tableHead = res.lstRet.sort(compare);
-        console.log(this.tableHead, "表格表头");
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //新增按钮
     addPopRight() {
       this.dialogFormVisible = true;
@@ -155,15 +129,10 @@ export default {
           this.$set(item, "fShopID", item.fID);
           this.$set(item, "fSort", this.tableData.length + 1);
         });
-
         this.tableData = [...this.tableData, ...value];
       }
       this.dialogFormVisible = false;
     }
-  },
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
   }
 };
 </script>

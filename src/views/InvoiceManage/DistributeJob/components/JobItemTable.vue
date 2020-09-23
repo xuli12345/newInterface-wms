@@ -31,6 +31,13 @@
           :disabled="userLimit('fQurey')"
           >查询</el-button
         >
+         <el-button
+          type="primary"
+          size="mini"
+          class="iconfont icon-A"
+          @click="confrim"   
+          >确定</el-button
+        >
       </div>
     </div>
     <el-table
@@ -321,6 +328,9 @@ export default {
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       return userLimit(val);
+    },
+    confrim(){
+      this.$emit("closeDrawer")
     }
   },
   watch: {
@@ -334,7 +344,7 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableData();
-    console.log(this.ItmeOrderNO);
+    
   }
 };
 </script>

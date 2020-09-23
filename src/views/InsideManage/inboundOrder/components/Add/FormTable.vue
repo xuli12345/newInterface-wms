@@ -54,6 +54,7 @@
     ></child-form-head>
     <!-- 表格 -->
     <child-table
+      ref="childTable"
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
     ></child-table>
@@ -82,7 +83,7 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { userLimit, compare } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
+import { collectionData, imPortExcel, getTableBodyData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./ChildFormHead";
 import ChildTable from "./ChildTable";
@@ -103,13 +104,10 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格数据
       tableData: [],
-      //表格数据表头
-      tableHead: [],
       //excel
       fileTemp: null,
       file: null,
@@ -126,54 +124,31 @@ export default {
     userLimit(val) {
       return userLimit(val);
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      // console.log(this.fTableViewHead)
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        // this.fTableView = res.fTableViewData;
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
+
     //保存
     submitForm() {
       let formData = this.$refs.ruleForm.ruleForm;
-      // console.log(formData)
+      let formHeadData = this.$refs.ruleForm.tableHead; //form表头数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           let res = await collectionData([
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
               TableName: this.fTableViewItem[0],
               insertData: this.tableData,
-              headData: this.tableHead,
+              headData: childTableData,
               IdentityColumn: this.fTableViewItem[1]
             }
           ]);
-          //   console.log(res)
+
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-          console.log(res);
+          // console.log(res);
           if (res.State === true) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
@@ -204,12 +179,30 @@ export default {
       this.drawer = false;
     },
     //关闭字表新增弹窗
-    closeItemBox(value) {
+    async closeItemBox(value) {
       if (value) {
+        console.log(value,"22e3i")
+        let where = [
+          {
+            Computer: "=",
+            DataFile: "fID",
+            Value: value.fProductID
+          }
+        ];
+        let res = await getTableBodyData("v_Product", where);
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+        if (res.State) {
+          let data = JSON.parse(res.Data);
+          data.forEach(element => {
+            this.$set(value, "fProductCode", element.fProductCode);
+            this.$set(value, "fProductName", element.fProductName);
+          });
+          this.tableData.unshift(value);
+        }
         let Amount = 0;
         let Qtystr = 0;
         let num = 0;
-        this.tableData.unshift(value);
         this.tableData.forEach(item => {
           Amount += Number(item.fAmount);
           Qtystr += Number(item.fQtystr);
@@ -272,16 +265,6 @@ export default {
         let num = 0;
 
         this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
           Amount += Number(element.fAmount);
           Qtystr += Number(element.fQtystr);
           num += Number(element.fInboundNum);
@@ -293,11 +276,6 @@ export default {
         this.$message.error(res.message);
       }
     }
-  },
-
-  created() {
-    this.getTableHeadData();
-    this.getTableHead();
   }
 };
 </script>

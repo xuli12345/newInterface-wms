@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -27,27 +27,8 @@
               @change="changeA(scope.row, item.fColumn)"
               v-if="item.fDataType == 'bit'"
               :value="scope.row[item.fColumn] == 0 ? false : true"
-            :disabled="isDisabled"
+              :disabled="isDisabled"
             ></el-checkbox>
-            <el-select
-              @change="
-                selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
-              "
-              v-else-if="
-                item.fColumn == 'fNumUnitName' ||
-                  item.fColumn == 'fBoxNumUniName'
-              "
-              v-model="scope.row[item.fColumn]"
-              placeholder="请选择"
-            :disabled="isDisabled"
-            >
-              <el-option
-                v-for="optionItem in selectOptions"
-                :key="optionItem.value"
-                :label="optionItem.label"
-                :value="optionItem.value"
-              ></el-option>
-            </el-select>
 
             <el-input
               v-else
@@ -59,11 +40,10 @@
         </el-table-column>
       </template>
       <el-table-column fixed="right" label="操作" align="center" width="120">
-      
         <template slot-scope="scope">
           <div class="operation">
             <el-button
-            :disabled="isDisabled"
+              :disabled="isDisabled"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
@@ -93,7 +73,7 @@ import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 export default {
-  props: ["fTableView", "insertData", "fID", "changeData","isDisabled"],
+  props: ["fTableView", "insertData", "fID", "changeData", "isDisabled"],
   data() {
     return {
       tableHeadData: [], //表头数据
@@ -161,9 +141,7 @@ export default {
     //获取表格表头数据
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       //   console.log(res);
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
@@ -184,9 +162,7 @@ export default {
         }
       ];
       let res = await getTableBodyData(this.fTableViewll, searchWhereObj);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         //原来的数据
@@ -198,9 +174,9 @@ export default {
             }
           }
         });
-       
+
         this.backData = JSON.parse(JSON.stringify(this.tableData));
-         console.log(this.backData,"回显的数据");
+        console.log(this.backData, "回显的数据");
         this.total = this.tableData.length;
       } else {
         this.$message.error(res.Message);
@@ -208,7 +184,6 @@ export default {
     },
     //下拉选择框
     selectDataType(row, val, key) {
-   
       this.changeData.forEach(item => {
         if (item.key == key) {
           row[item.fKey] = val;
@@ -218,34 +193,6 @@ export default {
 
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
-    },
-    //获取类型
-    async getType(fTableView, fColumnType,value) {
-      let res = await getTableBodyData(fTableView,[
-        {
-          Computer: "=",
-          DataFile: "fUnitType",
-          Value: value
-        }
-      ]);
-
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-      if (res.State) {
-        let result = JSON.parse(res.Data);
-        let arr = [];
-        result.forEach(element => {
-          let obj = {
-            value: element.fID,
-            label: element.fUnitName
-          };
-          arr.push(obj);
-        });
-
-        this.selectOptions = [...this.selData, ...arr];
-        // console.log(this.selectOptions);
-      }
     }
   },
   watch: {
@@ -255,11 +202,8 @@ export default {
       this.total = this.tableData.length;
     }
   },
-
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName",10);
-    this.getType("v_Unit", "fBoxNumUniName",10);
   }
 };
 </script>

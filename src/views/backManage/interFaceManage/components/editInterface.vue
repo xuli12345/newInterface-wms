@@ -366,7 +366,7 @@ export default {
           if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(this.editForm)));
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
             this.updateRow = [];
           } else {
             this.$message.error(res.Message);

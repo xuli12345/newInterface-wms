@@ -1,10 +1,9 @@
 <template>
   <div ref="toPrint">
     <div
-      :span="8"
       v-for="(item, index) in tableData"
       :key="index"
-      style="text-align: center;margin:15px 0"
+      style="text-align: center;"
     >
       <div>库位标签</div>
       <svg
@@ -31,6 +30,7 @@ export default {
 
   mounted() {
     this.tableData = this.dataCode;
+    // console.log(this.tableData)
     setTimeout(() => {
       JsBarcode(".barcode").init();
     }, 250);

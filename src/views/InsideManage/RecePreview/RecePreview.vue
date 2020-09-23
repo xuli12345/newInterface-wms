@@ -96,8 +96,16 @@ export default {
           fUrl: "v_InboundOrder_Mst",
           fDes: "fInboundOrderNo",
           fID: "fID",
-        //   fAuto: ["fInboundOrdeType"],
-        //   fAutoID: ["fInboundOrdeType"]
+          fAuto: ["fSupplierID", "fSupplierName"],
+          fAutoID: ["fSupplierID"],
+          searchWhere: [
+            //已预约
+            {
+              Computer: "=",
+              DataFile: "fMstState",
+              Value: 12
+            }
+          ]
         },
         {
           fName: "fDockName",
@@ -107,14 +115,14 @@ export default {
           fAuto: ["fDockID"],
           fAutoID: ["fDockID"]
         },
-        {
-          fName: "fSupplierName",
-          fUrl: "v_Supplier",
-          fDes: "fSupplierName",
-          fID: "fID",
-          fAuto: ["fSupplierID"],
-          fAutoID: ["fSupplierID"]
-        },
+        // {
+        //   fName: "fSupplierName",
+        //   fUrl: "v_Supplier",
+        //   fDes: "fSupplierName",
+        //   fID: "fID",
+        //   fAuto: ["fSupplierID"],
+        //   fAutoID: ["fSupplierID"]
+        // },
         {
           fName: "fPalletTypeName",
           fUrl: "v_Container",

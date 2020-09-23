@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -28,25 +28,6 @@
               :value="scope.row[item.fColumn] == 0 ? false : true"
               :disabled="isDisabled"
             ></el-checkbox>
-            <el-select
-              @change="
-                selectDataType(scope.row, scope.row[item.fColumn], item.fColumn)
-              "
-              v-else-if="
-                item.fColumn == 'fNumUnitName' ||
-                  item.fColumn == 'fBoxNumUniName'
-              "
-              v-model="scope.row[item.fColumn]"
-              placeholder="请选择"
-              :disabled="isDisabled"
-            >
-              <el-option
-                v-for="optionItem in selectOptions"
-                :key="optionItem.value"
-                :label="optionItem.label"
-                :value="optionItem.value"
-              ></el-option>
-            </el-select>
 
             <el-input
               v-else
@@ -61,7 +42,7 @@
         <template slot-scope="scope">
           <div class="operation">
             <el-button
-            :disabled="isDisabled"
+              :disabled="isDisabled"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
@@ -188,16 +169,6 @@ export default {
         this.tableData = this.tableData.sort(compare);
         this.tableData.forEach((element, index) => {
           this.$set(element, "fSort", index + 1);
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
         });
 
         this.backData = JSON.parse(JSON.stringify(this.tableData));
@@ -218,38 +189,12 @@ export default {
 
     handleDelete(val, index) {
       this.tableData.splice(index, 1);
-    },
-    //获取类型
-    async getType(fTableView, fColumnType, value) {
-      let res = await getTableBodyData(fTableView, [
-        {
-          Computer: "=",
-          DataFile: "fUnitType",
-          Value: value
-        }
-      ]);
-
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      if (res.State) {
-        let result = JSON.parse(res.Data);
-        let arr = [];
-        result.forEach(element => {
-          let obj = {
-            value: element.fID,
-            label: element.fUnitName
-          };
-          arr.push(obj);
-        });
-
-        this.selectOptions = [...this.selData, ...arr];
-      }
     }
   },
   watch: {
     insertData(n, o) {
       if (Array.isArray(this.insertData)) {
         let iData = JSON.parse(JSON.stringify(this.insertData));
-
         iData.forEach((item, index) => {
           this.$set(item, "fSort", this.tableData.length + index + 1);
           this.$set(item, this.fTableView[1], this.fID);
@@ -262,14 +207,11 @@ export default {
         );
       }
       this.total = this.tableData.length;
-      // console.log(this.tableData,"eieo")
     }
   },
 
   created() {
     this.getTableHeadData();
-    this.getType("v_Unit", "fNumUnitName", 10);
-    this.getType("v_Unit", "fBoxNumUniName", 10);
   }
 };
 </script>

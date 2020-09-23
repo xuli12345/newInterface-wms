@@ -7,6 +7,13 @@
       <el-button size="mini" @click="resetForm('ruleForm')">
         <i class="iconfont icon-quxiao"></i>取消</el-button
       >
+      <el-button
+        type="primary"
+        size="mini"
+        @click="entryPrint"
+        class="iconfont icon-dayin1"
+        >录入打印容器号</el-button
+      >
     </div>
 
     <el-form
@@ -71,10 +78,36 @@
             v-else
             v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
+          
           ></el-input>
         </el-form-item>
       </template>
     </el-form>
+    <!-- dailog -->
+    <el-dialog
+      title="打印容器号"
+      append-to-body
+      :visible.sync="dialogVisible"
+      width="30%"
+      :before-close="handleClose"
+    >
+      <el-input v-model="inputValue" placeholder="请输入内容"></el-input>
+      <span slot="footer" class="dialog-footer">
+        <el-button size="mini" @click="dialogVisible = false">取 消</el-button>
+        <el-button size="mini" type="primary" @click="printCon()"
+          >确 定</el-button
+        >
+      </span>
+    </el-dialog>
+    <!-- 打印格式内容 -->
+    <div style="width:0;height:0;overflow:hidden">
+      <print-container
+        v-if="isRender"
+        ref="Print"
+        id="toPrint"
+        :tableData="tableData"
+      ></print-container>
+    </div>
   </div>
 </template>
 <script>
@@ -86,11 +119,18 @@ import {
   getTableBodyData
 } from "@/api/index";
 import { addParams, creatRules, defaultForm } from "@/utils/common";
-
+import printContainer from "./printContainer";
+import PrintJS from "print-js";
 export default {
+  components: {
+    printContainer
+  },
   data() {
     return {
-      selectedOptions: [],
+      dialogVisible: false,
+      isRender: false,
+      tableData: [],
+      inputValue: "",
       //表单数据
       ruleForm: {},
       rules: {},
@@ -150,7 +190,7 @@ export default {
           if (res.State) {
             let tableData = JSON.parse(res.Data);
             this.$emit("closeBox", res.State, tableData);
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
             this.ruleForm = defaultForm(this.tableHead);
           } else {
             this.$message.error(res.errstr);
@@ -161,8 +201,36 @@ export default {
       });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
+    },
+   
+    //手工
+    entryPrint() {
+      this.dialogVisible = true;
+    },
+    handleClose(done) {
+      this.dialogVisible = false;
+    },
+    printCon() {
+      if (!this.inputValue) {
+        this.$message.warning("请输入打印的容器编码!");
+      } else {
+        this.tableData = [{ fContainerCode: this.inputValue }];
+        console.log(this.tableData);
+        this.isRender = true;
+        setTimeout(() => {
+          PrintJS({
+            printable: "toPrint",
+            type: "html",
+            scanStyles: false,
+            css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+          });
+        }, 500);
+        setTimeout(() => {
+          this.isRender = false;
+        }, 600);
+      }
     },
     // 获取所有需要下拉选择的内容
     async getSelectData() {

@@ -33,7 +33,7 @@
     >
       <CreatItemTable
         @closeBox="closeBox"
-        :selectArr="selectArr"
+        :selectArr="selectArr2"
         :fTableViewItem="fTableViewItem"
         :fTableViewHead="fTableViewHead"
       ></CreatItemTable>
@@ -47,7 +47,7 @@
     >
       <EditItemTable
         @closeBox="closeEditBox"
-        :selectArr="selectArr"
+        :selectArr="selectArr2"
         :fTableViewItem="fTableViewItem"
         :fTableViewHead="fTableViewHead"
         :rowData="editForm"
@@ -115,13 +115,20 @@ export default {
       fTableViewHead: ["t_Route_System_Item", "fMstID"],
       fTableViewItem: ["t_Route_System_ShopItem", "fSystemItemID"],
       fTableViewHeadRoute: ["t_Route_VehicleItem", "fVehicleID"],
-
       userDes: this.$store.state.user.userInfo.userDes,
       selectArr: [
+        // {
+        //   fName: "fCustomerName",
+        //   fUrl: "v_Customer",
+        //   fDes: "fCustomerName",
+        //   fID: "fID",
+        //   fAuto: ["fCustomerID"],
+        //   fAutoID: ["fCustomerID"]
+        // },
         {
           fName: "fCustomerName",
-          fUrl: "v_Customer",
-          fDes: "fCustomerName",
+          fUrl: "v_Consignor",
+          fDes: "fConsignorName",
           fID: "fID",
           fAuto: ["fCustomerID"],
           fAutoID: ["fCustomerID"]
@@ -135,14 +142,17 @@ export default {
           fAuto: ["fLoadGradeID"],
           fAutoID: ["fLoadGradeID"]
         },
+        // v_Type_Route_System
         {
-          fName: "fRouteTypeName",
-          fUrl: "v_Type_Route_System",
+          fName: "fRouteTypeName", 
+          fUrl: "v_Type_Route_Point",
           fDes: "fTypeName",
           fID: "fID",
           fAuto: ["fRouteType"],
           fAutoID: ["fRouteType"]
-        },
+        }
+      ],
+      selectArr2: [
         {
           fName: "fPickSort",
           fUrl: "v_Type_PickSort",

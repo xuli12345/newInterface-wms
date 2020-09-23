@@ -141,7 +141,7 @@
           size="mini"
           class="el-icon-circle-close"
           @click="colseOrder"
-           :disabled="userLimit('fClose')"
+          :disabled="userLimit('fClose')"
           >关闭</el-button
         >
         <el-button
@@ -156,7 +156,7 @@
       </div>
     </div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
       border
@@ -801,6 +801,7 @@ export default {
     },
     //有从表数据的删除
     haveItemDelete(row, index) {
+      // console.log(row)
       let RowData = JSON.parse(JSON.stringify(row));
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -811,8 +812,12 @@ export default {
           let objectArr = [];
           let obj = [
             {
-              Key: "fID",
-              Value: RowData.fID
+              Key: "fIP",
+              Value: RowData.fIP
+            },
+            {
+              Key: "fPort",
+              Value: RowData.fPort
             }
           ];
           objectArr.push(obj);

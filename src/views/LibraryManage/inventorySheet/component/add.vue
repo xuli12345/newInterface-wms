@@ -30,6 +30,7 @@
     <child-table
       :fTableView="fTableViewItem[0]"
       :tableData="tableData"
+      ref="childTable"
     ></child-table>
     <!-- 新增字表数据 -->
     <el-dialog
@@ -72,39 +73,23 @@ export default {
   },
   data() {
     return {
-      tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
+      //表格头部
+      tableHead: [],
       //表格数据
       tableData: [],
-      //表格数据表头
-      tableHead: [],
       dialogFormVisible: false,
       openTitle: "选择货品",
       insertData: []
     };
   },
   methods: {
-    //获取form表单数据
-    async getTableHeadData() {
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-        console.log('res1',res)
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
     //获取表格的表头
     async getTableHead() {
       let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
-        console.log('res2',res);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      //   console.log(res);
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
       } else {
@@ -113,6 +98,7 @@ export default {
     },
     //保存
     submitForm() {
+      let formHeadData = this.$refs.ruleForm.tableHead; //form表头数据
       let formData = this.$refs.ruleForm.ruleForm;
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
@@ -120,7 +106,7 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               insertData: [formData],
-              headData: this.tableHeadData,
+              headData: formHeadData,
               IdentityColumn: this.fTableViewHead[1]
             },
             {
@@ -130,10 +116,8 @@ export default {
               IdentityColumn: this.fTableViewItem[1]
             }
           ]);
-          res = JSON.parse(
-            decryptDesCbc(res, String(this.userDes))
-          );
-          if (res.State === true) {
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          if (res.State ) {
             this.$message.success("新增成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -178,10 +162,7 @@ export default {
       this.dialogFormVisible = false;
     }
   },
-
-
   created() {
-    this.getTableHeadData();
     this.getTableHead();
   }
 };

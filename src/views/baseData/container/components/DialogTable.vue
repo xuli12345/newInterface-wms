@@ -1,17 +1,24 @@
 <template>
   <div>
     <div class="flex" style="margin-bottom:10px">
+      <!-- <el-button
+        type="primary"
+        class="iconfont icon-dayin1"
+        size="mini"
+        v-print="'#toPrint'"
+        >打印</el-button
+      > -->
       <el-button
         type="primary"
         class="iconfont icon-dayin1"
         size="mini"
-        v-print="'#Print'"
+        @click="printCon()"
         >打印</el-button
       >
     </div>
 
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -62,11 +69,12 @@
     </div>
     <!-- 打印格式内容 -->
     <div style="width:0;height:0;overflow:hidden">
-      <print-container
-        ref="Print"
-        id="Print"
-        :tableData="tableData"
-      ></print-container>
+    <print-container
+      v-if="isRender"
+      ref="Print"
+      id="toPrint"
+      :tableData="tableData"
+    ></print-container>
     </div>
   </div>
 </template>
@@ -76,6 +84,7 @@ import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 import printContainer from "./printContainer";
+import PrintJS from "print-js";
 export default {
   props: ["fTableView", "tableData"],
   components: {
@@ -93,10 +102,25 @@ export default {
       //权限表修改的数据
       userDes: this.$store.state.user.userInfo.userDes,
       //获取表格数据的fTableView
-      fTableViewll: ""
+      fTableViewll: "",
+      isRender: false
     };
   },
   methods: {
+    printCon() {
+      this.isRender = true;
+      setTimeout(() => {
+        PrintJS({
+          printable: "toPrint",
+          type: "html",
+          scanStyles: false,
+          css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+        });
+      }, 500);
+      setTimeout(() => {
+        this.isRender = false;
+      }, 600);
+    },
     // 页容量
     handleSizeChange(val) {
       this.pageSize = val;
@@ -140,9 +164,7 @@ export default {
     //获取表格表头数据
     async getHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.fTableViewll = res.fTableViewData;
@@ -158,13 +180,7 @@ export default {
       this.total = this.tableData.length;
     }
   },
- computed: {
-    sidebarLayoutSkin: {
-      get() {
-        return this.$store.state.common.sidebarLayoutSkin;
-      }
-    }
-  },
+
   created() {
     this.getHeadData();
   }

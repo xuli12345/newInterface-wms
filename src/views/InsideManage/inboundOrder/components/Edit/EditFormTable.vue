@@ -74,13 +74,13 @@
       :changeData="changeData"
       @getAmount="getAmount"
     ></child-table>
-    <!-- 新增字表数据 -->
+    <!-- 新增字表数据  -->
     <el-drawer
+      v-if="addItem"
       :append-to-body="true"
       :visible.sync="drawer"
       direction="rtl"
       :before-close="handleClose"
-      v-if="addItem"
     >
       <child-form-head
         @closeBox="closeItemBox"
@@ -88,7 +88,7 @@
         ref="ItemRuleForm"
         :addItem="addItem"
         :selectArr="selectArr2"
-        :fCustomerID="rowData.fCustomerID"
+        :fCustomerID="fCustomerID"
       ></child-form-head>
     </el-drawer>
   </div>
@@ -98,7 +98,7 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare, handelData } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
+import { collectionData, imPortExcel, getTableBodyData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "./EditChildFormHead";
 import ChildTable from "./EditChildTable";
@@ -119,19 +119,16 @@ export default {
   },
   data() {
     return {
-      //   fTableView: "",
-      tableHeadData: [],
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
       //表格添加的数据
       insertData: {},
-      //表格数据表头
-      tableHead: [],
       //
       isDisabled: false,
       totalAmount: 0,
       totalQtystr: 0,
-      totalNum: 0
+      totalNum: 0,
+      fCustomerID: null
     };
   },
   methods: {
@@ -140,37 +137,14 @@ export default {
       this.totalQtystr = value[1];
       this.totalNum = value[2];
     },
-    //获取form表单数据
-    async getTableHeadData() {
-      // console.log(this.fTableViewHead)
-      let res = await getTableHeadData(this.fTableViewHead[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res)
-      if (res.State) {
-        this.tableHeadData = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-    //获取表格的表头，保存的时候需要用到
-    async getTableHead() {
-      let res = await getTableHeadData(this.fTableViewItem[0]);
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      //   console.log(res);
-      if (res.State) {
-        this.tableHead = res.lstRet.sort(compare);
-      } else {
-        this.$message.error(res.Message);
-      }
-    },
-
     //保存
     submitForm() {
+      let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
+      let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
       let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
-      // console.log(formData, "xuli");
       let Amount = 0;
       let Qtystr = 0;
       let num = 0;
@@ -191,14 +165,14 @@ export default {
             {
               TableName: this.fTableViewHead[0],
               updateData: [formData],
-              headData: this.tableHeadData
+              headData: formHeadData
             },
             {
               TableName: this.fTableViewItem[0],
               updateData: updateArr,
               insertData: insertArr,
               deleteData: deletedArr,
-              headData: this.tableHead
+              headData: childTableData
             }
           ]);
           //   console.log(res)
@@ -221,17 +195,38 @@ export default {
     },
     //新增按钮
     addPopRight() {
-      this.drawer = true;
+      let formData = this.$refs.ruleForm.ruleForm;
+      if (formData.fCustomerName) {
+        this.fCustomerID = formData.fCustomerID;
+        this.drawer = true;
+      }
     },
     //点击x关闭弹窗
     handleClose(done) {
       this.drawer = false;
     },
     //关闭字表新增弹窗
-    closeItemBox(value) {
+    async closeItemBox(value) {
+    
       if (value) {
-        this.insertData = value;
+          let where = [
+        {
+          Computer: "=",
+          DataFile: "fID",
+          Value: value.fProductID
+        }
+      ];
+      let res = await getTableBodyData("v_Product", where);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
+      if (res.State) {
+        let data = JSON.parse(res.Data);
+        data.forEach(element => {
+          this.$set(value, "fProductCode", element.fProductCode);
+          this.$set(value, "fProductName", element.fProductName);
+        });
+        this.insertData = value;
+      }
         if (value.fQtystr == undefined) {
           this.$set(value, "fQtystr", 0);
         }
@@ -284,21 +279,13 @@ export default {
 
       if (res.state) {
         this.$message.success("导入成功!");
-        let tableData = JSON.parse(res.resultString).sort(compare);
+        let tableData = JSON.parse(res.resultString);
         let Amount = 0;
         let Qtystr = 0;
         let num = 0;
+
         tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
+          this.$set(element, "fMstID", this.rowData.fID);
           Amount += Number(element.fAmount);
           Qtystr += Number(element.fQtystr);
           num += Number(element.fInboundNum);
@@ -314,8 +301,7 @@ export default {
   },
 
   created() {
-    this.getTableHeadData();
-    this.getTableHead();
+    this.fCustomerID = this.rowData.fCustomerID;
     if (this.rowData.fMstState && this.rowData.fMstState == 7) {
       this.isDisabled = true;
     }

@@ -61,6 +61,12 @@
             v-model="ruleForm[item.fColumn]"
             :disabled="item.fReadOnly == 0 ? false : true"
           ></el-checkbox>
+           <el-input
+            v-else-if="item.fDataType == 'decimal'"
+            v-model="ruleForm[item.fColumn]"
+            :disabled="item.fReadOnly == 0 ? false : true"
+            @change="computeValue(item.fColumn)"
+          ></el-input>
           <el-input
             @change="changePassword(ruleForm[item.fColumn])"
             v-else-if="item.fColumn == 'fPassWord'"
@@ -132,6 +138,8 @@ export default {
             let value = this.ruleForm["fPickingPlace"];
             value = value.join(",");
             this.$set(this.ruleForm, "fPickingPlace", value);
+          }else {
+            this.$set(this.ruleForm, "fPickingPlace", null);
           }
           let res = await collectionData([
             {
@@ -144,7 +152,7 @@ export default {
           if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", res.State);
-            this.$refs[formName].resetFields();
+            this.ruleForm={};
           } else {
             this.$message.error(res.Message);
           }
@@ -154,8 +162,28 @@ export default {
       });
     },
     resetForm(formName) {
-      this.$refs[formName].resetFields();
+      this.ruleForm={};
       this.$emit("closeBox");
+    },
+     computeValue(val) {
+      //fContainerLength fContainerWidth fContainerHigh fContainerVolumet
+      let length = 0;
+      let Width = 0;
+      let height = 0;
+     
+      if (this.ruleForm.fContainerLength) {
+        length = this.ruleForm.fContainerLength;
+      } 
+       if (this.ruleForm.fContainerWidth) {
+        Width = this.ruleForm.fContainerWidth;
+      } 
+       if (this.ruleForm.fContainerHigh) {
+        height = this.ruleForm.fContainerHigh;
+      }
+
+      let value = length * Width * height;
+      this.$set(this.ruleForm, "fContainerVolumet", value);
+     
     },
     // 获取所有需要下拉选择的内容
     async getSelectData() {
@@ -269,6 +297,7 @@ export default {
   created() {
     this.rules = creatRules(this.tableHead);
     this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
+    this.computeValue();
     if (
       "fPickingPlace" in this.ruleForm &&
       this.ruleForm["fPickingPlace"] != ""
@@ -343,6 +372,7 @@ export default {
           this.$set(this.ruleForm, element.fColumn, false);
         }
       });
+      
     }
   }
 };

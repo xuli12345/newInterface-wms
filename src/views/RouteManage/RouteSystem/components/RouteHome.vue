@@ -134,7 +134,6 @@ export default {
     },
     //新增线路体系
     handleAdd() {
-     
       this.dialogFormVisible = true;
       this.isSaveSuccess = false;
     },
@@ -229,7 +228,7 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableHeadData = res.lstRet.sort(compare);
-        // console.log(this.tableHeadData, "表头");
+        console.log(this.tableHeadData, "表头");
       } else {
         this.$message.error(res.Message);
       }
@@ -241,15 +240,15 @@ export default {
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         let result = JSON.parse(res.Data);
+        console.log(result, "主体数据");
         return result;
-        // console.log(this.selectOpts, "主体数据");
       }
     }
   },
   async created() {
     this.getTableHeadData();
     this.selectOpts = await this.getMstData();
-
+    console.log(this.selectOpts, "234");
   }
 };
 </script>
