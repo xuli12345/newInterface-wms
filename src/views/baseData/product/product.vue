@@ -4,14 +4,12 @@
       :fTableView="fTableView"
       :tableName="'t_Product'"
       :isSaveSuccess="isSaveSuccess"
-      :product="true"
       @openDrawer="openDrawer"
       @openEditDrawer="openEditDrawer"
       @openBarCode="openBarCode"
       @openCarton="openCarton"
       @openSeq="openSeq"
       :strType="'Goods'"
-      :isDownLoad='true'
     ></HomeTable>
 
     <!-- 新增侧滑框  v-if="newisDestory" -->
@@ -76,7 +74,7 @@
   </div>
 </template>
 <script>
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "./components/HomeTable";
 import CreatFrom from "@/components/CreatFrom";
 import editCreatFrom from "@/components/editCreatFrom";
 import ProductBarCode from "./components/ProductBarCode";

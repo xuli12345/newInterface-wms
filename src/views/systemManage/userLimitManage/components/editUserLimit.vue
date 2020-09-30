@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -65,6 +66,7 @@
           :data="secondtableData"
           class="table-wrapper"
           ref="secondTable"
+           :max-height="tableHeight"
           border
           :row-key="getSecondRowKeys"
           style="width: 60%;"
@@ -91,6 +93,7 @@
         <el-table
           class="table-wrapper"
           ref="singleTable"
+           :max-height="tableHeight"
           :data="tableData"
           :row-key="getRowKeys"
           border
@@ -255,6 +258,7 @@ export default {
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       radio: "",
       active: -1,
 

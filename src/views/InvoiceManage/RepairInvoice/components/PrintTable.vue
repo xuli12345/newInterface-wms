@@ -1,21 +1,21 @@
 <template>
   <div ref="toPrint">
     <h1
-      style="font-size:20px;display: flex;  align-items: center;  justify-content: center;"
+      style="font-size:34px;display: flex;  align-items: center;  justify-content: center;"
     >
       {{ title[0] }}
     </h1>
     <h3
-      style="font-size:16px;margin-bottom:10px;display: flex;  align-items: center;  justify-content: center;"
+      style="font-size:24px;margin-bottom:10px;display: flex;  align-items: center;  justify-content: center;"
     >
       {{ title[1] }}
     </h3>
-    <p class="page" style="display: flex; justify-content: flex-end;">
+    <p class="page" style="display: flex; justify-content: flex-end;font-size:22px;">
       单据打印时间:{{ dataTime }}
     </p>
     <div v-for="(item, index) in tableData" :key="index">
       <div
-        style="margin-top:15px; margin-left:20px;display: flex;align-items: center;"
+        style="margin-top:15px; margin-left:20px;display: flex;align-items: center;font-size:22px;"
       >
         <span style="flex:1">{{ tableHeadData[2] }}:{{ item.fQty }}</span>
         <span style="flex:1">{{ tableHeadData[3] }}:{{ item.fStateName }}</span>
@@ -27,7 +27,7 @@
             :jsbarcode-value="item.fOrderNo"
             jsbarcode-textmargin="0"
             jsbarcode-height="50"
-            jsbarcode-displayvalue="false"
+            jsbarcode-displayvalue="true"
           ></svg
         ></span>
       </div>

@@ -15,7 +15,7 @@
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -86,6 +86,15 @@
           :disabled="userLimit('fPrint')"
           >打印</el-button
         >
+        <!-- @click="printCon()" -->
+        <el-button
+          type="primary"
+          size="mini"
+          class="iconfont icon-dayin1"
+          @click="printRepair()"
+          :disabled="userLimit('fPrint')"
+          >打印补货标签</el-button
+        >
 
         <el-button
           v-if="isCheck"
@@ -114,58 +123,13 @@
           :disabled="userLimit('fApp')"
           >入库完成</el-button
         >
-        <el-button
-          v-if="importExcel"
-          type="primary"
-          size="mini"
-          class="iconfont icon-export"
-          @click="handerExport"
-          :disabled="userLimit('fExport')"
-          >导出</el-button
-        >
-        <el-button
-          v-if="Invalid"
-          type="primary"
-          size="mini"
-          class="iconfont icon-jurassic_cancle-pandian"
-          @click="handerInvalid"
-          >作废</el-button
-        >
-        <el-button
-          v-if="isDownLoad"
-          type="primary"
-          class="el-icon-bottom"
-          @click="downloadTemp"
-          size="mini"
-          >下载模板</el-button
-        >
-        <el-upload
-          v-if="isDownLoad"
-          style="margin-left:15px;float:right"
-          ref="upload"
-          class="upload"
-          action=""
-          :on-change="handleChange"
-          :on-remove="handleRemove"
-          :auto-upload="false"
-          :show-file-list="false"
-          accept="application/vnd.openxmlformats-    
-        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-        >
-          <el-button
-            type="primary"
-            class="iconfont icon-excel"
-            size="mini"
-            :disabled="userLimit('fInport')"
-            >导入excel</el-button
-          >
-        </el-upload>
       </div>
     </div>
     <el-table
       :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%"
       :row-key="getRowKeys"
@@ -288,6 +252,16 @@
         :title="title"
       ></print-table>
     </div>
+    <!-- 打印补货标签 -->
+
+    <div style="width:0;height:0;overflow:hidden">
+      <PrintLables
+        ref="print"
+        :dataCode="printRepairData"
+        id="toPrintRepair"
+        v-if="isRepairRender"
+      ></PrintLables>
+    </div>
   </div>
 </template>
 <script>
@@ -295,6 +269,7 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { addParams, batchDelete, userLimit } from "@/utils/common";
 import PrintTable from "./PrintTable";
+import PrintLables from "./PrintLables";
 import { compare } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
 import PrintJS from "print-js";
@@ -303,17 +278,16 @@ import {
   addformSaveData,
   ItemTableHeadData,
   getTableBodyData,
+  getHomeTableBody,
   getTableHeadData,
   BathcDeleteData,
-  queryViewData,
-  imPortExcel,
-  exportData
+  queryViewData
 } from "@/api/index";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
-  //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:已审核  strType:导入excel类型字段
-  //putawayData:是否已上架完成   isClose:单据关闭(入库,盘点,出库)  importExcel:excel导出    Invalid:作废
-  //isDownLoad:是否下载   openExcelDrawer:配送通知单(从excel导入窗口) OutboundPrint:出库单门店标签打印
+  //printView:打印请求的字段  title:打印的表题  isCheck:已审核
+  //putawayData:是否已上架完成   isClose:单据关闭(入库,盘点,出库)
+  //   openExcelDrawer:配送通知单(从excel导入窗口) OutboundPrint:出库单门店标签打印
   props: [
     "fTableView",
     "tableName",
@@ -326,20 +300,17 @@ export default {
     "containerNum",
     "printView",
     "title",
-    "storage",
     "isCheck",
-    "strType",
     "isClose",
-    "putawayData",
-    "importExcel",
-    "Invalid",
-    "isDownLoad"
+    "putawayData"
   ],
   components: {
-    PrintTable
+    PrintTable,
+    PrintLables
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -352,7 +323,8 @@ export default {
       //打印从表回显数据
       ItemBackData: [],
       isRender: false,
-      isShopRender: false,
+      isRepairRender: false,
+      printRepairData: [],
       //搜索条件
       searchWhere: [],
       //获取表格内容TableView的值,在获取headData中获取
@@ -432,6 +404,7 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -470,18 +443,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
 
         console.log(this.tableData, "过滤表体内容");
       }
@@ -510,6 +471,7 @@ export default {
     },
     //获取table表格内容数据
     async getTableData() {
+      this.pageNum = 1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -560,28 +522,13 @@ export default {
         this.searchWhere.push(...arr);
       }
 
-      let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
+      let res = await getHomeTableBody(this.fTableViewData, this.searchWhere);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-          if (
-            element.fPickingPlace &&
-            element.fPickingPlace == "System.Object[]"
-          ) {
-            this.$set(element, "fPickingPlace", "");
-          }
-        });
+
         console.log(this.tableData, "表体内容");
       }
     },
@@ -602,7 +549,7 @@ export default {
         this.$message.warning(`请选择要${msg}的数据!`);
       } else {
         this.BatchList.forEach(item => {
-          console.log(item);
+          // console.log(item);
           this.$set(item, "fMstState", status);
           this.$set(item, "fState", status);
         });
@@ -643,11 +590,7 @@ export default {
     async handleInboundFinsh() {
       this.billsFn(this.putawayData[1], "入库");
     },
-    //单据作废
-    //作废
-    handerInvalid() {
-      this.billsFn(this.isCheck[2], "作废");
-    },
+
     // 手动选中Checkbox
     handleSelectionChange(val) {
       this.BatchList = val;
@@ -867,6 +810,40 @@ export default {
         // console.log(this.ItemTableHeadData, "打印字表的表头");
       }
     },
+    //打印补货标签
+    async printRepair() {
+      if (this.BatchList.length == 0) {
+        this.$message.warning("请勾选您要打印的数据!");
+      } else {
+        let searchWhere = [];
+        let backData = [];
+        for (let i = 0; i < this.BatchList.length; i++) {
+          let vData = this.BatchList[i];
+          let getdata = await this.getSearchItemData(vData.fID);
+          backData.push(getdata);
+          let arr = [];
+          backData.forEach(item => {
+            item.forEach(v => {
+              arr.push(v);
+            });
+          });
+          this.printRepairData = arr;
+        }
+
+        this.isRepairRender = true;
+        setTimeout(() => {
+          PrintJS({
+            printable: "toPrintRepair",
+            type: "html",
+            scanStyles: false,
+            css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+          });
+        }, 500);
+        setTimeout(() => {
+          this.isRepairRender = false;
+        }, 600);
+      }
+    },
     async printCon() {
       if (this.BatchList.length == 0) {
         this.$message.warning("请勾选您要打印的数据!");
@@ -889,6 +866,7 @@ export default {
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
         if (res.State) {
           this.dataCode = JSON.parse(res.Data);
+          console.log(this.dataCode, "dataCode");
         }
         this.isRender = true;
 
@@ -898,7 +876,7 @@ export default {
             type: "html",
             scanStyles: false,
             style:
-              "table tr td,th { border-collapse: collapse; border: 1px #000 solid;font-size: 12px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;}; "
+              "table tr td,th { border-collapse: collapse; border: 1px #000 solid;font-size: 22px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;min-width:130px}; "
           });
         }, 500);
         setTimeout(() => {
@@ -931,140 +909,10 @@ export default {
 
       if (res.State) {
         let data = JSON.parse(res.Data);
-        data.forEach((item, index) => {
-          for (const key in item) {
-            if (JSON.stringify(item[key]).indexOf("/Date") != -1) {
-              item[key] = updateTime(item[key]);
-            }
-          }
-        });
+        console.log(data);
         // console.log(this.ItemBackData, "打印从表回显tableData内容");
         return data;
       }
-    },
-
-    // excel导入
-    handleChange(file, fileList) {
-      this.fileTemp = file.raw;
-      if (this.fileTemp) {
-        if (
-          this.fileTemp.type ==
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          this.fileTemp.type == "application/vnd.ms-excel"
-        ) {
-          this.importFile(this.strType, this.fileTemp);
-        } else {
-          this.$message({
-            type: "warning",
-            message: "附件格式错误，请删除后重新上传！"
-          });
-        }
-      } else {
-        this.$message({
-          type: "warning",
-          message: "请上传附件！"
-        });
-      }
-    },
-
-    handleRemove(file, fileList) {
-      this.fileTemp = null;
-    },
-    //下载模板
-    downloadTemp() {
-      if (this.strType.includes("Goods")) {
-        window.location.href = `${tempUrl}/ImportTempModFile/货品导入模板.xlsx`;
-      } else if (this.strType.includes("PGAlcntc")) {
-        window.location.href = `${tempUrl}/ImportTempModFile/配货通知单导入模板.xlsx`;
-      }
-    },
-
-    async importFile(strType, file) {
-      let res = await imPortExcel({
-        strType: strType,
-        file: file
-      });
-
-      if (res.state) {
-        this.$message.success("导入成功!");
-        this.getTableData();
-      } else {
-        this.$message.error(res.message);
-      }
-    },
-    //EXCEL导出
-    async handerExport() {
-      // console.log(this.$route);
-      this.searchWhere = [];
-      if (JSON.stringify(this.asData) == "{}") {
-        this.searchWhere = [];
-      } else {
-        this.searchData.forEach(element => {
-          if (this.asData[element.fColumn]) {
-            let result = this.asData[element.fColumn];
-            if (result instanceof Date) {
-              result = timeCycle(result);
-              // console.log(result);
-            }
-            if (result.constructor == Boolean && result == true) {
-              result = 1;
-            }
-            let obj = {
-              Computer: element.fComputer,
-              DataFile: element.fColumn,
-              Value: result
-            };
-            this.searchWhere.push(obj);
-          }
-        });
-      }
-      let startobj = {};
-      let endobj = {};
-      let arr = [];
-      for (const key in this.startData) {
-        for (const Ikey in this.endData) {
-          if (Ikey == key) {
-            startobj = {
-              Computer: ">=",
-              DataFile: key,
-              Value: this.startData[key]
-            };
-            endobj = {
-              Computer: "<=",
-              DataFile: key,
-              Value: this.endData[Ikey]
-            };
-
-            arr.push(startobj);
-            arr.push(endobj);
-          }
-        }
-      }
-
-      if (arr.length >= 1) {
-        this.searchWhere.push(...arr);
-      }
-
-      let res = await exportData(
-        this.fTableViewData,
-        this.searchWhere,
-        this.tableName
-      );
-      //  console.log(res,1232)
-      if (!res) return;
-      var blob = new Blob([res], {
-        type: "application/vnd.ms-excel;charset=utf-8"
-        //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
-      });
-      var downloadElement = document.createElement("a");
-      var href = window.URL.createObjectURL(blob); //创建下载的链接
-
-      downloadElement.href = href;
-      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
-      document.body.appendChild(downloadElement);
-      downloadElement.click(); //点击下载
-      document.body.removeChild(downloadElement); //下载完成移除元素
-      window.URL.revokeObjectURL(href); //释放掉blob
     }
   },
   watch: {

@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -44,7 +45,7 @@
             "
           >
             <el-select
-             filterable
+              filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -113,7 +114,9 @@ export default {
     "time",
     "StartTime",
     "EndTime",
-    "Dock"
+    "Dock",
+    "allAmount",
+    "allQtystr"
   ],
   data() {
     return {
@@ -140,6 +143,7 @@ export default {
       this.getOrderNoData();
     }, 100);
   },
+
   methods: {
     //获取form表单数据
     async getTableHeadData() {
@@ -183,7 +187,7 @@ export default {
             JSON.parse(JSON.stringify(this.ruleForm)),
             this.fTableViewHead
           );
-          this.ruleForm={};
+          this.ruleForm = {};
         } else {
           return false;
         }
@@ -191,7 +195,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.ruleForm={};
+      this.ruleForm = {};
       this.$emit("closeBox");
     },
     getPartsValue() {
@@ -369,6 +373,7 @@ export default {
       this.selectAllData = arr;
     },
     changeTime(val) {
+      // console.log(this.time)
       let strTime = String(this.time);
       strTime = strTime.substring(0, 15);
       let curTime = strTime + " " + val + ":00 " + "GMT+0800 (中国标准时间)";
@@ -378,6 +383,7 @@ export default {
 
   watch: {
     ruleForm: function(val) {
+      // console.log(val);
       this.ruleForm.fID = 0;
       this.ruleForm.fBookDate = this.time;
       this.ruleForm.fDockID = this.Dock.fID;
@@ -388,6 +394,15 @@ export default {
       var EndTime = timeCycle(b);
       this.ruleForm.fStartTime = StartTime;
       this.ruleForm.fEndTime = EndTime;
+      this.$set(this.ruleForm, "fQtystr", 0);
+      this.$set(this.ruleForm, "fTotal", 0);
+    },
+    allQtystr(newVal, oldVal) {
+      // console.log(newVal, oldVal);
+      this.$set(this.ruleForm, "fQtystr", newVal);
+    },
+    allAmount(newVal, oldVal) {
+      this.$set(this.ruleForm, "fTotal", newVal);
     }
   }
 };

@@ -25,6 +25,7 @@
         :addItem="true"
         :selectArr="selectArr"
         :selectArr2="selectArr2"
+        :StateObj="StateObj"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -78,6 +79,11 @@ export default {
       //是否新增成功
       isSaveSuccess: false,
       checkData: [true, 2,"PartsOutbound"],
+          //主表状态
+      StateObj: [
+        { key: "fState", val: 7 },
+        { key: "fStateName", val: "初始" }
+      ],
       //批量删除的数据
       batchDelTableName: [
         {

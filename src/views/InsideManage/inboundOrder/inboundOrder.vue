@@ -54,7 +54,7 @@
   </div>
 </template>
 <script>
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "./components/HomeTable";
 import CreatFrom from "./components/Add/FormTable";
 import EditFormTable from "./components/Edit/EditFormTable";
 export default {

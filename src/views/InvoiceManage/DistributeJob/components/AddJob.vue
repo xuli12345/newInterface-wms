@@ -29,6 +29,7 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :StateObj="StateObj"
     ></child-form-head>
     <!-- 表格 -->
     <el-alert
@@ -92,7 +93,8 @@ export default {
     "selectArr2",
     "alertArr",
     "searchData",
-    "fTableViewAlert"
+    "fTableViewAlert",
+    "StateObj"
   ],
   components: {
     ChildFormHead,
@@ -138,17 +140,18 @@ export default {
               IdentityColumn: this.fTableViewHead[1]
             },
             {
-              TableName: this.fTableViewItem[0],
-              insertData: this.tableData,
-              headData: childTableData,
-              IdentityColumn: this.fTableViewItem[1]
-            },
-            {
               TableName: "t_JobProduct_Item",
               insertData: this.selItemList,
               headData: this.selItemHead,
               IdentityColumn: "fMstID"
+            },
+            {
+              TableName: this.fTableViewItem[0],
+              insertData: this.tableData,
+              headData: childTableData,
+              IdentityColumn: this.fTableViewItem[1]
             }
+        
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           if (res.State) {
@@ -175,13 +178,21 @@ export default {
       this.drawer = true;
     },
     closeDrawer() {
-      this.selItemList = this.$refs.ItemData.BatchList;
+      let list = this.$refs.ItemData.BatchList;
+      this.selItemList = this.selItemList.concat(list);
+      // this.selItemList.forEach((item, index) => {
+      //   this.$set(item, "fSort", index + 1);
+      // });
       this.selItemHead = this.$refs.ItemData.tableHeadData;
       this.drawer = false;
     },
     //点击x关闭弹窗
     handleClose(done) {
-      this.selItemList = this.$refs.ItemData.BatchList;
+      let list = this.$refs.ItemData.BatchList;
+      this.selItemList = this.selItemList.concat(list);
+      // this.selItemList.forEach((item, index) => {
+      //   this.$set(item, "fSort", index + 1);
+      // });
       this.selItemHead = this.$refs.ItemData.tableHeadData;
       this.drawer = false;
     },

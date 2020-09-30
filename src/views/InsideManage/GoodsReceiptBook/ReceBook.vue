@@ -2,12 +2,10 @@
   <div>
     <div class="page">
       <div class="time">
-        <!--  value-format="yyyy-MM-dd"
-          :default-time="['00:00:00']" -->
         <span style="width:100px">预约日期：</span>
         <el-date-picker
           v-model="value"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           @change="change"
         >
@@ -20,63 +18,79 @@
         <el-button type="success" round>完成</el-button>
       </div>
     </div>
-    <table>
-      <thead>
-        <tr>
-          <th v-for="(item, index) in tableHeadData" :key="index">
-            {{ item.fColumnDes }}
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(item1, idx) in tableData" :key="idx">
-          <td class="flex-center-center fTime">
-            {{ item1.StartTime }}~{{ item1.EndTime }}
-          </td>
-          <td
-            style="position: relative;"
-            v-for="(item, index) in headData"
-            :key="index"
-            @dblclick="dblclick(item, item1)"
-          >
-            <div  v-for="(item2, i) in BackTableData" :key="i">
-              <div
-                class="content "
-                :style="{
-                  background:
-                    item2.fStateName == '已预约'
-                      ? '#ebb563'
-                      : item2.fStateName == '已预检'
-                      ? '#65b1ff'
-                      : item2.fStateName == '进行中'
-                      ? '#ffff00'
-                      : item2.fStateName == '已上架'
-                      ? '#85ce61'
-                      : ''
-                }"
-                @dblclick.stop="dblclick(item, item2)"
-                v-if="
-                  item.fColumnDes == item2.fDockName &&
-                    isDuringDate(
-                      changeTime(item1.StartTime),
-                      changeTime(item1.EndTime),
-                      item2.fEndTime
-                    )
-                "
+    <div style="width:100%">
+      <div class="table-head">
+        <table>
+          <thead>
+            <colgroup>
+              <col span="2" style="width: 100px;" />
+              <col />
+            </colgroup>
+            <tr>
+              <th v-for="(item, index) in tableHeadData" :key="index">
+                {{ item.fColumnDes }}
+              </th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="table-body">
+        <table>
+          <colgroup>
+            <col span="2" style="width: 100px;" />
+            <col />
+          </colgroup>
+          <tbody>
+            <tr v-for="(item1, idx) in tableData" :key="idx">
+              <td class="flex-center-center fTime">
+                {{ item1.StartTime }}~{{ item1.EndTime }}
+              </td>
+              <td
+                style="position: relative;"
+                v-for="(item, index) in headData"
+                :key="index"
+                @dblclick="dblclick(item, item1)"
               >
-                <p>预约单号:{{ item2.fOrderNo }}</p>
-                <p>供应商:{{ item2.fSupplierName }}</p>
-                <p>定单数:{{ item2.fOrdcnt }}</p>
-                <p>收货件数:{{ item2.fQtystr }}</p>
-                <p>托盘数:{{ item2.fPalletcnt }}</p>
-                <p>预约人:{{ item2.fCreaterCode }}</p>
-                <p>状态:{{ item2.fStateName }}</p>
-              </div>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+                <div v-for="(item2, i) in BackTableData" :key="i">
+                  <div
+                    class="content "
+                    :style="{
+                      background:
+                        item2.fStateName == '已预约'
+                          ? '#ebb563'
+                          : item2.fStateName == '已预检'
+                          ? '#65b1ff'
+                          : item2.fStateName == '进行中'
+                          ? '#ffff00'
+                          : item2.fStateName == '已上架'
+                          ? '#85ce61'
+                          : ''
+                    }"
+                    @dblclick.stop="dblclick(item, item2)"
+                    v-if="
+                      item.fColumnDes == item2.fDockName &&
+                        isDuringDate(
+                          changeTime(item1.StartTime),
+                          changeTime(item1.EndTime),
+                          item2.fEndTime
+                        )
+                    "
+                  >
+                    <p>预约单号:{{ item2.fOrderNo }}</p>
+                    <p>供应商:{{ item2.fSupplierName }}</p>
+                    <p>定单数:{{ item2.fOrdcnt }}</p>
+                    <p>收货件数:{{ item2.fQtystr }}</p>
+                    <p>托盘数:{{ item2.fPalletcnt }}</p>
+                    <p>预约人:{{ item2.fCreaterCode }}</p>
+                    <p>状态:{{ item2.fStateName }}</p>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <!-- 新增预约 -->
     <el-drawer
       :modal-append-to-body="false"
@@ -98,10 +112,10 @@
       ></CreatFrom>
     </el-drawer>
     <!-- 修改预约 -->
-    <!-- <el-drawer
+    <el-drawer
       :modal-append-to-body="false"
       :visible.sync="drawerValue"
-      :direction="direction"
+      direction="rtl"
       :before-close="handleEditClose"
       v-if="newisDestory"
     >
@@ -112,8 +126,9 @@
         :addItem="false"
         :selectArr="selectArr"
         :rowData="editForm"
+        :batchDelTableName="batchDelTableName"
       ></edit-form-table>
-    </el-drawer> -->
+    </el-drawer>
   </div>
 </template>
 <script>
@@ -143,10 +158,17 @@ export default {
       tableHeadData: [],
       headData: [],
       BackTableData: [],
+      editForm: {},
       //表头的字段，以及自增长字段
       fTableViewHead: ["t_RGBookReg_Mst", "fID"],
       //表格的ftableview,自增长字段
       fTableViewItem: ["t_RGBookReg_Item", "fMstID"],
+      batchDelTableName: [
+        {
+          Key: "t_RGBookReg_Item",
+          Value: [{ Key: "fID", Value: "fMstID" }]
+        }
+      ],
       selectArr: [
         {
           fName: "fDockName",
@@ -168,8 +190,8 @@ export default {
           fUrl: "v_Supplier",
           fDes: "fSupplierName",
           fID: "fID",
-          fAuto: ["fSupplierID"],
-          fAutoID: ["fSupplierID"]
+          fAuto: ["fSupplierID", "fItemOrderState"],
+          fAutoID: ["fSupplierID", "fItemOrderState"]
         },
         {
           fName: "fStateName",
@@ -276,13 +298,18 @@ export default {
     },
     //双击表格弹框
     dblclick(row, item1) {
-      console.log(row, item1, "dblclick");
-      // this.selectArr[0].searchWhere[0].Value = row.fID;
+      // console.log(row, item1, "dblclick");
+
       this.StartTime = item1.StartTime;
       this.EndTime = item1.EndTime;
       this.Dock = row;
       if ("fSupplierName" in item1) {
+        this.$set(item1, "fBookDate", this.value);
+        this.editForm = item1;
+        //查看预约详情
+        this.drawerValue = true;
       } else {
+        //新增预约
         this.drawer = true;
       }
     },
@@ -297,6 +324,8 @@ export default {
     //关闭修改弹窗
     closeEditBox(val) {
       if (val) {
+        // console.log(val)
+         this.getBackData();
         // this.isSaveSuccess = true;
       }
       this.drawerValue = false;
@@ -329,11 +358,14 @@ export default {
       if (res.State) {
         let data = JSON.parse(res.Data);
         this.BackTableData = data.map(item => {
+          // console.log(item)
           return {
+            fID: item.fID,
             fOrderNo: item.fOrderNo,
             fSupplierName: item.fSupplierName,
             fOrdcnt: item.fOrdcnt,
             fQtystr: item.fQtystr,
+            fTotal: item.fTotal,
             fPalletcnt: item.fPalletcnt,
             fCreaterCode: item.fCreaterCode,
             fStateName: item.fItemOrderState,
@@ -441,8 +473,23 @@ tr {
   td:hover {
     background: #cbc5c5;
   }
-  .content {
-    // padding: 0px 5px;
-  }
 }
+.table-head table,
+.table-body table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table-head {
+  padding-right: 17px;
+  background-color: #cdcdcd;
+  color: #000;
+}
+.table-body {
+  width: 100%;
+  height: 700px;
+  overflow-y: auto;
+}
+// .table-body table tr:nth-child(2n + 1) {
+//   background-color: #f2f2f2;
+// }
 </style>

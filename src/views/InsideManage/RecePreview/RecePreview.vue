@@ -29,6 +29,7 @@
         :addItem="false"
         :selectArr="selectArr"
         :selectArr2="selectArr2"
+        :StateObj="StateObj"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -78,6 +79,11 @@ export default {
       checkData: [true, 3, 5],
       //是否新增成功
       isSaveSuccess: false,
+            //主表状态
+      StateObj: [
+        { key: "fState", val: 1 },
+        { key: "fStateName", val: "初始" }
+      ],
       //表头的字段，以及自增长字段
       fTableViewHead: ["t_RGPreExam_Mst", "fID"],
       //表格的ftableview,自增长字段
@@ -92,12 +98,12 @@ export default {
           fAutoID: ["fInboundOrdeType"]
         },
         {
-          fName: "fOrdnum",
+          fName: "fSourceOrderNo",
           fUrl: "v_InboundOrder_Mst",
-          fDes: "fInboundOrderNo",
+          fDes: "fRelatedOrderNo",
           fID: "fID",
-          fAuto: ["fSupplierID", "fSupplierName"],
-          fAutoID: ["fSupplierID"],
+          fAuto: ["fSupplierID", "fSupplierName", "fOrdID","fInboundOrderNo"],
+          fAutoID: ["fSupplierID", "fOrdID"],
           searchWhere: [
             //已预约
             {
@@ -107,6 +113,7 @@ export default {
             }
           ]
         },
+     
         {
           fName: "fDockName",
           fUrl: "v_Dock",
@@ -115,14 +122,7 @@ export default {
           fAuto: ["fDockID"],
           fAutoID: ["fDockID"]
         },
-        // {
-        //   fName: "fSupplierName",
-        //   fUrl: "v_Supplier",
-        //   fDes: "fSupplierName",
-        //   fID: "fID",
-        //   fAuto: ["fSupplierID"],
-        //   fAutoID: ["fSupplierID"]
-        // },
+ 
         {
           fName: "fPalletTypeName",
           fUrl: "v_Container",

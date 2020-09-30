@@ -23,6 +23,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <el-form-item
         v-for="(item, index) in tableHead"

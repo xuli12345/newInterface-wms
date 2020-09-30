@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -44,7 +45,7 @@
             "
           >
             <el-select
-             filterable
+              filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
               :disabled="item.fReadOnly == 0 ? false : true"
@@ -109,7 +110,8 @@ export default {
     "selectArr",
     "alertArr",
     "wharf",
-    "time"
+    "time",
+    "StateObj"
   ],
   data() {
     return {
@@ -150,6 +152,10 @@ export default {
         console.log(this.tableHead, "biaotuo");
         this.ruleForm = defaultForm(this.tableHead);
         this.rules = creatRules(this.tableHead);
+           if (this.StateObj && this.StateObj.length > 0) {//设置状态默认值
+          this.$set(this.ruleForm, this.StateObj[0].key, this.StateObj[0].val);
+          this.$set(this.ruleForm, this.StateObj[1].key, this.StateObj[1].val);
+        }
       } else {
         this.$message.error(res.Message);
       }
@@ -182,7 +188,7 @@ export default {
             JSON.parse(JSON.stringify(this.ruleForm)),
             this.fTableViewHead
           );
-          this.ruleForm={};
+          this.ruleForm = {};
         } else {
           return false;
         }
@@ -190,7 +196,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.ruleForm={};
+      this.ruleForm = {};
       this.$emit("closeBox");
     },
     getPartsValue() {
@@ -263,8 +269,8 @@ export default {
     },
     // 下拉选择框选中值后，带出其他需要带出的值
     async getVal(val, n) {
-      // console.log(n)
-      if (n == "fOrdnum") {
+      // console.log(val, n);
+      if (n == "fSourceOrderNo") {
         let where = [
           {
             Computer: "=",
@@ -306,10 +312,7 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
-              this.ruleForm[n] = data[ele.fDes];
-              // if (item == "fSupplierID") {
-              //   this.ruleForm[item] = data.fSupplierID;
-              // }
+              this.ruleForm[n] = data[ele.fDes];
             } else {
               this.ruleForm[item] = data[item];
             }
@@ -354,6 +357,7 @@ export default {
           res = await getTableBodyData(this.selectArr[i].fUrl, searchWhere);
         }
         res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        // console.log(JSON.parse(res.Data), "red");
         if (res.State) {
           let obj = {
             fName: this.selectArr[i].fName, //当前字段

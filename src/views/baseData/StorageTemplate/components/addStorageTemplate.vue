@@ -34,6 +34,7 @@
     :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%"
       :data="tableData"
@@ -109,6 +110,7 @@ export default {
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),

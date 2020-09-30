@@ -302,7 +302,7 @@ export default {
 
   created() {
     this.fCustomerID = this.rowData.fCustomerID;
-    if (this.rowData.fMstState && this.rowData.fMstState == 7) {
+    if (this.rowData.fMstState && this.rowData.fMstState != 1) {
       this.isDisabled = true;
     }
   }

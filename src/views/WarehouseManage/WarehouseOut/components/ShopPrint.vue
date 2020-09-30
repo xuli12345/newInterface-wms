@@ -12,7 +12,7 @@
           :jsbarcode-value="item.fOutboundOrder"
           jsbarcode-textmargin="0"
           jsbarcode-height="50"
-          jsbarcode-displayvalue="false"
+          jsbarcode-displayvalue="true"
         ></svg>
       </div>
 

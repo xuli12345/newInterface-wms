@@ -5,6 +5,7 @@
       :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%"
       :row-key="getRowKeys"
@@ -64,12 +65,13 @@ import {
 } from "@/api/index";
 import HcTitle from "@/components/HcTitle";
 export default {
-  props: ["fTableView", "isSaveSuccess", "ItmeSelID"],
+  props: ["fTableView", "isSaveSuccess", "ItmeSelID","fOrderNo"],
   components: {
     HcTitle
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       //搜索条件
       searchWhere: [],
@@ -144,8 +146,8 @@ export default {
       }
     },
     //表格筛选
-
     async filterTagTable(filters) {
+      this.pageNum=1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -184,19 +186,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
-
         console.log(this.tableData, "过滤表体内容");
       }
     },
@@ -226,11 +215,15 @@ export default {
           Computer: "=",
           DataFile: "fMstID",
           Value: this.ItmeSelID
+        },
+        {
+          Computer:"=",
+          DataFile:"fAlcntcNo",
+          Value:this.fOrderNo
         }
       ];
       // this.fTableViewData
       let res = await getTableBodyData("v_JobProduct_Item", searchWhere);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);

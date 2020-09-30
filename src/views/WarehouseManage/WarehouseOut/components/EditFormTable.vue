@@ -104,6 +104,23 @@
       class="dialog"
     >
       <span>拣货单ID</span> <el-input v-model="inputValue"></el-input>
+      <div>
+        <span>补货途径</span>
+        <el-select
+          v-model="value"
+          placeholder="补货途径"
+          style="width:200px;margin-top:10px"
+        >
+          <el-option
+            v-for="item in options"
+            :key="item.fID"
+            :label="item.fTypeName"
+            :value="item.fID"
+          >
+          </el-option>
+        </el-select>
+      </div>
+
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogForm = false">取 消</el-button>
         <el-button type="primary" @click="save">保存</el-button>
@@ -144,6 +161,8 @@ export default {
   data() {
     return {
       inputValue: "",
+      value: "",
+      options: [],
       dialogForm: false,
       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
       drawer: false,
@@ -230,6 +249,15 @@ export default {
       }
       this.drawer = false;
     },
+    //获取补货途径下拉框数据
+    async getRplwayData() {
+      let res = await getTableBodyData("v_Type_PGRplWay");
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.options = JSON.parse(res.Data);
+        console.log(this.options);
+      }
+    },
     //下载模板
     downloadTemp() {
       if (this.strType.includes("Outbound")) {
@@ -284,18 +312,21 @@ export default {
     },
     creatPopRight() {
       this.dialogForm = true;
+      this.getRplwayData();
     },
     async save() {
       let res = await savePickingList([
         {
-          fID: this.inputValue
+          fID: this.inputValue,
+          RplwayID:this.value,
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
+      console.log(res);
       if (res.State) {
         this.$message.success("保存成功!");
+        // this.$message.success(res.Message);
         this.dialogForm = false;
       } else {
         this.$message.warning(res.Message);
@@ -305,7 +336,7 @@ export default {
 
   created() {
     this.inputValue = this.rowData.fID;
-    if (this.rowData.fMstState && this.rowData.fMstState == 3) {
+    if (this.rowData.fMstState && this.rowData.fMstState !=1) {
       this.isDisabled = true;
     }
   }

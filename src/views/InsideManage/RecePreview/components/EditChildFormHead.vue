@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -116,7 +117,7 @@ export default {
     }
     if (this.rowData) {
       this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
-      // console.log(this.fState,'fState')
+      console.log(this.ruleForm,'fState')
        if (this.rowData.fState && this.rowData.fState == this.fState) {
       this.isDisabled = true;
     }

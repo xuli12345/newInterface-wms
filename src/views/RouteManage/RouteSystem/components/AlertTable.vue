@@ -18,6 +18,7 @@
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
@@ -25,7 +26,7 @@
       @filter-change="filterTagTable"
     >
       <el-table-column type="selection" width="50"></el-table-column>
-      <!-- :filter-method="filtersF" -->
+
       <template v-for="(item, index) in tableHeadData">
         <el-table-column
           v-if="item.fVisible == 1 ? true : false"
@@ -93,6 +94,7 @@ export default {
   props: ["fTableView"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       getRowKeys(row) {
         return row.fID;
@@ -133,6 +135,7 @@ export default {
     },
     //表格筛选
     async filterTagTable(filters) {
+       this.pageNum=1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -172,13 +175,7 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
+       
         console.log(this.tableData, "筛选表体内容");
       }
     },
@@ -216,23 +213,13 @@ export default {
 
     //获取表格内容数据
     async getTableData(fTableView) {
+      this.pageNum=1;
       let searchWhere = [];
       let res = await getTableBodyData(fTableView, searchWhere);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
+       
       } else {
         this.$message.error(res.Message);
       }

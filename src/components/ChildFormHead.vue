@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -67,7 +68,7 @@
             :disabled="item.fReadOnly == 0 ? false : true"
             @change="getPartsValue"
           ></el-input>
-          <!-- 补货单 -->
+          <!-- 补货作业 fRealqty(实际数量) -->
           <el-input
             v-else-if="
               (item.fColumn == 'fRealqty' && item.fDataType == 'decimal') ||
@@ -77,6 +78,8 @@
             :disabled="item.fReadOnly == 0 ? false : true"
             @change="getChangeValue"
           ></el-input>
+      
+         
           <el-input
             v-else-if="item.fDataType == 'int'"
             v-model.number="ruleForm[item.fColumn]"

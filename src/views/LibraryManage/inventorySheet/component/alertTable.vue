@@ -41,6 +41,7 @@
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
+      :max-height="tableHeight"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
@@ -128,11 +129,16 @@
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 import { compare } from "@/utils/common";
-import { getTableHeadData, getTableBodyData } from "@/api/index";
+import {
+  getTableHeadData,
+  getTableBodyData,
+  getHomeTableBody
+} from "@/api/index";
 export default {
   props: ["fTableView", "searchData"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       getRowKeys(row) {
         return row.fID;
@@ -178,6 +184,7 @@ export default {
     //表格筛选
     async filterTagTable(filters) {
       // console.log(filters);
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -217,13 +224,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
         console.log(this.tableData, "筛选表体内容");
       }
     },
@@ -263,6 +263,7 @@ export default {
     },
     //获取表格内容数据
     async getTableData() {
+      this.pageNum = 1;
       let searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         searchWhere = [];
@@ -278,18 +279,10 @@ export default {
           }
         });
       }
-      let res = await getTableBodyData(this.fTableViewll, searchWhere);
+      let res = await getHomeTableBody(this.fTableViewll, searchWhere);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        console.log(this.tableData);
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
       } else {
         this.$message.error(res.Message);
       }
@@ -351,7 +344,7 @@ export default {
 .table-wrapper /deep/.el-input__inner {
   border: none !important;
 }
-.page{
+.page {
   margin: 0px 10px 10px 10px;
   width: 100%;
 }

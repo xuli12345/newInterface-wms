@@ -78,6 +78,25 @@
         >
 
         <el-button
+          v-if="isPrint"
+          type="primary"
+          size="mini"
+          class="iconfont icon-dayin1"
+          @click="printCon()"
+          :disabled="userLimit('fPrint')"
+          >打印</el-button
+        >
+
+        <el-button
+          v-if="OutboundPrint"
+          type="primary"
+          size="mini"
+          @click="printShop()"
+          class="iconfont icon-dayin1"
+          >打印门店标签</el-button
+        >
+
+        <el-button
           v-if="isCheck"
           type="primary"
           size="mini"
@@ -86,14 +105,23 @@
           :disabled="userLimit('fApp')"
           >审核</el-button
         >
+        <el-button
+          v-if="isClose"
+          type="primary"
+          size="mini"
+          class="el-icon-circle-close"
+          @click="colseOrder"
+          :disabled="userLimit('fClose')"
+          >关闭</el-button
+        >
       </div>
     </div>
     <el-table
       :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
-      :max-height="tableHeight"
       border
+      :max-height="tableHeight"
       style="width: 100%"
       :row-key="getRowKeys"
       :data="tableData | pagination(pageNum, pageSize)"
@@ -101,7 +129,6 @@
       @row-dblclick="dblclick"
       @filter-change="filterTagTable"
     >
-      <!-- :filter-method="userLimit('fFiler') ? null : filtersF"  -->
       <el-table-column type="selection" width="50"></el-table-column>
       <template v-if="!isHave">
         <template v-for="(item, index) in tableHeadData">
@@ -109,7 +136,7 @@
             v-if="item.fVisible == 1"
             :key="index"
             :label="item.fColumnDes"
-            :prop="item.fColumn"
+            :prop="item.fColum"
             min-width="160px"
             sortable
             :column-key="item.fColumn"
@@ -129,7 +156,6 @@
         </template>
       </template>
       <template v-if="isHave">
-        <!-- :filter-method="filtersF" -->
         <template v-for="(item, index) in tableHeadData">
           <el-table-column
             v-if="item.fVisible == 1"
@@ -181,7 +207,6 @@
               :disabled="userLimit('fDel')"
               >删除</el-button
             >
-
             <el-button
               type="text"
               size="small"
@@ -205,24 +230,56 @@
         :total="total"
       ></el-pagination>
     </div>
+    <!-- 打印格式内容  -->
+    <div style="width:0;height:0;overflow:hidden">
+      <print-table
+        ref="print"
+        id="toPrint"
+        v-if="isRender"
+        :dataCode="dataCode"
+        :printHeadData="printHeadData"
+        :ItemTableHeadData="ItemTableHeadData"
+        :ItemBackData="ItemBackData"
+        :title="title"
+      ></print-table>
+    </div>
+   
+    <!-- 打印门店标签 -->
+    <div style="width:0;height:0;overflow:hidden">
+      <ShopPrint
+        ref="print"
+        :dataCode="printShopData"
+        id="toShopPrint"
+        v-if="isShopRender"
+      ></ShopPrint>
+    </div>
   </div>
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { addParams, batchDelete, userLimit } from "@/utils/common";
-import { compare } from "@/utils/common";
+import { addParams, batchDelete, userLimit, compare } from "@/utils/common";
+import PrintTable from "@/components/PrintTable";
+import ShopPrint from "@/views/WarehouseManage/WarehouseOut/components/ShopPrint";
+import { tempUrl } from "@/utils/tempUrl";
+import PrintJS from "print-js";
 import {
   tableBodyData,
   addformSaveData,
+  ItemTableHeadData,
   getTableBodyData,
   getHomeTableBody,
   getTableHeadData,
-  BathcDeleteData
+  BathcDeleteData,
+  queryViewData,
+  imPortExcel,
+  exportData
 } from "@/api/index";
 export default {
-  //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功   isCheck:已审核
-
+  //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功
+  //printView:打印请求的字段  title:打印的表题 isCheck:已审核
+  //   isClose:单据关闭(入库,盘点,出库)
+  //isDownLoad:是否下载    OutboundPrint:出库单门店标签打印
   props: [
     "fTableView",
     "tableName",
@@ -230,16 +287,33 @@ export default {
     "isItem",
     "batchDelTableName",
     "isHave",
-    "isCheck"
+    "isPrint",
+    "printView",
+    "title",
+    "isCheck",
+    "isClose",
+    "OutboundPrint"
   ],
-
+  components: {
+    PrintTable,
+    ShopPrint
+  },
   data() {
     return {
       tableHeight: document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
-
+      //打印主表表头数据
+      printHeadData: [],
+      //打印主表内容数据
+      dataCode: [],
+      //打印字表表头数据
+      ItemTableHeadData: [],
+      //打印从表回显数据
+      ItemBackData: [],
+      isRender: false,
+      isShopRender: false,
       //搜索条件
       searchWhere: [],
       //获取表格内容TableView的值,在获取headData中获取
@@ -262,19 +336,21 @@ export default {
       startData: {},
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
-      sqlConn: sessionStorage.getItem("sqlConn")
+      sqlConn: sessionStorage.getItem("sqlConn"),
+      newArr: [],
+      printShopData: []
     };
   },
   methods: {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
         console.log(this.tableHeadData, "表头1");
+
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
           return element.fQureyCol == 1;
@@ -283,7 +359,6 @@ export default {
         searchArr.forEach(item => {
           ColumnArr.push(item.fColumn);
         });
-        // console.log(ColumnArr, "搜索的字段");
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
@@ -350,12 +425,11 @@ export default {
         searchData.push(objData);
       });
 
-      let res = await getTableBodyData(this.fTableViewData, searchData);
+      let res = await getHomeTableBody(this.fTableViewData, searchData);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-
         console.log(this.tableData, "过滤表体内容");
       }
     },
@@ -381,8 +455,7 @@ export default {
     search() {
       this.getTableData();
     },
-    //获取table表格内容数据
-    async getTableData() {
+    searchCommon() {
       this.pageNum = 1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
@@ -393,7 +466,6 @@ export default {
             let result = this.asData[element.fColumn];
             if (result instanceof Date) {
               result = timeCycle(result);
-              // console.log(result);
             }
             if (result.constructor == Boolean && result == true) {
               result = 1;
@@ -429,22 +501,18 @@ export default {
           }
         }
       }
-
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
-
+    },
+    //获取table表格内容数据
+    async getTableData() {
+      this.searchCommon();
       let res = await getHomeTableBody(this.fTableViewData, this.searchWhere);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.oldList = this.tableData.map(v => v.fID);
-        this.newList = this.oldList.slice();
-        this.$nextTick(() => {
-          // this.setSort();
-        });
-
         console.log(this.tableData, "表体内容");
       }
     },
@@ -466,6 +534,7 @@ export default {
       } else {
         this.BatchList.forEach(item => {
           this.$set(item, "fMstState", status);
+          this.$set(item, "fState", status);
         });
         let result = batchDelete(this.tableHeadData, this.BatchList);
         let res = await addformSaveData([
@@ -495,6 +564,10 @@ export default {
     //已审查,
     handleCheck() {
       this.billsFn(this.isCheck[1], "审核");
+    },
+    //单据关闭
+    colseOrder() {
+      this.billsFn(this.isClose[1], "关闭");
     },
 
     // 手动选中Checkbox
@@ -560,12 +633,8 @@ export default {
             this.BatchList.forEach(item => {
               let obj = [
                 {
-                  Key: "fIP",
-                  Value: item.fIP
-                },
-                {
-                  Key: "fPort",
-                  Value: item.fPort
+                  Key: "fID",
+                  Value: item.fID
                 }
               ];
               objectArr.push(obj);
@@ -644,7 +713,6 @@ export default {
     },
     //有从表数据的删除
     haveItemDelete(row, index) {
-      // console.log(row)
       let RowData = JSON.parse(JSON.stringify(row));
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -655,12 +723,8 @@ export default {
           let objectArr = [];
           let obj = [
             {
-              Key: "fIP",
-              Value: RowData.fIP
-            },
-            {
-              Key: "fPort",
-              Value: RowData.fPort
+              Key: "fID",
+              Value: RowData.fID
             }
           ];
           objectArr.push(obj);
@@ -674,7 +738,6 @@ export default {
             { userDes: this.userDes, userId: this.userId }
           ]);
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
           if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
@@ -697,12 +760,104 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val;
     },
-
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       return userLimit(val);
     },
+    //获取打印表头的数据
+    async getPrintHeadData() {
+      let res = await getTableHeadData(this.printView[0]);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.printHeadData = res.lstRet.sort(compare);
+        this.printHeadData = this.printHeadData.filter(item => {
+          return item.fVisible == 1;
+        });
+        this.printHeadData = this.printHeadData.map(item => {
+          return item.fColumnDes;
+        });
+      }
+    },
+    //获取打印字表表头的数据
+    async getPrintItemHeadData() {
+      let res = await getTableHeadData(this.printView[3]);
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+      if (res.State) {
+        this.ItemTableHeadData = res.lstRet.sort(compare);
+        // console.log(this.ItemTableHeadData, "打印字表的表头");
+      }
+    },
+    async printCon() {
+      if (this.BatchList.length == 0) {
+        this.$message.warning("请勾选您要打印的数据!");
+      } else {
+        let searchWhere = [];
+        for (let i = 0; i < this.BatchList.length; i++) {
+          let vData = this.BatchList[i];
+          let getdata = await this.getSearchItemData(vData.fID);
+          this.ItemBackData.push(getdata);
 
+          let obj = {
+            Computer: "=",
+            DataFile: "fID",
+            Value: vData.fID
+          };
+          searchWhere.push(obj);
+        }
+        let res = await queryViewData(this.printView[1], searchWhere);
+
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        if (res.State) {
+          this.dataCode = JSON.parse(res.Data);
+        }
+        this.isRender = true;
+
+        setTimeout(() => {
+          PrintJS({
+            printable: "toPrint",
+            type: "html",
+            scanStyles: false,
+            style:
+              "table td,th {border: 1px #000 solid;font-size: 22px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;min-width:150px}; "
+          });
+        }, 500);
+        setTimeout(() => {
+          this.isRender = false;
+        }, 600);
+      }
+    },
+    //门店打印
+    async printShop() {
+      if (this.BatchList.length == 0) {
+        this.$message.warning("请勾选您要打印的数据!");
+      } else {
+        let OrderNum = this.BatchList[0].fOutboundOrderNo;
+        let searchWhere = [
+          {
+            Computer: "=",
+            DataFile: "fOutboundOrderNo",
+            Value: OrderNum
+          }
+        ];
+        let res = await getTableBodyData("v_PrintOutboundOrder", searchWhere);
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        if (res.State) {
+          this.printShopData = JSON.parse(res.Data);
+          this.isShopRender = true;
+          setTimeout(() => {
+            PrintJS({
+              printable: "toShopPrint",
+              type: "html",
+              scanStyles: false,
+              css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+            });
+          }, 500);
+          setTimeout(() => {
+            this.isShopRender = false;
+          }, 600);
+        }
+      }
+    },
     //获取从表回显的数据
     async getSearchItemData(fID) {
       let searchWhere = [
@@ -727,13 +882,6 @@ export default {
 
       if (res.State) {
         let data = JSON.parse(res.Data);
-        data.forEach((item, index) => {
-          for (const key in item) {
-            if (JSON.stringify(item[key]).indexOf("/Date") != -1) {
-              item[key] = updateTime(item[key]);
-            }
-          }
-        });
         // console.log(this.ItemBackData, "打印从表回显tableData内容");
         return data;
       }
@@ -746,9 +894,12 @@ export default {
       }
     }
   },
-
   created() {
     this.getTableHeadData();
+    if (this.isPrint) {
+      this.getPrintHeadData();
+      this.getPrintItemHeadData();
+    }
   }
 };
 </script>

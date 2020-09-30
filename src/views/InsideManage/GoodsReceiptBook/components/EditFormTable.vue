@@ -10,13 +10,20 @@
         :disabled="isDisabled"
         >新增</el-button
       >
-      <el-button
+      <!-- <el-button
         type="primary"
         class="iconfont icon-baocun"
         @click="submitForm()"
         :disabled="isDisabled"
         size="mini"
         >保存</el-button
+      > --><el-button
+        type="primary"
+        class="iconfont icon-baocun"
+        @click="handleDetele"
+        :disabled="isDisabled"
+        size="mini"
+        >删除</el-button
       >
       <el-button
         class="iconfont icon-quxiao"
@@ -40,26 +47,9 @@
       :fTableView="fTableViewItem"
       :insertData="insertData"
       :fID="rowData.fID"
-      :changeData="changeData"
       :isDisabled="isDisabled"
       :fState="fState"
     ></child-table>
-    <!-- 新增字表数据 -->
-    <el-drawer
-      :append-to-body="true"
-      :visible.sync="drawer"
-      direction="rtl"
-      :before-close="handleClose"
-      v-if="addItem"
-    >
-      <child-form-head
-        @closeBox="closeItemBox"
-        :fTableViewHead="fTableViewItem[0]"
-        ref="ItemRuleForm"
-        :addItem="addItem"
-        :selectArr="selectArr2"
-      ></child-form-head>
-    </el-drawer>
   </div>
 </template>
 
@@ -67,7 +57,7 @@
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
 import { compare, handelData } from "@/utils/common";
 import { tempUrl } from "@/utils/tempUrl";
-import { getTableHeadData, collectionData, imPortExcel } from "@/api/index";
+import { getTableHeadData, collectionData, BathcDeleteData } from "@/api/index";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import ChildFormHead from "@/components/EditChildFormHead";
 import ChildTable from "@/components/EditChildTable";
@@ -79,8 +69,7 @@ export default {
     "selectArr",
     "selectArr2",
     "rowData",
-    "changeData",
-    "strType"
+    "batchDelTableName"
   ],
   components: {
     ChildFormHead,
@@ -94,10 +83,44 @@ export default {
       //已审核状态
       isDisabled: false,
       fState: 6,
-       userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
+      userDes: JSON.parse(sessionStorage.getItem("user")).userDes,
+      userId: this.$store.state.user.userInfo.userId
     };
   },
   methods: {
+    //删除
+    handleDetele() {
+      this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      })
+        .then(async () => {
+          let res = await BathcDeleteData([
+            {
+              MstItemKey: this.batchDelTableName,
+              MstKeyValue: [[{ Key: "fID", Value: this.rowData.fID }]],
+              MstTableView: "t_RGBookReg_Mst"
+            },
+            { userDes: this.userDes, userId: this.userId }
+          ]);
+          res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+          // console.log(res);
+          if (res.State) {
+            this.$message.success("删除成功!");
+            this.$emit("closeBox",res.State);
+          } else {
+            this.$message.error(res.errstr);
+          }
+        })
+        .catch(() => {
+          this.$message({
+            type: "info",
+            message: "已取消删除"
+          });
+        });
+    },
+
     //保存
     submitForm() {
       let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
@@ -105,7 +128,6 @@ export default {
       let formData = this.$refs.ruleForm.ruleForm; //表单的数据
       let tableData = this.$refs.childTable.tableData; //表格的数据
       let backData = this.$refs.childTable.backData; //表格原来的数据
-
       let wantData = handelData(backData, tableData); //处理数据，获取修改的，新增的，删除的数据
       let updateArr = wantData[0];
       let insertArr = wantData[1];
@@ -129,7 +151,7 @@ export default {
 
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
-          if (res.State === true) {
+          if (res.State) {
             this.$message.success("修改成功!");
             this.$emit("closeBox", JSON.parse(JSON.stringify(formData)));
             this.$refs.ruleForm.$refs.ruleForm.resetFields();
@@ -148,15 +170,9 @@ export default {
     addPopRight() {
       this.drawer = true;
     },
+
     //点击x关闭弹窗
     handleClose(done) {
-      this.drawer = false;
-    },
-    //关闭字表新增弹窗
-    closeItemBox(value) {
-      if (value) {
-        this.insertData = value;
-      }
       this.drawer = false;
     }
   },

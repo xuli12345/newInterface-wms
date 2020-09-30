@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -132,7 +133,7 @@ export default {
     }
     if (this.rowData) {
       this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
-      if (this.rowData.fState && this.rowData.fState == this.fState) {
+      if (this.rowData.fState && this.rowData.fState != this.fState) {
         this.isDisabled = true;
       }
       this.ruleForm.fModifyDate = new Date();

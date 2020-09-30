@@ -5,6 +5,7 @@
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
@@ -92,6 +93,7 @@ export default {
   props: ["fTableView", "insertData", "fID", "changeData"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       //获取表格内容TableView的值,在获取headData中获取
       getRowKeys(row) {

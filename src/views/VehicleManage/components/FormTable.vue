@@ -27,6 +27,7 @@
       ref="ruleForm"
       :selectArr="selectArr"
       :Amount="totalAmount"
+      :StateObj="StateObj"
     ></child-form-head>
     <!-- 表格 -->
     <child-table
@@ -62,7 +63,6 @@ import ChildFormHead from "./ChildFormHead";
 import ChildTable from "./ChildTable";
 import VueBus from "../../../vueBus";
 export default {
-  //strType:导入文件的类型
   props: [
     "fTableViewHead",
     "fTableViewItem",
@@ -70,7 +70,7 @@ export default {
     "selectArr",
     "selectArr2",
     "alertArr",
-    "strType"
+    "StateObj"
   ],
   components: {
     ChildFormHead,
@@ -114,6 +114,7 @@ export default {
 
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
+  
         // console.log(this.tableHead,"表格表头")
       } else {
         this.$message.error(res.Message);

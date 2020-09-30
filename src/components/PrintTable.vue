@@ -38,7 +38,7 @@
             :jsbarcode-value="item.fOrderNo"
             jsbarcode-textmargin="0"
             jsbarcode-height="50"
-            jsbarcode-displayvalue="false"
+            jsbarcode-displayvalue="true"
           ></svg
         ></span>
       </div>
@@ -69,7 +69,7 @@
                   :jsbarcode-value="scope.row.fProductBarCode"
                   jsbarcode-textmargin="0"
                   jsbarcode-height="40"
-                  jsbarcode-displayvalue="false"
+                  jsbarcode-displayvalue="true"
                   jsbarcode-width="1"
                 ></svg>
                 <div v-else>{{ scope.row[item.fColumn] }}</div>

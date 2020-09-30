@@ -49,7 +49,7 @@ function getItemMenus(data) {
  * @param {*} param
  */
 function ItemTableHeadData(data) {
-  console.log(data[0].fTableView);
+  // console.log(data[0].fTableView);
   let obj = {
     ParameterDes: encryptDesCbc(data[0].fTableView, String(data[1].userDes))
   };
@@ -66,7 +66,7 @@ function ItemTableHeadData(data) {
  * @param {*} param
  */
 function BathcDeleteData(data) {
-  console.log(data[0], "请求批量删除");
+  console.log(JSON.stringify(data[0]), "请求批量删除");
   let obj = {
     ParameterDes: encryptDesCbc(
       JSON.stringify(data[0]),
@@ -87,7 +87,7 @@ function getTableHeadData(str) {
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
   userId = JSON.parse(sessionStorage.getItem("user")).userId;
   let fTableView = '["' + str + '"]';
-  console.log(fTableView)
+  // console.log(fTableView)
   let obj = {
     ParameterDes: encryptDesCbc(fTableView, String(userDes))
   };
@@ -146,7 +146,6 @@ function tableBodyData(data) {
   return http({
     url: "/QureyData",
     method: "POST",
-
     data: JSON.stringify(obj)
   });
 }
@@ -177,9 +176,37 @@ function getTableBodyData(str, condition = []) {
     data: JSON.stringify(obj)
   });
 }
+/**
+ *
+ * 获取表格内容
+ * str 获取相应内容的接口fTableViewData
+ * condition 查询条件，可以为空
+ * getHomeTableBody 获取首页的数据并排序
+ */
+function getHomeTableBody(str, condition = []) {
+  userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
+  let obj1 = {
+    Columns: "",
+    OrderBy: "order by fCreateDate desc",
+    SqlConn: sqlConn,
+    TableView: str,
+    Where: condition
+  };
+  console.log(JSON.stringify(obj1), "获取表格内容");
+  let obj = {
+    ParameterDes: encryptDesCbc(JSON.stringify(obj1), String(userDes))
+  };
+  //  console.log(JSON.stringify(obj),"加密查询")
+  return http({
+    url: "/QureyData",
+    method: "POST",
+    loading:true,
+    data: JSON.stringify(obj)
+  });
+}
 //EXCEL导出
 function exportData(str, condition = [], InterfaceName) {
-  console.log(InterfaceName, "InterfaceName");
+  // console.log(InterfaceName, "InterfaceName");
   userDes = JSON.parse(sessionStorage.getItem("user")).userDes;
 
   let obj1 = {
@@ -713,6 +740,7 @@ export {
   getItemMenus,
   GroupLimitData,
   getTableBodyData,
+  getHomeTableBody,
   getTableHeadData,
   collectionData,
   getUserLimitMenu,

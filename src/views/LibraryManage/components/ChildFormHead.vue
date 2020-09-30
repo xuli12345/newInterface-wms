@@ -16,6 +16,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -115,6 +116,8 @@ export default {
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.ruleForm = defaultForm(this.tableHead);
+          this.$set(this.ruleForm, "fMstState", 1);
+        this.$set(this.ruleForm, "fMstStateName", "初始")
         this.rules = creatRules(this.tableHead);
       } else {
         this.$message.error(res.Message);

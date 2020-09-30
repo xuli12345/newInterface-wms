@@ -5,6 +5,7 @@ import "babel-polyfill";
 import "./assets/css/index.scss"
 import "./assets/css/icon/iconfont.css";
 import store from "@/store/store";
+import "default-passive-events"
 import ElementUI from "element-ui";
 import "element-ui/lib/theme-chalk/index.css";
 Vue.use(ElementUI);

@@ -30,6 +30,7 @@
         :addItem="true"
         :selectArr="selectArr"
         :selectArr2="selectArr2"
+        :StateObj="StateObj"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -78,7 +79,13 @@ export default {
       fTableView: "t_PGRpl_Mst",
       //审核的数据 4审核
       checkData: [true, 4],
-      checkState: 4,
+      //初始状态
+      checkState: 7,
+        //主表状态
+      StateObj: [
+        { key: "fState", val: 7 },
+        { key: "fStateName", val: "初始" }
+      ],
       //是否新增成功
       isSaveSuccess: false,
       printView: ["t_PGRplData", "v_PGRplData", "v_PGRpl_Item", "t_PGRpl_Item"],
@@ -129,7 +136,7 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductName",
           fID: "fID",
-          fAuto: ["fProductCode", "fProductID"],
+          fAuto: ["fProductCode", "fProductID","fQpcstr"],
           fAutoID: ["fProductID"]
         },
         {
@@ -137,7 +144,7 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductCode",
           fID: "fID",
-          fAuto: ["fProductName", "fProductID"],
+          fAuto: ["fProductName", "fProductID","fQpcstr"],
           fAutoID: ["fProductID"]
         },
 

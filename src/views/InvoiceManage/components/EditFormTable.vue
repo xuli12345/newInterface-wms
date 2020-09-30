@@ -160,7 +160,7 @@ export default {
   },
 
   created() {
-    if (this.rowData.fState && this.rowData.fState == this.checkState) {
+    if (this.rowData.fState && this.rowData.fState != this.checkState) {
       this.isDisabled = true;
     }
   }

@@ -15,7 +15,7 @@
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -86,46 +86,7 @@
           :disabled="userLimit('fPrint')"
           >打印</el-button
         >
-        <el-button
-          v-if="product"
-          type="primary"
-          size="mini"
-          icon="el-icon-help"
-          @click="handleBarCode"
-          >货品条码绑定</el-button
-        >
-        <el-button
-          v-if="product"
-          icon="el-icon-goods"
-          type="primary"
-          size="mini"
-          @click="handleCarton"
-          >装箱信息</el-button
-        >
-        <el-button
-          v-if="product"
-          type="primary"
-          size="mini"
-          class="iconfont icon-setting "
-          @click="handleSeq"
-          >上架拣货设置</el-button
-        >
-        <el-button
-          v-if="containerNum"
-          type="primary"
-          size="mini"
-          icon="el-icon-suitcase-1"
-          @click="handleContainer"
-          >生成容器号</el-button
-        >
-        <el-button
-          v-if="storage"
-          type="primary"
-          size="mini"
-          class="iconfont icon-A"
-          @click="handleStorage"
-          >查询导出库位条码</el-button
-        >
+
         <el-button
           v-if="isCheck"
           type="primary"
@@ -141,25 +102,16 @@
           size="mini"
           class="el-icon-circle-close"
           @click="colseOrder"
-           :disabled="userLimit('fClose')"
+          :disabled="userLimit('fClose')"
           >关闭</el-button
         >
-        <el-button
-          v-if="putawayData"
-          type="primary"
-          size="mini"
-          class="el-icon-s-claim"
-          @click="handleInboundFinsh"
-          :disabled="userLimit('fApp')"
-          >入库完成</el-button
-        >
-     
       </div>
     </div>
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+      :max-height="tableHeight"
       border
       style="width: 100%"
       :row-key="getRowKeys"
@@ -168,7 +120,7 @@
       @row-dblclick="dblclick"
       @filter-change="filterTagTable"
     >
-      <!-- :filter-method="userLimit('fFiler') ? null : filtersF"  -->
+     
       <el-table-column type="selection" width="50"></el-table-column>
       <template v-if="!isHave">
         <template v-for="(item, index) in tableHeadData">
@@ -294,12 +246,13 @@ import { addParams, batchDelete, userLimit } from "@/utils/common";
 import PrintTable from "@/components/PrintTable";
 import { compare } from "@/utils/common";
 import PrintJS from "print-js";
-import Sortable from "sortablejs";
+
 import {
   tableBodyData,
   addformSaveData,
   ItemTableHeadData,
   getTableBodyData,
+  getHomeTableBody,
   getTableHeadData,
   BathcDeleteData,
   queryViewData,
@@ -308,9 +261,9 @@ import {
   savePartsOutboundData
 } from "@/api/index";
 export default {
-  //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
-  //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:已审核  strType:导入excel类型字段
-  //putawayData:是否已上架完成   //isClose:单据关闭(入库,盘点,出库)
+  //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功
+  //printView:打印请求的字段  title:打印的表题 isCheck:已审核  strType:导入excel类型字段
+  //isClose:单据关闭(入库,盘点,出库)
   props: [
     "fTableView",
     "tableName",
@@ -319,21 +272,18 @@ export default {
     "batchDelTableName",
     "isHave",
     "isPrint",
-    "product",
-    "containerNum",
     "printView",
-    "title",
-    "storage",
+    "title",   
     "isCheck",
     "strType",
-    "isClose",
-    "putawayData"
+    "isClose"
   ],
   components: {
     PrintTable
   },
   data() {
     return {
+      tableHeight: document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -428,6 +378,7 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -466,19 +417,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
-
         console.log(this.tableData, "过滤表体内容");
       }
     },
@@ -506,6 +444,7 @@ export default {
     },
     //获取table表格内容数据
     async getTableData() {
+      this.pageNum = 1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -556,28 +495,13 @@ export default {
         this.searchWhere.push(...arr);
       }
 
-      let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
+      let res = await getHomeTableBody(this.fTableViewData, this.searchWhere);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.oldList = this.tableData.map(v => v.fID);
-        this.newList = this.oldList.slice();
-        this.$nextTick(() => {
-          // this.setSort();
-        });
 
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
         console.log(this.tableData, "表体内容");
       }
     },
@@ -590,26 +514,6 @@ export default {
       if (this.userLimit("fEdit") == false) {
         this.$emit("openEditDrawer", row, this.tableHeadData);
       }
-    },
-    //货品条码绑定
-    handleBarCode() {
-      this.$emit("openBarCode");
-    },
-    //装箱信息
-    handleCarton() {
-      this.$emit("openCarton");
-    },
-    //生成容器号
-    handleContainer() {
-      this.$emit("openContainer");
-    },
-    //上架拣货设置
-    handleSeq() {
-      this.$emit("openSeq");
-    },
-    //查询导出库位条码
-    handleStorage() {
-      this.$emit("openStorageCode");
     },
 
     //已审查,单据关闭,入库完成共用方法
@@ -674,10 +578,7 @@ export default {
     colseOrder() {
       this.billsFn(this.isClose[1], "关闭");
     },
-    //入库完成
-    async handleInboundFinsh() {
-      this.billsFn(this.putawayData[1], "入库");
-    },
+
     // 手动选中Checkbox
     handleSelectionChange(val) {
       this.BatchList = val;
@@ -979,25 +880,7 @@ export default {
         return data;
       }
     },
-    //表格拖拽
-    setSort() {
-      const el = this.$refs.singleTable.$el.querySelectorAll(
-        ".el-table__body-wrapper > table > tbody"
-      )[0];
-      this.sortable = Sortable.create(el, {
-        setData: function(dataTransfer) {
-          dataTransfer.setData("Text", "");
-        },
-        onEnd: evt => {
-          const targetRow = this.tableData.splice(evt.oldIndex, 1)[0];
-          this.tableData.splice(evt.newIndex, 0, targetRow);
 
-          // for show the changes, you can delete in you code
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0];
-          this.newList.splice(evt.newIndex, 0, tempIndex);
-        }
-      });
-    },
     // excel导入
     handleChange(file, fileList) {
       this.fileTemp = file.raw;
@@ -1025,7 +908,6 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     },
-  
 
     async importFile(strType, file) {
       let res = await imPortExcel({
@@ -1033,7 +915,6 @@ export default {
         file: file
       });
 
-      // console.log(res,"xu");
       if (res.state) {
         this.$message.success("导入成功!");
         this.getTableData();

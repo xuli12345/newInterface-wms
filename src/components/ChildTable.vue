@@ -2,6 +2,7 @@
   <div>
     <el-table
     :header-cell-style="{ background: '#eef1f6'}"
+     :max-height="tableHeight"
       :data="tableList | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
@@ -103,6 +104,7 @@ export default {
   ],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       //checkbox选中的数据
       BatchList: [],

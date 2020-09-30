@@ -22,12 +22,12 @@ export default {
     //loading的状态
     loadingStatus: false,
     //路线主表下拉框的值(fID)
-    changeValue: ''
+    changeValue: ""
   },
   mutations: {
     updateRouteValue(state, data) {
       // console.log(state,data);
-      state.changeValue=data;
+      state.changeValue = data;
     },
     updateSidebarLayoutSkin(state, skin) {
       state.sidebarLayoutSkin = skin;

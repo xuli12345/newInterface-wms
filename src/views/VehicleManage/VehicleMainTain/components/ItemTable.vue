@@ -5,6 +5,7 @@
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%;"
     >
@@ -59,6 +60,7 @@ export default {
   props: ["tableHeadData", "ItemTableData"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       //表格数据
       tableData: [],
       // 当前页数

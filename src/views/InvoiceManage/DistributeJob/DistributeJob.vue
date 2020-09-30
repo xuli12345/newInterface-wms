@@ -27,6 +27,7 @@
         :addItem="true"
         :selectArr="selectArr"
         :searchData="searchData"
+        :StateObj="StateObj"
       ></CreatFrom>
     </el-drawer>
     <el-drawer
@@ -83,6 +84,11 @@ export default {
       fTableViewItem: ["t_DistributeJob_Item", "fMstID"],
       // 弹出框的ftableview
       fTableViewAlert: ["t_DistributeNotice_Mst"],
+           //主表状态
+      StateObj: [
+        { key: "fState", val: 1 },
+        { key: "fStateName", val: "初始" }
+      ],
       selectArr: [
         {
           fName: "fJobTypeName",

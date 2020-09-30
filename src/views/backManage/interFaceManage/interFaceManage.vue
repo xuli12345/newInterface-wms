@@ -15,7 +15,7 @@
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -55,17 +55,18 @@
     </div>
     <!-- 表格数据   -->
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       ref="singleTable"
       :data="tableDataPage"
       border
       style="width: 100%;"
+      :max-height="tableHeight"
       :row-key="getRowKeys"
       @selection-change="handleSelectionChange"
       @row-dblclick="dblclick"
       @filter-change="filterTagTable"
     >
-      <!-- :filter-method="userLimit('fFiler') ? null : filtersF" -->
+      <!-- :filter-method="userLimit('fFiler') ? null : filtersF"   -->
       <el-table-column type="selection" width="50"></el-table-column>
       <template v-for="(item, index) in tableHead">
         <el-table-column
@@ -155,7 +156,7 @@ import {
 import { timeCycle } from "@/utils/updateTime";
 import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { userLimit } from "@/utils/common.js";
-// import Sortable from "sortablejs";
+import Sortable from "sortablejs";
 export default {
   name: "interFaceManage",
   components: {
@@ -164,6 +165,7 @@ export default {
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       bbb: [],
       //新增侧滑显示隐藏
       drawer: false,
@@ -222,6 +224,7 @@ export default {
       oldList: [],
       newList: [],
       newArr: []
+      // dropCol: []
     };
   },
   computed: {
@@ -533,7 +536,7 @@ export default {
         this.editIndex = index + (this.pageNum - 1) * this.pageSize;
       }
     },
-
+    //获取头部信息
     async getHeadData() {
       let res = await ItemTableHeadData([
         {
@@ -543,10 +546,10 @@ export default {
       ]);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHead = res.lstRet.sort(compare);
+        // this.dropCol = JSON.parse(JSON.stringify(this.tableHead));
         let searchArr = [];
         searchArr = this.tableHead.filter(element => {
           return element.fQureyCol == 1;
@@ -580,8 +583,8 @@ export default {
     userLimit(val) {
       let a = userLimit(val);
       return a;
-    }
-    //表格拖拽
+    },
+    //表格行拖拽
     // setSort() {
     //   const el = this.$refs.singleTable.$el.querySelectorAll(
     //     ".el-table__body-wrapper > table > tbody"
@@ -600,9 +603,27 @@ export default {
     //     }
     //   });
     // }
+    columnDrop() {
+      const wrapperTr = this.$refs.singleTable.$el.querySelectorAll(
+        ".el-table__header-wrapper > table > thead> tr"
+      )[0];
+      this.sortable = Sortable.create(wrapperTr, {
+        animation: 180,
+        delay: 0,
+        onEnd: evt => {
+          console.log(evt);
+          const oldItem = this.dropCol[evt.oldIndex];
+          this.dropCol.splice(evt.oldIndex, 1);
+          this.dropCol.splice(evt.newIndex, 0, oldItem);
+        }
+      });
+    }
   },
-  async created() {
+  created() {
     this.getHeadData();
+  },
+  mounted() {
+    // this.columnDrop();
   }
 };
 </script>

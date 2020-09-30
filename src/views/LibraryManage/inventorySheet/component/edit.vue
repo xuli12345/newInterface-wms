@@ -260,7 +260,7 @@ export default {
   },
   created() {
     this.kucunHeadData();
-    if (this.rowData.fMstState && this.rowData.fMstState == 7) {
+    if (this.rowData.fMstState && this.rowData.fMstState != 1) {
       this.isDisabled = true;
     }
   }

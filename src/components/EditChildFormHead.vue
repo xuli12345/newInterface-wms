@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -30,7 +31,7 @@
           :label="item.fColumnDes"
           :prop="item.fColumn"
         >
-         <!-- :disabled="item.fReadOnly == 0 ? false : true" -->
+          <!-- :disabled="item.fReadOnly == 0 ? false : true" -->
           <el-date-picker
             v-if="item.fDataType == 'datetime'"
             v-model="ruleForm[item.fColumn]"
@@ -44,10 +45,10 @@
             "
           >
             <el-select
-             filterable
+              filterable
               v-model="ruleForm[item.fColumn]"
               @change="getVal(ruleForm[item.fColumn], item.fColumn)"
-               :disabled="isDisabled"
+              :disabled="isDisabled"
             >
               <el-option
                 :value="i[selectVal(item.fColumn)]"
@@ -93,7 +94,14 @@ import { decryptDesCbc } from "@/utils/cryptoJs.js";
 import { getTableHeadData, getTableBodyData } from "@/api/index";
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
 export default {
-  props: ["fTableViewHead", "addItem", "selectArr", "rowData", "fCustomerID","fState"],
+  props: [
+    "fTableViewHead",
+    "addItem",
+    "selectArr",
+    "rowData",
+    "fCustomerID",
+    "fState"
+  ],
   data() {
     return {
       //表单域标签的位置
@@ -116,10 +124,10 @@ export default {
     }
     if (this.rowData) {
       this.ruleForm = JSON.parse(JSON.stringify(this.rowData));
-      console.log( this.ruleForm,'fState')
-       if (this.rowData.fState && this.rowData.fState == this.fState) {
-      this.isDisabled = true;
-    }
+      console.log(this.ruleForm, "fState");
+      if (this.rowData.fState && this.rowData.fState != this.fState) {
+        this.isDisabled = true;
+      }
       this.ruleForm.fModifyDate = new Date();
       for (const key in this.ruleForm) {
         if (JSON.stringify(this.ruleForm[key]).indexOf("/Date") != -1) {
@@ -138,6 +146,7 @@ export default {
 
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
+    
         this.rules = creatRules(this.tableHead);
       } else {
         this.$message.error(res.Message);
@@ -154,7 +163,7 @@ export default {
             type: "success"
           });
           this.$emit("closeBox", JSON.parse(JSON.stringify(this.ruleForm)));
-          this.ruleForm={};
+          this.ruleForm = {};
         } else {
           return false;
         }
@@ -162,7 +171,7 @@ export default {
     },
     //取消
     resetForm(formName) {
-      this.ruleForm={};
+      this.ruleForm = {};
       this.$emit("closeBox");
     },
     getPartsValue() {
@@ -243,7 +252,7 @@ export default {
             }
             if (i) {
               this.ruleForm[item] = data.fID;
-              this.ruleForm[n] = data[ele.fDes];
+              this.ruleForm[n] = data[ele.fDes];
             } else {
               this.ruleForm[item] = data[item];
             }

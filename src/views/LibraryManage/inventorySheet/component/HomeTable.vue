@@ -15,7 +15,7 @@
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -103,6 +103,7 @@
       :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%"
       :row-key="getRowKeys"
@@ -223,6 +224,7 @@ import {
   addformSaveData,
   ItemTableHeadData,
   getTableBodyData,
+  getHomeTableBody,
   getTableHeadData,
   BathcDeleteData,
   queryViewData,
@@ -257,6 +259,7 @@ export default {
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -349,6 +352,7 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
+      this.pageNum=1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -416,6 +420,7 @@ export default {
     },
     //获取table表格内容数据
     async getTableData() {
+      this.pageNum=1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -466,7 +471,7 @@ export default {
         this.searchWhere.push(...arr);
       }
 
-      let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
+      let res = await getHomeTableBody(this.fTableViewData, this.searchWhere);
 
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
@@ -699,7 +704,7 @@ export default {
             type: "html",
             scanStyles: false,
             style:
-              "table td,th {border: 1px #000 solid;font-size: 20px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;min-width:140px}; "
+              "table td,th {border: 1px #000 solid;font-size: 20px; text-align: center; table-layout: fixed;word-break: break-all; word-wrap:break-word;min-width:160px}; "
           });
         }, 500);
         setTimeout(() => {

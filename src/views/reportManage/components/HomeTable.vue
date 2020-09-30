@@ -14,7 +14,7 @@
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -79,9 +79,10 @@
     </div>
 
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+      :max-height="tableHeight"
       border
       style="width: 100%"
       :data="tableData | pagination(pageNum, pageSize)"
@@ -127,15 +128,17 @@ import {
   tableBodyData,
   getTableHeadData,
   getTableBodyData,
+  getHomeTableBody,
   exportData,
   companyList
 } from "@/api/index";
-import Sortable from "sortablejs";
+import PrintJS from "print-js";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 stock:库存查询显示的按钮
   props: ["fTableView", "tableName", "isSaveSuccess", "searchParams", "stock"],
   data() {
     return {
+      tableHeight: document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -158,11 +161,7 @@ export default {
       startData: {},
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
-      sqlConn: sessionStorage.getItem("sqlConn"),
-      //表格拖拽字段
-      sortable: null,
-      oldList: [],
-      newArr: []
+      sqlConn: sessionStorage.getItem("sqlConn")
     };
   },
 
@@ -170,6 +169,7 @@ export default {
     //表格筛选
     async filterTagTable(filters) {
       // console.log(filters);
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -199,7 +199,6 @@ export default {
             Value: ele[key]
           };
         }
-
         searchData.push(objData);
       });
 
@@ -209,16 +208,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
         console.log(this.tableData, "表体内容");
       }
     },
@@ -241,7 +230,6 @@ export default {
         searchArr.forEach(item => {
           ColumnArr.push(item.fColumn);
         });
-        // console.log(ColumnArr, "搜索的字段");
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
@@ -249,7 +237,8 @@ export default {
               let obj = {
                 fColumnDes: item.fColumnDes,
                 fColumn: item.fColumn,
-                fComputer: item.fComputer
+                fComputer: item.fComputer,
+                fDataType: item.fDataType
               };
               arr.push(obj);
             }
@@ -264,7 +253,6 @@ export default {
 
     //筛选的条件数组
     screenFuction(val) {
-      // console.log(val,"val")
       let copyTable = this.tableData;
       var screenData = [];
       copyTable.forEach((item, idx) => {
@@ -283,7 +271,6 @@ export default {
       return newData;
     },
     handleCurrentRow(val) {
-      // console.log(val);
       this.currentRow = val;
     },
     //查询
@@ -292,75 +279,26 @@ export default {
     },
     //获取table表格内容数据
     async getTableData() {
-      this.searchWhere = [];
-      if (JSON.stringify(this.asData) == "{}") {
-        this.searchWhere = [];
-      } else {
-        this.searchData.forEach(element => {
-          if (this.asData[element.fColumn]) {
-            let obj = {
-              Computer: element.fComputer,
-              DataFile: element.fColumn,
-              Value: this.asData[element.fColumn]
-            };
-            this.searchWhere.push(obj);
-          }
-        });
-      }
-
+      this.searchCommon();
       let res = await tableBodyData([
         {
           Columns: "",
-          OrderBy: "",
+          OrderBy: "order by fCreateDate desc",
           SqlConn: this.sqlConn,
           TableView: this.fTableViewData,
-          
           Where: this.searchWhere
         },
         { userDes: this.userDes, userId: this.userId }
       ]);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log('res3',res)
+
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
         // console.log(this.tableData, "表体内容");
-        this.oldList = this.tableData.map(v => v.fID);
-        this.newList = this.oldList.slice();
-        this.$nextTick(() => {
-          //this.setSort();
-        });
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
       }
     },
-    //表格拖拽
-    setSort() {
-      const el = this.$refs.singleTable.$el.querySelectorAll(
-        ".el-table__body-wrapper > table > tbody"
-      )[0];
-      this.sortable = Sortable.create(el, {
-        setData: function(dataTransfer) {
-          dataTransfer.setData("Text", "");
-        },
-        onEnd: evt => {
-          const targetRow = this.tableData.splice(evt.oldIndex, 1)[0];
-          this.tableData.splice(evt.newIndex, 0, targetRow);
 
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0];
-          this.newList.splice(evt.newIndex, 0, tempIndex);
-        }
-      });
-    },
     //属性调整
     propsAdjust() {
       if (this.currentRow == null) {
@@ -392,9 +330,32 @@ export default {
       let a = userLimit(val);
       return a;
     },
+
     //EXCEL导出
     async handerExport() {
-      // console.log(this.$route);
+      this.searchCommon();
+      let res = await exportData(
+        this.fTableViewData,
+        this.searchWhere,
+        this.tableName
+      );
+
+      if (!res) return;
+      var blob = new Blob([res], {
+        type: "application/vnd.ms-excel;charset=utf-8"
+        //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
+      });
+      var downloadElement = document.createElement("a");
+      var href = window.URL.createObjectURL(blob); //创建下载的链接
+
+      downloadElement.href = href;
+      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
+      document.body.appendChild(downloadElement);
+      downloadElement.click(); //点击下载
+      document.body.removeChild(downloadElement); //下载完成移除元素
+      window.URL.revokeObjectURL(href); //释放掉blob
+    },    searchCommon() {
+      this.pageNum = 1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -444,27 +405,6 @@ export default {
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
-
-      let res = await exportData(
-        this.fTableViewData,
-        this.searchWhere,
-        this.tableName
-      );
-      //  console.log(res,1232)
-      if (!res) return;
-      var blob = new Blob([res], {
-        type: "application/vnd.ms-excel;charset=utf-8"
-        //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
-      });
-      var downloadElement = document.createElement("a");
-      var href = window.URL.createObjectURL(blob); //创建下载的链接
-
-      downloadElement.href = href;
-      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
-      document.body.appendChild(downloadElement);
-      downloadElement.click(); //点击下载
-      document.body.removeChild(downloadElement); //下载完成移除元素
-      window.URL.revokeObjectURL(href); //释放掉blob
     }
   },
   watch: {

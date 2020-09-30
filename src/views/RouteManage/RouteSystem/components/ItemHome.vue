@@ -4,6 +4,7 @@
     :header-cell-style="{ background: '#eef1f6'}"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%"
       :row-key="getRowKeys"
@@ -89,6 +90,7 @@ export default {
   props: ["fTableView", "isSaveSuccess", "tableData", "total"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       //获取表格内容TableView的值,在获取headData中获取
       fTableViewData: "",
@@ -138,6 +140,7 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
+      this.pageNum=1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -176,18 +179,7 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
+        
 
         console.log(this.tableData, "表体内容");
       }

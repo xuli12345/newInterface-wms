@@ -13,6 +13,7 @@
       :importExcel="true"
       :strType="'PGAlcntc'"
       :isDownLoad="true"
+      :homeSelArr="homeSelArr"
     ></HomeTable>
 
     <!-- 新增侧滑框  v-if="newisDestory" -->
@@ -79,7 +80,7 @@ export default {
       fTableView: "t_DistributeNotice_Mst",
       //审核的数据 6审核 5作废
       checkData: [true, 6, 5],
-      checkState: 6,
+      checkState: 2,
       //主表状态
       StateObj: [
         { key: "fState", val: 2 },
@@ -93,6 +94,24 @@ export default {
       fTableViewItem: ["t_DistributeNotice_Item", "fMstID"],
       //excel导入表格字段
       fExcelTableView: ["t_DistributeNotice_Import", "fID"],
+      homeSelArr: [
+        {
+           fName: "fStateName",
+          fUrl: "v_Type_DistributeMstState",
+          fDes: "fTypeName",
+          fID: "fID",
+          fAuto: ["fState"],
+          fAutoID: ["fState"]
+        },
+        {
+          fName: "fReasonName",
+          fUrl: "v_Type_DistributeReason",
+          fDes: "fTypeName",
+          fID: "fID", 
+          fAuto: ["fReasonID"],
+          fAutoID: ["fReasonID"]
+        },
+      ],
       selectArr: [
         {
           fName: "fShopName",
@@ -150,7 +169,7 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductName",
           fID: "fID",
-          fAuto: ["fProductCode", "fProductID"],
+          fAuto: ["fProductCode", "fProductID", "fQpcstr"],
           fAutoID: ["fProductID"]
         },
         {
@@ -158,7 +177,7 @@ export default {
           fUrl: "v_Product",
           fDes: "fProductCode",
           fID: "fID",
-          fAuto: ["fProductName", "fProductID"],
+          fAuto: ["fProductName", "fProductID", "fQpcstr"],
           fAutoID: ["fProductID"]
         },
         {

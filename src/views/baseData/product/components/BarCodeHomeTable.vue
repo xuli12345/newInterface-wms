@@ -10,13 +10,14 @@
 
         <el-checkbox
           v-if="item.fDataType == 'bit'"
-          v-model.trim="asData[item.fColumn]"
+          v-model="asData[item.fColumn]"
         ></el-checkbox>
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
-          v-model="asData[item.fColumn]"
-          type="datetime"
+          v-model.trim="asData[item.fColumn]"
+          type="date"
           placeholder="选择日期时间"
+          min-width="300"
         ></el-date-picker>
         <el-row v-else-if="item.fComputer == 'between'">
           <el-col :span="11">
@@ -52,18 +53,38 @@
         <el-button
           type="primary"
           size="mini"
+          class="iconfont icon-xinzeng"
+          @click="addPopRight"
+          :disabled="userLimit('fAdd')"
+          >新增</el-button
+        >
+        <el-button
+          v-if="!isItem"
+          type="primary"
+          size="mini"
+          class="iconfont icon-shanchu"
+          @click="BatchDelete"
+          :disabled="userLimit('fDel')"
+          >批量删除</el-button
+        >
+
+        <el-button
+          v-if="isPrint"
+          type="primary"
+          size="mini"
           class="iconfont icon-dayin1"
           @click="printCon()"
           :disabled="userLimit('fPrint')"
           >打印</el-button
         >
-        <el-button
+
+        <!-- <el-button
           type="primary"
           size="mini"
           @click="entryPrint"
           class="iconfont icon-dayin1"
-          >录入打印库位标签</el-button
-        >
+          >录入打印商品标签</el-button
+        > -->
       </div>
     </div>
     <el-table
@@ -80,7 +101,7 @@
       @filter-change="filterTagTable"
     >
       <el-table-column type="selection" width="50"></el-table-column>
-      <template>
+      <template v-if="!isHave">
         <template v-for="(item, index) in tableHeadData">
           <el-table-column
             v-if="item.fVisible == 1"
@@ -105,16 +126,52 @@
           </el-table-column>
         </template>
       </template>
+      <template v-if="isHave">
+        <!-- :filter-method="filtersF" -->
+        <template v-for="(item, index) in tableHeadData">
+          <el-table-column
+            v-if="item.fVisible == 1"
+            :key="index"
+            :label="item.fColumnDes"
+            :prop="item.fColumn"
+            min-width="160px"
+            sortable
+            :column-key="item.fColumn"
+            :filters="screenFuction(item.fColumn)"
+          >
+            <template slot-scope="scope">
+              <form v-if="item.fColumn === 'fPassWord'">
+                <el-input
+                  v-model="scope.row[item.fColumn]"
+                  type="password"
+                  disabled
+                ></el-input>
+              </form>
+
+              <el-checkbox
+                @change="changeA(scope.row, item.fColumn)"
+                v-else-if="item.fDataType == 'bit'"
+                :value="scope.row[item.fColumn] == 1 ? true : false"
+                disabled
+              ></el-checkbox>
+              <div v-else>{{ scope.row[item.fColumn] }}</div>
+            </template>
+          </el-table-column>
+        </template>
+      </template>
+
       <el-table-column fixed="right" label="操作" align="center" width="120">
         <template slot-scope="scope">
           <div class="operation">
             <el-button
+              v-if="!isItem"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
               :disabled="userLimit('fDel')"
               >删除</el-button
             >
+
             <el-button
               type="text"
               size="small"
@@ -138,7 +195,7 @@
         :total="total"
       ></el-pagination>
     </div>
-    <!-- 打印格式内容 -->
+    <!-- 打印格式内容  -->
     <div style="width:0;height:0;overflow:hidden">
       <PrintTable
         v-if="isRender"
@@ -167,35 +224,62 @@
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
-import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import { userLimit, compare, addParams } from "@/utils/common";
-import PrintTable from "./PrintStorage";
+import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
+import { addParams, batchDelete, userLimit } from "@/utils/common";
+import PrintTable from "./PrintProduct";
+import { compare } from "@/utils/common";
+import Sortable from "sortablejs";
 import PrintJS from "print-js";
 import {
+  tableBodyData,
+  addformSaveData,
   getTableBodyData,
+  getHomeTableBody,
   getTableHeadData,
   BathcDeleteData,
-  deleteStorageItem
+  imPortExcel
 } from "@/api/index";
-import Sortable from "sortablejs";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
-  //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮
-  props: ["fTableView", "tableName", "isSaveSuccess"],
+  //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:审核(入库,盘点,出库)  strType:导入excel类型字段
+  props: [
+    "fTableView",
+    "tableName",
+    "isSaveSuccess",
+    "isItem",
+    "batchDelTableName",
+    "isHave",
+    "isPrint",
+    "product",
+    "containerNum",
+    "printView",
+    "title",
+    "storage",
+    "isCheck",
+    "strType"
+  ],
   components: {
     PrintTable
   },
   data() {
     return {
        tableHeight:document.body.clientHeight,
-      dialogVisible: false,
       inputValue: "",
-      //是否临时库位
-      fIsTemporaryStorage: false,
+      dialogVisible:false,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
+      //打印主表表头数据
       printHeadData: [],
+      //打印主表内容数据
+      dataCode: [],
+      //打印字表表头数据
+      ItemTableHeadData: [],
+      //打印从表回显数据
+      ItemBackData: [],
+      isRender: false,
+      //搜索条件
+      searchWhere: [],
       //获取表格内容TableView的值,在获取headData中获取
       fTableViewData: "",
       //批量
@@ -217,82 +301,27 @@ export default {
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
       sqlConn: sessionStorage.getItem("sqlConn"),
-      dataCode: [],
-      isRender: false,
-      //表格拖拽字段
-      sortable: null,
-      oldList: [],
-      newList: [],
-      newArr: []
+      newArr: [],
+      //excel
+      fileTemp: null,
+      file: null,
+      fileName: ""
     };
   },
   methods: {
-    async printCon() {
-      if (this.BatchList.length == 0) {
-        this.$message.warning("请勾选您要打印的数据!");
-      } else {
-        this.dataCode = this.BatchList;
-        // this.dataCode.forEach(item => {
-        //   item.fStorageBarCode = item.fStorageBarCode.replace("-", "");
-        // });
-        this.common();
-      }
-    },
-    confirm() {
-      if (!this.inputValue) {
-        this.$message.warning("请输入打印的库位编码!");
-      } else {
-        this.dataCode = [{ fStorageBarCode: this.inputValue }];
-        this.common();
-      }
-    },
-    common() {
-      this.isRender = true;
-      setTimeout(() => {
-        PrintJS({
-          printable: "toPrint",
-          type: "html",
-          scanStyles: false,
-          css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-        });
-      }, 500);
-      setTimeout(() => {
-        this.isRender = false;
-      }, 600);
-    },
-    //手工
-    entryPrint() {
-      this.dialogVisible = true;
-    },
-    handleClose(done) {
-      this.dialogVisible = false;
-    },
     //用户表格列头
     async getTableHeadData() {
-      
       let res = await getTableHeadData(this.fTableView);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-    console.log(this.tableHeadData)
-        let newArr = [];
-        newArr = this.tableHeadData.filter(element => {
-          return element.fKey == 1;
-        });
-        let obj = {};
-        newArr.forEach(item => {
-          obj = {
-            ColumnName: item.fColumn,
-            ColumnType: item.fDataType
-          };
-        });
+        console.log(this.tableHeadData, "表头");
+
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
           return element.fQureyCol == 1;
         });
-
         let ColumnArr = [];
         searchArr.forEach(item => {
           ColumnArr.push(item.fColumn);
@@ -300,7 +329,7 @@ export default {
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
-            if (item.fColumn.includes(element)) {
+            if (item.fColumn == element) {
               let obj = {
                 fColumnDes: item.fColumnDes,
                 fColumn: item.fColumn,
@@ -311,7 +340,6 @@ export default {
             }
           });
         });
-        // console.log(arr,"搜索字段数据");
         this.searchData = arr;
       } else {
         this.$message.error(res.Message);
@@ -325,12 +353,10 @@ export default {
         item[val] = 0;
       }
     },
-
     //表格筛选
-    async filterTagTable(filters) {
-      // console.log(filters);
-      this.pageNum=1;
+    async filterTagTable(filters) {    
       let column, value, arrLength;
+      this.pageNum=1;
       let obj = {};
       for (const key in filters) {
         column = key;
@@ -365,11 +391,11 @@ export default {
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-      // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
        
+        // console.log(this.tableData, "过滤表体内容");
       }
     },
 
@@ -399,43 +425,29 @@ export default {
       this.pageNum=1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
-        this.searchWhere = [
-          {
-            Computer: "=",
-            DataFile: "fStorageState",
-            Value: "1"
-          }
-        ];
+        this.searchWhere = [];
       } else {
         this.searchData.forEach(element => {
           if (this.asData[element.fColumn]) {
             let result = this.asData[element.fColumn];
-
             if (result instanceof Date) {
               result = timeCycle(result);
+              // console.log(result);
             }
             if (result.constructor == Boolean && result == true) {
               result = 1;
             }
-
             let obj = {
               Computer: element.fComputer,
               DataFile: element.fColumn,
               Value: result
             };
-            let baseWhere = {
-              Computer: "=",
-              DataFile: "fStorageState",
-              Value: "1"
-            };
             this.searchWhere.push(obj);
-            this.searchWhere.push(baseWhere);
           }
         });
       }
       let startobj = {};
       let endobj = {};
-      let where = {};
       let arr = [];
       for (const key in this.startData) {
         for (const Ikey in this.endData) {
@@ -450,14 +462,9 @@ export default {
               DataFile: key,
               Value: this.endData[Ikey]
             };
-            where = {
-              Computer: "=",
-              DataFile: "fStorageState",
-              Value: "1"
-            };
+
             arr.push(startobj);
             arr.push(endobj);
-            arr.push(where);
           }
         }
       }
@@ -465,63 +472,89 @@ export default {
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
-      let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
+      let res = await getHomeTableBody(this.fTableViewData, this.searchWhere);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
-        this.total = this.tableData.length;
-        this.oldList = this.tableData.map(v => v.fID);
-        this.newList = this.oldList.slice();
-        this.$nextTick(() => {
-          // this.setSort();
-        });
-        this.tableData.forEach(element => {
-          for (const key in element) {
-           
-            if (key === "fIsTemporaryStorage" && element[key] == null) {
-              this.$set(element, "fIsTemporaryStorage", 0);
-            }
-          }
-        });
+        this.total = this.tableData.length;     
         console.log(this.tableData, "表体内容");
       }
     },
-    //表格拖拽
-    setSort() {
-      const el = this.$refs.singleTable.$el.querySelectorAll(
-        ".el-table__body-wrapper > table > tbody"
-      )[0];
-      this.sortable = Sortable.create(el, {
-        setData: function(dataTransfer) {
-          dataTransfer.setData("Text", "");
-        },
-        onEnd: evt => {
-          const targetRow = this.tableData.splice(evt.oldIndex, 1)[0];
-          this.tableData.splice(evt.newIndex, 0, targetRow);
-
-          // for show the changes, you can delete in you code
-          const tempIndex = this.newList.splice(evt.oldIndex, 1)[0];
-          this.newList.splice(evt.newIndex, 0, tempIndex);
-        }
-      });
+    //新增
+    addPopRight() {
+      this.$emit("openDrawer", this.tableHeadData);
     },
     //双击表格弹框
     dblclick(row) {
-      console.log(row);
       if (this.userLimit("fEdit") == false) {
         this.$emit("openEditDrawer", row, this.tableHeadData);
       }
     },
+    //手工
+    entryPrint() {
+      this.dialogVisible = true;
+    },
+    handleClose(done) {
+      this.dialogVisible = false;
+    },
+    // 手动选中Checkbox
+    handleSelectionChange(val) {
+      this.BatchList = val;
+    },
+    //批量删除
+    BatchDelete() {
+      if (this.BatchList.length == 0) {
+        this.$message.warning("请选择要删除的数据!");
+      } else {
+        let result = batchDelete(this.tableHeadData, this.BatchList);
+        this.$confirm("此操作将永久删除该数据, 是否继续?", "提示", {
+          confirmButtonText: "确定",
+          cancelButtonText: "取消",
+          type: "warning"
+        })
+          .then(async () => {
+            let res = await addformSaveData([
+              {
+                lstSaveData: [
+                  {
+                    TableName: this.tableName,
+                    IdentityColumn: null,
+                    InsertRow: null,
+                    UpdateRow: null,
+                    DeleteRow: result.arr,
+                    Columns: result.columns
+                  }
+                ]
+              },
+              { userDes: this.userDes, userId: this.userId }
+            ]);
+            res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
+            if (res.State) {
+              this.$message.success("删除成功!");
+              this.getTableData();
+            } else {
+              this.$message.error(res.errstr);
+            }
+          })
+          .catch(() => {
+            this.$message({
+              type: "info",
+              message: "已取消删除"
+            });
+          });
+      }
+    },
+
     //修改
     handleEdit(row, index) {
-      console.log(row);
       this.$emit("openEditDrawer", row, this.tableHeadData);
     },
-    // 删除
+    //删除
     handleDelete(row, index) {
-      // console.log(row,11)
-      let RowData = JSON.parse(JSON.stringify(row));
+      let currentRow = JSON.parse(JSON.stringify(row));
+
       let resultData = addParams(this.tableHeadData, row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -529,12 +562,12 @@ export default {
         type: "warning"
       })
         .then(async () => {
-          let res = await deleteStorageItem([
+          let res = await addformSaveData([
             {
               lstSaveData: [
                 {
                   TableName: this.tableName,
-                  IdentityColumn: "fID",
+                  IdentityColumn: null,
                   InsertRow: null,
                   UpdateRow: null,
                   DeleteRow: [resultData.arr],
@@ -544,13 +577,12 @@ export default {
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
-
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
           } else {
-            this.$message.error(res.Message);
+            this.$message.error(res.errstr);
           }
         })
         .catch(() => {
@@ -559,11 +591,6 @@ export default {
             message: "已取消删除"
           });
         });
-    },
-
-    // 手动选中Checkbox
-    handleSelectionChange(val) {
-      this.BatchList = val;
     },
 
     // 页容量
@@ -579,13 +606,112 @@ export default {
     userLimit(val) {
       return userLimit(val);
     },
-    //获取打印表头的数据
-    async getPrintHeadData() {
-      let res = await getTableHeadData(this.printView[0]);
+
+    async printCon() {
+      if (this.BatchList.length == 0) {
+        this.$message.warning("请勾选您要打印的数据!");
+      } else {
+        this.dataCode = this.BatchList;
+        this.common();
+      }
+    },
+    confirm() {
+      if (!this.inputValue) {
+        this.$message.warning("请输入打印的商品编码!");
+      } else {
+        this.dataCode = [{ fProductBarCode: this.inputValue }];
+        this.common();
+      }
+    },
+    common() {
+      this.isRender = true;
+      setTimeout(() => {
+        PrintJS({
+          printable: "toPrint",
+          type: "html",
+          scanStyles: false,
+          css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
+        });
+      }, 500);
+      setTimeout(() => {
+        this.isRender = false;
+      }, 600);
+    },
+    //获取从表回显的数据
+    async getSearchItemData(fID) {
+      let searchWhere = [
+        {
+          Computer: "=",
+          DataFile: "fMstID",
+          Value: fID
+        }
+      ];
+      let res = await tableBodyData([
+        {
+          Columns: "",
+          OrderBy: "",
+          SqlConn: this.sqlConn,
+          TableView: this.printView[2],
+          Where: searchWhere
+        },
+        { userDes: this.userDes, userId: this.userId }
+      ]);
+
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+
       if (res.State) {
-        this.printHeadData = res.lstRet;
-        // console.log(this.printHeadData, "打印的表头");
+        let data = JSON.parse(res.Data);
+        data.forEach((item, index) => {
+          for (const key in item) {
+            if (JSON.stringify(item[key]).indexOf("/Date") != -1) {
+              item[key] = updateTime(item[key]);
+            }
+          }
+        });
+        // console.log(this.ItemBackData, "打印从表回显tableData内容");
+        return data;
+      }
+    },
+
+    // excel导入
+    handleChange(file, fileList) {
+      // console.log(file, fileList);
+      this.fileTemp = file.raw;
+      if (this.fileTemp) {
+        if (
+          this.fileTemp.type ==
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          this.fileTemp.type == "application/vnd.ms-excel"
+        ) {
+          this.importFile(this.strType, this.fileTemp);
+        } else {
+          this.$message({
+            type: "warning",
+            message: "附件格式错误，请删除后重新上传！"
+          });
+        }
+      } else {
+        this.$message({
+          type: "warning",
+          message: "请上传附件！"
+        });
+      }
+    },
+
+    handleRemove(file, fileList) {
+      this.fileTemp = null;
+    },
+
+    async importFile(strType, file) {
+      let res = await imPortExcel({
+        strType: strType,
+        file: file
+      });
+
+      if (res.state) {
+        this.$message.success("导入成功!");
+      } else {
+        this.$message.error(res.message);
       }
     }
   },
@@ -598,9 +724,6 @@ export default {
   },
   created() {
     this.getTableHeadData();
-    if (this.isPrint) {
-      this.getPrintHeadData();
-    }
   }
 };
 </script>

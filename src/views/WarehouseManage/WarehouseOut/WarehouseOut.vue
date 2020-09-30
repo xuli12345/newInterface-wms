@@ -62,7 +62,7 @@
   </div>
 </template>
 <script>
-import HomeTable from "@/components/HomeTable";
+import HomeTable from "./components/HomeTable";
 import CreatFrom from "./components/FormTable";
 import EditFormTable from "./components/EditFormTable";
 export default {
@@ -178,21 +178,7 @@ export default {
             }
           ]
         },
-        // {
-        //   fName: "fBoxNumUniName",
-        //   fUrl: "v_Unit",
-        //   fDes: "fUnitName",
-        //   fID: "fID",
-        //   fAuto: ["fOutboundBoxNumUnit"],
-        //   fAutoID: ["fOutboundBoxNumUnit"],
-        //   searchWhere: [
-        //     {
-        //       Computer: "=",
-        //       DataFile: "fUnitType",
-        //       Value: 10
-        //     }
-        //   ]
-        // },
+       
         {
           fName: "fVolumetUnitName",
           fUrl: "v_Unit",

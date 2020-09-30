@@ -6,6 +6,7 @@
       :data="tableData | pagination(pageNum, pageSize)"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
@@ -109,6 +110,7 @@ export default {
   ],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       //checkbox选中的数据
       BatchList: [],

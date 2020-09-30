@@ -1,35 +1,12 @@
 <template>
   <div>
-    <!-- <div class="page flex-wrap">
-      <div
-        class="search-title flex-align-center"
-        v-for="(item, index) in searchData"
-        :key="index"
-      >
-        {{ item.fColumnDes }}:
-        <el-input
-          v-model="asData[item.fColumn]"
-          :placeholder="`请输入${item.fColumnDes}`"
-          clearable
-        ></el-input>
-      </div>
-      <div style="margin-top:10px">
-        <el-button
-          type="primary"
-          size="mini"
-          class="iconfont icon-A"
-          @click="search"
-          >查询</el-button
-        >
-      </div>
-    </div> -->
-
-    <!-- | pagination(pageNum, pageSize) -->
+    
     <el-table
       :header-cell-style="{ background: '#eef1f6' }"
       :data="tableData"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       :row-key="getRowKeys"
       style="width: 100%;"
@@ -90,6 +67,7 @@ export default {
   props: ["fTableView", "searchData"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       tableHeadData: [], //表头数据
       getRowKeys(row) {
         return row.fID;
@@ -135,6 +113,7 @@ export default {
     //表格筛选
     async filterTagTable(filters) {
       // console.log(filters);
+      this.pageNum=1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -171,13 +150,7 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (JSON.stringify(element[key]).indexOf("/Date") != -1) {
-              element[key] = timeCycle(element[key]);
-            }
-          }
-        });
+     
         console.log(this.tableData, "筛选表体内容");
       }
     },
@@ -218,6 +191,7 @@ export default {
     },
     //获取表格内容数据
     async getTableData() {
+      this.pageNum=1;
       let searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         searchWhere = [

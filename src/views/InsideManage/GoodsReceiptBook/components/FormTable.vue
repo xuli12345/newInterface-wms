@@ -29,6 +29,8 @@
       :StartTime="StartTime"
       :EndTime="EndTime"
       :Dock="Dock"
+      :allQtystr="allQtystr"
+      :allAmount="allAmount"
       @ItemTableData="ItemTableData"
     ></child-form-head>
     <!-- 表格 -->
@@ -37,23 +39,7 @@
       :tableData="tableData"
       ref="childTable"
     ></child-table>
-    <!-- 新增字表数据 -->
-    <!-- <el-drawer
-      :append-to-body="true"
-      :visible.sync="drawer"
-      direction="rtl"
-      :before-close="handleClose"
-      v-if="addItem"
-    >
-      <child-form-head
-        @closeBox="closeItemBox"
-        :fTableViewHead="fTableViewItem[0]"
-        ref="ItemRuleForm"
-        :addItem="addItem"
-        :selectArr="selectArr2"
-        :alertArr="alertArr"
-      ></child-form-head>
-    </el-drawer> -->
+  
   </div>
 </template>
 
@@ -96,7 +82,11 @@ export default {
       //excel
       fileTemp: null,
       file: null,
-      fileName: ""
+      fileName: "",
+      //总件数
+      allQtystr: 0,
+      //总价格
+      allAmount: 0
     };
   },
   methods: {
@@ -110,7 +100,7 @@ export default {
       let formData = this.$refs.ruleForm.ruleForm;
       let formHeadData = this.$refs.ruleForm.tableHead; //表单头部数据
       let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
-      
+
       if (this.tableData.length <= 0) {
         this.$message.warning("请选择有货品信息的供应商!");
         return;
@@ -155,11 +145,13 @@ export default {
     },
     //根据供应商选择的从表数据
     ItemTableData(val) {
+      // console.log(val);
       val.forEach((item, index) => {
         this.$set(item, "fOrdnum", item.fInboundOrderNo);
         this.$set(item, "fTotal", item.fTotalAmount);
         this.$set(item, "fSort", index + 1);
         this.$set(item, "fOrdID", item.fID);
+        this.$set(item, "fExpireDate", item.fExpireDate);
       });
 
       this.tableData = val;
@@ -174,34 +166,22 @@ export default {
         this.tableData.unshift(value);
       }
       this.drawer = false;
-    },
-    // excel导入
-    handleChange(file, fileList) {
-      this.fileTemp = file.raw;
-      if (this.fileTemp) {
-        //xlsx
-        if (
-          this.fileTemp.type ==
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          this.fileTemp.type == "application/vnd.ms-excel"
-        ) {
-          this.importFile(this.strType, this.fileTemp);
-        } else {
-          this.$message({
-            type: "warning",
-            message: "附件格式错误，请删除后重新上传！"
-          });
-        }
-      } else {
-        this.$message({
-          type: "warning",
-          message: "请上传附件！"
-        });
-      }
-    },
-
-    handleRemove(file, fileList) {
-      this.fileTemp = null;
+    }
+  },
+  watch: {
+    tableData(newVal, oldVal) {
+      // console.log(newVal, oldVal);
+      let newArr = [];
+      newArr = newVal;
+      let num = 0;
+      let allAmount = 0;
+      newArr.forEach(item => {
+        num += Number(item.fQtystr);
+        allAmount += Number(item.fTotal);
+      });
+      this.allQtystr = num;
+      this.allAmount = allAmount;
+      // console.log(this.allQtystr, this.allAmount);
     }
   }
 };

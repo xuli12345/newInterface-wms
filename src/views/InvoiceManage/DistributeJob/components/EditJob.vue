@@ -101,7 +101,8 @@
       <JobEditTable
         ref="ItemData"
         fTableView="t_JobProduct_Item"
-        :ItmeSelID="ItmeSelID"
+        :ItmeSelID="rowData.fID"
+        :fOrderNo="fOrderNo"
       ></JobEditTable>
     </el-drawer>
     <!-- 生成拣货单 -->
@@ -208,9 +209,9 @@ export default {
       openTitle: "选择货品",
       fMstID: "",
       isDisabled: false,
-      fState: 5,
+      fState: 1,
       //从表定单号
-      ItmeSelID: "",
+      fOrderNo: "",
       activeName: "first"
     };
   },
@@ -222,7 +223,8 @@ export default {
       }
     },
     openEditDrawer(row) {
-      this.ItmeSelID = row.fID;
+      console.log(row, "row");
+      this.fOrderNo = row.fOrderNo;
       this.drawer = true;
     },
 
@@ -366,9 +368,11 @@ export default {
     }
   },
   created() {
-    if (this.rowData.fState && this.rowData.fState == 5) {
+    console.log(this.rowData)
+    if (this.rowData.fState && this.rowData.fState != this.fState) {
       this.isDisabled = true;
     }
+   
   }
 };
 </script>

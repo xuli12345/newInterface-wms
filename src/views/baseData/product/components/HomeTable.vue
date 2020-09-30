@@ -2,11 +2,11 @@
   <div>
     <div class="page flex-wrap">
       <div
-        class="search-title flex-align-center"
+        class="search-title  flex-align-center"
         v-for="(item, index) in searchData"
         :key="index"
       >
-        {{ item.fColumnDes }}:
+        <p>{{ item.fColumnDes }}:</p>
 
         <el-checkbox
           v-if="item.fDataType == 'bit'"
@@ -15,7 +15,7 @@
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -35,6 +35,25 @@
             ></el-input>
           </el-col>
         </el-row>
+        <!-- 需要使用下拉选择框的 -->
+        <!-- <template
+          v-else-if="
+            homeSelArr && homeSelArr.length > 0 && selectFunction(item.fColumn)
+          "
+        >
+          <el-select
+            filterable
+            v-model="asData[item.fColumn]"
+            @change="getVal(asData[item.fColumn], item.fColumn)"
+          >
+            <el-option
+              :value="i[selectStr(item.fColumn)]"
+              v-for="i in selectData(item.fColumn)"
+              :key="i[selectVal(item.fColumn)]"
+              :label="i[selectStr(item.fColumn)]"
+            ></el-option>
+          </el-select>
+        </template> -->
         <el-input
           v-else
           v-model.trim="asData[item.fColumn]"
@@ -59,7 +78,6 @@
           >新增</el-button
         >
         <el-button
-          v-if="!isItem"
           type="primary"
           size="mini"
           class="iconfont icon-shanchu"
@@ -69,22 +87,54 @@
         >
 
         <el-button
-          v-if="isPrint"
           type="primary"
           size="mini"
-          class="iconfont icon-dayin1"
-          @click="printCon()"
-          :disabled="userLimit('fPrint')"
-          >打印</el-button
+          icon="el-icon-help"
+          @click="handleBarCode"
+          >货品条码绑定</el-button
+        >
+        <el-button
+          icon="el-icon-goods"
+          type="primary"
+          size="mini"
+          @click="handleCarton"
+          >装箱信息</el-button
+        >
+        <el-button
+          type="primary"
+          size="mini"
+          class="iconfont icon-setting "
+          @click="handleSeq"
+          >上架拣货设置</el-button
         >
 
-        <!-- <el-button
+        <el-button
           type="primary"
+          class="el-icon-bottom"
+          @click="downloadTemp"
           size="mini"
-          @click="entryPrint"
-          class="iconfont icon-dayin1"
-          >录入打印商品标签</el-button
-        > -->
+          >下载模板</el-button
+        >
+        <el-upload
+          style="margin-left:15px;float:right"
+          ref="upload"
+          class="upload"
+          action=""
+          :on-change="handleChange"
+          :on-remove="handleRemove"
+          :auto-upload="false"
+          :show-file-list="false"
+          accept="application/vnd.openxmlformats-    
+        officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+        >
+          <el-button
+            type="primary"
+            class="iconfont icon-excel"
+            size="mini"
+            :disabled="userLimit('fInport')"
+            >导入excel</el-button
+          >
+        </el-upload>
       </div>
     </div>
     <el-table
@@ -92,6 +142,7 @@
       class="table-wrapper"
       ref="singleTable"
       border
+      :max-height="tableHeight"
       style="width: 100%"
       :row-key="getRowKeys"
       :data="tableData | pagination(pageNum, pageSize)"
@@ -100,70 +151,35 @@
       @filter-change="filterTagTable"
     >
       <el-table-column type="selection" width="50"></el-table-column>
-      <template v-if="!isHave">
-        <template v-for="(item, index) in tableHeadData">
-          <el-table-column
-            v-if="item.fVisible == 1"
-            :key="index"
-            :label="item.fColumnDes"
-            :prop="item.fColumn"
-            min-width="160px"
-            sortable
-            :column-key="item.fColumn"
-            :filters="userLimit('fFiler') ? null : screenFuction(item.fColumn)"
-          >
-            <template slot-scope="scope">
-              <el-checkbox
-                @change="changeA(scope.row, item.fColumn)"
-                v-if="item.fDataType == 'bit'"
-                :value="scope.row[item.fColumn] == 1 ? true : false"
-                disabled
-              ></el-checkbox>
 
-              <div v-else>{{ scope.row[item.fColumn] }}</div>
-            </template>
-          </el-table-column>
-        </template>
-      </template>
-      <template v-if="isHave">
-        <!-- :filter-method="filtersF" -->
-        <template v-for="(item, index) in tableHeadData">
-          <el-table-column
-            v-if="item.fVisible == 1"
-            :key="index"
-            :label="item.fColumnDes"
-            :prop="item.fColumn"
-            min-width="160px"
-            sortable
-            :column-key="item.fColumn"
-            :filters="screenFuction(item.fColumn)"
-          >
-            <template slot-scope="scope">
-              <form v-if="item.fColumn === 'fPassWord'">
-                <el-input
-                  v-model="scope.row[item.fColumn]"
-                  type="password"
-                  disabled
-                ></el-input>
-              </form>
+      <template v-for="(item, index) in tableHeadData">
+        <el-table-column
+          v-if="item.fVisible == 1"
+          :key="index"
+          :label="item.fColumnDes"
+          :prop="item.fColum"
+          min-width="160px"
+          sortable
+          :column-key="item.fColumn"
+          :filters="userLimit('fFiler') ? null : screenFuction(item.fColumn)"
+        >
+          <template slot-scope="scope">
+            <el-checkbox
+              @change="changeA(scope.row, item.fColumn)"
+              v-if="item.fDataType == 'bit'"
+              :value="scope.row[item.fColumn] == 1 ? true : false"
+              disabled
+            ></el-checkbox>
 
-              <el-checkbox
-                @change="changeA(scope.row, item.fColumn)"
-                v-else-if="item.fDataType == 'bit'"
-                :value="scope.row[item.fColumn] == 1 ? true : false"
-                disabled
-              ></el-checkbox>
-              <div v-else>{{ scope.row[item.fColumn] }}</div>
-            </template>
-          </el-table-column>
-        </template>
+            <div v-else>{{ scope.row[item.fColumn] }}</div>
+          </template>
+        </el-table-column>
       </template>
 
       <el-table-column fixed="right" label="操作" align="center" width="120">
         <template slot-scope="scope">
           <div class="operation">
             <el-button
-              v-if="!isItem"
               type="text"
               size="small"
               @click.stop="handleDelete(scope.row, scope.$index)"
@@ -194,87 +210,41 @@
         :total="total"
       ></el-pagination>
     </div>
-    <!-- 打印格式内容  -->
-    <div style="width:0;height:0;overflow:hidden">
-      <PrintTable
-        v-if="isRender"
-        ref="print"
-        id="toPrint"
-        :dataCode="dataCode"
-      ></PrintTable>
-    </div>
-    <!-- dailog -->
-    <el-dialog
-      title="打印库位标签"
-      append-to-body
-      :visible.sync="dialogVisible"
-      width="30%"
-      :before-close="handleClose"
-    >
-      <el-input v-model="inputValue" placeholder="请输入内容"></el-input>
-      <span slot="footer" class="dialog-footer">
-        <el-button size="mini" @click="dialogVisible = false">取 消</el-button>
-        <el-button size="mini" type="primary" @click="confirm()"
-          >确 定</el-button
-        >
-      </span>
-    </el-dialog>
   </div>
 </template>
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { addParams, batchDelete, userLimit } from "@/utils/common";
-import PrintTable from "./PrintProduct";
-import { compare } from "@/utils/common";
-import Sortable from "sortablejs";
-import PrintJS from "print-js";
+import { addParams, batchDelete, userLimit, compare } from "@/utils/common";
+import { tempUrl } from "@/utils/tempUrl";
 import {
-  tableBodyData,
   addformSaveData,
+  getHomeTableBody,
   getTableBodyData,
   getTableHeadData,
   BathcDeleteData,
-  imPortExcel
+  imPortExcel,
+  exportData
 } from "@/api/index";
 export default {
-  //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 "product 货品管理新增的按钮" containnerNum生成容器号,
-  //printView:打印请求的字段  title:打印的表题 storage:库位管理新增查询导出库位条码按钮 isCheck:审核(入库,盘点,出库)  strType:导入excel类型字段
+  //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功
+  //   importExcel:excel导出      homeSelArr:搜索框需要做下拉框的字段 strType:导入excel类型字段
   props: [
     "fTableView",
     "tableName",
     "isSaveSuccess",
-    "isItem",
-    "batchDelTableName",
-    "isHave",
-    "isPrint",
-    "product",
-    "containerNum",
-    "printView",
-    "title",
-    "storage",
-    "isCheck",
-    "strType"
+    "strType",
+    "importExcel",
+    "homeSelArr"
   ],
-  components: {
-    PrintTable
-  },
+
   data() {
     return {
-      inputValue: "",
-      dialogVisible:false,
+      tableHeight: document.body.clientHeight,
       //查询的数据
       searchData: [],
-      tableHeadData: [], //表头数据
-      //打印主表表头数据
-      printHeadData: [],
-      //打印主表内容数据
-      dataCode: [],
-      //打印字表表头数据
-      ItemTableHeadData: [],
-      //打印从表回显数据
-      ItemBackData: [],
-      isRender: false,
+      //表头数据
+      tableHeadData: [],
       //搜索条件
       searchWhere: [],
       //获取表格内容TableView的值,在获取headData中获取
@@ -301,8 +271,7 @@ export default {
       newArr: [],
       //excel
       fileTemp: null,
-      file: null,
-      fileName: ""
+      selectAllData: []
     };
   },
   methods: {
@@ -313,7 +282,7 @@ export default {
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
         this.tableHeadData = res.lstRet.sort(compare);
-        console.log(this.tableHeadData, "表头");
+        console.log(this.tableHeadData, "表头1");
 
         let searchArr = [];
         searchArr = this.tableHeadData.filter(element => {
@@ -326,6 +295,8 @@ export default {
         let arr = [];
         ColumnArr.forEach((element, index) => {
           this.tableHeadData.forEach((item, index) => {
+            // if (item.fColumn.includes(element)) {
+            //这里用相等 当勾选的字段名相近时就会把没勾选的值给添加进来
             if (item.fColumn == element) {
               let obj = {
                 fColumnDes: item.fColumnDes,
@@ -333,11 +304,12 @@ export default {
                 fComputer: item.fComputer,
                 fDataType: item.fDataType
               };
+
               arr.push(obj);
             }
           });
         });
-        this.searchData = arr;
+        this.searchData = JSON.parse(JSON.stringify(arr));
       } else {
         this.$message.error(res.Message);
       }
@@ -351,7 +323,9 @@ export default {
       }
     },
     //表格筛选
+
     async filterTagTable(filters) {
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -385,24 +359,12 @@ export default {
         searchData.push(objData);
       });
 
-      let res = await getTableBodyData(this.fTableViewData, searchData);
-
+      let res = await getHomeTableBody(this.fTableViewData, searchData);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
-        // console.log(this.tableData, "过滤表体内容");
+        console.log(this.tableData, "过滤表体内容");
       }
     },
 
@@ -427,8 +389,8 @@ export default {
     search() {
       this.getTableData();
     },
-    //获取table表格内容数据
-    async getTableData() {
+    searchCommon() {
+      this.pageNum = 1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -438,7 +400,6 @@ export default {
             let result = this.asData[element.fColumn];
             if (result instanceof Date) {
               result = timeCycle(result);
-              // console.log(result);
             }
             if (result.constructor == Boolean && result == true) {
               result = 1;
@@ -474,26 +435,18 @@ export default {
           }
         }
       }
-
       if (arr.length >= 1) {
         this.searchWhere.push(...arr);
       }
-      let res = await getTableBodyData(this.fTableViewData, this.searchWhere);
+    },
+    //获取table表格内容数据
+    async getTableData() {
+      this.searchCommon();
+      let res = await getHomeTableBody(this.fTableViewData, this.searchWhere);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("time") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
         console.log(this.tableData, "表体内容");
       }
     },
@@ -507,13 +460,62 @@ export default {
         this.$emit("openEditDrawer", row, this.tableHeadData);
       }
     },
-    //手工
-    entryPrint() {
-      this.dialogVisible = true;
+    //货品条码绑定
+    handleBarCode() {
+      this.$emit("openBarCode");
     },
-    handleClose(done) {
-      this.dialogVisible = false;
+    //装箱信息
+    handleCarton() {
+      this.$emit("openCarton");
     },
+    //生成容器号
+    handleContainer() {
+      this.$emit("openContainer");
+    },
+    //上架拣货设置
+    handleSeq() {
+      this.$emit("openSeq");
+    },
+    //查询导出库位条码
+    handleStorage() {
+      this.$emit("openStorageCode");
+    },
+
+    //已审查,单据关闭,入库完成共用方法
+    async billsFn(status, msg) {
+      if (this.BatchList.length == 0) {
+        this.$message.warning(`请选择要${msg}的数据!`);
+      } else {
+        this.BatchList.forEach(item => {
+          this.$set(item, "fMstState", status);
+          this.$set(item, "fState", status);
+        });
+        let result = batchDelete(this.tableHeadData, this.BatchList);
+        let res = await addformSaveData([
+          {
+            lstSaveData: [
+              {
+                TableName: this.tableName,
+                IdentityColumn: null,
+                InsertRow: null,
+                UpdateRow: result.arr,
+                DeleteRow: null,
+                Columns: result.columns
+              }
+            ]
+          },
+          { userDes: this.userDes, userId: this.userId }
+        ]);
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        if (res.State) {
+          this.$message.success(`${msg}成功!`);
+          this.getTableData();
+        } else {
+          this.$message.error(res.Message);
+        }
+      }
+    },
+
     // 手动选中Checkbox
     handleSelectionChange(val) {
       this.BatchList = val;
@@ -570,7 +572,6 @@ export default {
     //删除
     handleDelete(row, index) {
       let currentRow = JSON.parse(JSON.stringify(row));
-
       let resultData = addParams(this.tableHeadData, row);
       this.$confirm("此操作将永久删除该文件, 是否继续?", "提示", {
         confirmButtonText: "确定",
@@ -593,12 +594,13 @@ export default {
             },
             { userDes: this.userDes, userId: this.userId }
           ]);
+
           res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
           if (res.State) {
             this.$message.success("删除成功!");
             this.getTableData();
           } else {
-            this.$message.error(res.errstr);
+            this.$message.error(res.Message);
           }
         })
         .catch(() => {
@@ -617,81 +619,12 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val;
     },
-
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       return userLimit(val);
     },
-
-    async printCon() {
-      if (this.BatchList.length == 0) {
-        this.$message.warning("请勾选您要打印的数据!");
-      } else {
-        this.dataCode = this.BatchList;
-        this.common();
-      }
-    },
-    confirm() {
-      if (!this.inputValue) {
-        this.$message.warning("请输入打印的商品编码!");
-      } else {
-        this.dataCode = [{ fProductBarCode: this.inputValue }];
-        this.common();
-      }
-    },
-    common() {
-      this.isRender = true;
-      setTimeout(() => {
-        PrintJS({
-          printable: "toPrint",
-          type: "html",
-          scanStyles: false,
-          css: "https://unpkg.com/element-ui/lib/theme-chalk/index.css"
-        });
-      }, 500);
-      setTimeout(() => {
-        this.isRender = false;
-      }, 600);
-    },
-    //获取从表回显的数据
-    async getSearchItemData(fID) {
-      let searchWhere = [
-        {
-          Computer: "=",
-          DataFile: "fMstID",
-          Value: fID
-        }
-      ];
-      let res = await tableBodyData([
-        {
-          Columns: "",
-          OrderBy: "",
-          SqlConn: this.sqlConn,
-          TableView: this.printView[2],
-          Where: searchWhere
-        },
-        { userDes: this.userDes, userId: this.userId }
-      ]);
-
-      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
-
-      if (res.State) {
-        let data = JSON.parse(res.Data);
-        data.forEach((item, index) => {
-          for (const key in item) {
-            if (JSON.stringify(item[key]).indexOf("/Date") != -1) {
-              item[key] = updateTime(item[key]);
-            }
-          }
-        });
-        // console.log(this.ItemBackData, "打印从表回显tableData内容");
-        return data;
-      }
-    },
-
     // excel导入
     handleChange(file, fileList) {
-      // console.log(file, fileList);
       this.fileTemp = file.raw;
       if (this.fileTemp) {
         if (
@@ -717,6 +650,12 @@ export default {
     handleRemove(file, fileList) {
       this.fileTemp = null;
     },
+    //下载模板
+    downloadTemp() {
+      if (this.strType.includes("Goods")) {
+        window.location.href = `${tempUrl}/ImportTempModFile/货品导入模板.xlsx`;
+      }
+    },
 
     async importFile(strType, file) {
       let res = await imPortExcel({
@@ -726,9 +665,120 @@ export default {
 
       if (res.state) {
         this.$message.success("导入成功!");
+        this.getTableData();
       } else {
         this.$message.error(res.message);
       }
+    },
+    //EXCEL导出
+    async handerExport() {
+      this.searchCommon();
+      let res = await exportData(
+        this.fTableViewData,
+        this.searchWhere,
+        this.tableName
+      );
+      if (!res) return;
+      var blob = new Blob([res], {
+        type: "application/vnd.ms-excel;charset=utf-8"
+        //  type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8"
+      });
+      var downloadElement = document.createElement("a");
+      var href = window.URL.createObjectURL(blob); //创建下载的链接
+      downloadElement.href = href;
+      downloadElement.download = `${this.$route.meta.title}-详情.xlsx`; //下载后文件名
+      document.body.appendChild(downloadElement);
+      downloadElement.click(); //点击下载
+      document.body.removeChild(downloadElement); //下载完成移除元素
+      window.URL.revokeObjectURL(href); //释放掉blob
+    },
+    //判断当前字段是否需要做下拉框 v表头所有的字段
+    selectFunction(v) {
+      // console.log(v);
+      let cc = false;
+      this.homeSelArr.forEach(element => {
+        if (element.fName == v) {
+          cc = true;
+        }
+      });
+      return cc;
+    },
+    // 获取所有需要下拉选择的内容
+    async getSelectData() {
+      let arr = [];
+
+      let searchWhere = [];
+      for (let i = 0; i < this.homeSelArr.length; i++) {
+        let res;
+        if (this.homeSelArr[i].searchWhere) {
+          searchWhere = this.homeSelArr[i].searchWhere;
+          res = await getTableBodyData(this.homeSelArr[i].fUrl, searchWhere);
+        } else {
+          searchWhere = [];
+          res = await getTableBodyData(this.homeSelArr[i].fUrl, searchWhere);
+        }
+        res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
+        if (res.State) {
+          let obj = {
+            fName: this.homeSelArr[i].fName, //当前字段
+            data: JSON.parse(res.Data) //当前字段下拉框的值
+          };
+          arr.push(obj);
+        } else {
+          this.$message.error(res.Message);
+        }
+      }
+
+      this.selectAllData = arr;
+    },
+    // 下拉选择框选中值后，带出其他需要带出的值
+    getVal(val, n) {
+      console.log(val, n);
+      //当前选择框对应的数据
+      let arr = [];
+      this.selectAllData.forEach(ele => {
+        if (ele.fName == n) {
+          arr = ele.data;
+        }
+      });
+      //选中值后对应的单条数据
+      let data = {};
+      arr.forEach(el => {
+        if (el.fID == val) {
+          data = el;
+        }
+      });
+    },
+    // options下拉选择框的内容
+    selectData(v) {
+      let arr = [];
+      this.selectAllData.forEach(ele => {
+        if (ele.fName == v) {
+          arr = ele.data;
+        }
+      });
+
+      return arr;
+    },
+    //下拉选择框需要显示的label字段
+    selectStr(v) {
+      let str = "";
+      this.homeSelArr.forEach(element => {
+        if (element.fName == v) {
+          str = element.fDes;
+        }
+      });
+      return str;
+    },
+    //下拉选择框选择的值
+    selectVal(v) {
+      let str = "";
+      this.homeSelArr.forEach(element => {
+        if (element.fName == v) {
+          str = element.fID;
+        }
+      });
+      return str;
     }
   },
   watch: {
@@ -740,6 +790,9 @@ export default {
   },
   created() {
     this.getTableHeadData();
+    // if (this.homeSelArr && this.homeSelArr.length > 0) {
+    //   this.getSelectData();
+    // }
   }
 };
 </script>

@@ -44,6 +44,7 @@
       :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+       :max-height="tableHeight"
       border
       style="width: 100%"
       :row-key="getRowKeys"
@@ -105,6 +106,7 @@ export default {
   props: ["fTableView", "isSaveSuccess", "ItmeOrderNO"],
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -183,6 +185,7 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
+      this.pageNum=1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -221,18 +224,6 @@ export default {
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-        this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 ||
-                key.indexOf("time") != -1 ||
-                key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
 
         console.log(this.tableData, "过滤表体内容");
       }
@@ -261,6 +252,7 @@ export default {
     },
     //获取table表格内容数据
     async getTableData() {
+      this.pageNum=1;
       let searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         searchWhere = [
@@ -295,7 +287,6 @@ export default {
 
       // this.fTableViewData
       let res = await getTableBodyData("v_DistributeNotice_Item", searchWhere);
-
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         let result = JSON.parse(res.Data);
@@ -304,8 +295,7 @@ export default {
             this.$set(item,"fAlcntcNo",item.fOrderNo)
         })
         this.tableData=result;
-        this.total = this.tableData.length;
-       
+        this.total = this.tableData.length;     
         console.log(this.tableData, "表体内容");
       }
     },

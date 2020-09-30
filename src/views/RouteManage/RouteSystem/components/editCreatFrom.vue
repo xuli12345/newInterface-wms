@@ -7,6 +7,7 @@
       :rules="rules"
       ref="ruleForm"
       class="ruleForm"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item

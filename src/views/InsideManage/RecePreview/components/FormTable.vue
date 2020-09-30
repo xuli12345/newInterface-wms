@@ -25,6 +25,7 @@
       :fTableViewHead="fTableViewHead[0]"
       ref="ruleForm"
       :selectArr="selectArr"
+      :StateObj="StateObj"
       @ItemTableData="ItemTableData"
     ></child-form-head>
     <!-- 表格 -->
@@ -70,7 +71,8 @@ export default {
     "selectArr",
     "selectArr2",
     "alertArr",
-    "strType"
+    "strType",
+    "StateObj"
   ],
   components: {
     ChildFormHead,
@@ -99,9 +101,8 @@ export default {
       let formData = this.$refs.ruleForm.ruleForm;
       let formHeadData = this.$refs.ruleForm.tableHead; //form表头数据
       let childTableData = this.$refs.childTable.tableHeadData; //从表表头数据
-      console.log(formData)
-      this.$set(formData, "fOrdID", formData.fOrdnum);
-      // this.$set(formData, "fOrdID", formData.fOrdnum);
+      // console.log(formData)
+
       this.$refs.ruleForm.$refs.ruleForm.validate(async valid => {
         if (valid) {
           let res = await saveRGPreExamData([
@@ -160,6 +161,7 @@ export default {
         this.$set(item, "fRcvQty", item.fInboundNum);
         this.$set(item, "fInprice", item.fPrice);
         this.$set(item, "fInAmount", item.fAmount);
+        this.$set(item, "fUnitID", item.fInboundNumUnit);
       });
 
       this.tableData = val;

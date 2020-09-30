@@ -30,6 +30,7 @@
         :rules="rules"
         ref="editForm"
         class="flex-wrap form-margin"
+        :show-message="false"
       >
         <template v-for="(item, index) in tableHead">
           <el-form-item
@@ -79,7 +80,7 @@
       :data="tableDataPage"
       @current-change="handleSelectionChange"
       border
-      fit
+      :max-height="tableHeight"
       style="width: 100%;"
       :default-sort="{ prop: 'date', order: 'descending' }"
     >
@@ -211,6 +212,7 @@ export default {
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       //查询从表需要的字段
       ViewData: "",
       drawer: false,

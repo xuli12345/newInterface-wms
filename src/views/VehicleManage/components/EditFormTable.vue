@@ -97,7 +97,7 @@ export default {
       totalAmount: 0,
       //已审核状态
       isDisabled: false,
-      fState: 2
+      fState: 1
     };
   },
   methods: {
@@ -212,7 +212,7 @@ export default {
   created() {
     this.getTableHeadData();
     this.getTableHead();
-    if (this.rowData.fState && this.rowData.fState == this.fState) {
+    if (this.rowData.fState && this.rowData.fState != this.fState) {
       this.isDisabled = true;
     }
   }

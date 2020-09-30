@@ -6,15 +6,15 @@
         v-for="(item, index) in searchData"
         :key="index"
       >
-      {{ item.fColumnDes }}:
-      <el-checkbox
+        {{ item.fColumnDes }}:
+        <el-checkbox
           v-if="item.fDataType == 'bit'"
           v-model="asData[item.fColumn]"
         ></el-checkbox>
         <el-date-picker
           v-else-if="item.fDataType == 'datetime'"
           v-model.trim="asData[item.fColumn]"
-          type="datetime"
+          type="date"
           placeholder="选择日期时间"
           min-width="300"
         ></el-date-picker>
@@ -67,7 +67,7 @@
         >
           属性调整</el-button
         >
-            <el-button
+        <el-button
           type="primary"
           size="mini"
           class="iconfont icon-export"
@@ -79,9 +79,10 @@
     </div>
 
     <el-table
-    :header-cell-style="{ background: '#eef1f6'}"
+      :header-cell-style="{ background: '#eef1f6' }"
       class="table-wrapper"
       ref="singleTable"
+      :max-height="tableHeight"
       border
       style="width: 100%"
       :data="tableData | pagination(pageNum, pageSize)"
@@ -122,14 +123,20 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle, updateTime } from "@/utils/updateTime"; //格式化时间
-import { userLimit,compare } from "@/utils/common";
-import { tableBodyData, getTableHeadData, getTableBodyData ,exportData} from "@/api/index";
+import { userLimit, compare } from "@/utils/common";
+import {
+  tableBodyData,
+  getTableHeadData,
+  getTableBodyData,
+  exportData
+} from "@/api/index";
 import Sortable from "sortablejs";
 export default {
   //fTableView:请求列头 tableName:保存  isSaveSuccess:是否保存成功 stock:库存查询显示的按钮
   props: ["fTableView", "tableName", "isSaveSuccess", "searchParams", "stock"],
   data() {
     return {
+      tableHeight: document.body.clientHeight,
       //查询的数据
       searchData: [],
       tableHeadData: [], //表头数据
@@ -148,7 +155,7 @@ export default {
       // 总条数
       total: 0,
       asData: {},
-       endData: {},
+      endData: {},
       startData: {},
       userDes: this.$store.state.user.userInfo.userDes,
       userId: this.$store.state.user.userInfo.userId,
@@ -163,6 +170,7 @@ export default {
   methods: {
     //表格筛选
     async filterTagTable(filters) {
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -197,23 +205,12 @@ export default {
       });
 
       let res = await getTableBodyData(this.fTableViewData, searchData);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       // console.log(res);
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
         this.total = this.tableData.length;
-          this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
+
         console.log(this.tableData, "表体内容");
       }
     },
@@ -221,9 +218,7 @@ export default {
     //用户表格列头
     async getTableHeadData() {
       let res = await getTableHeadData(this.fTableView);
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.fTableViewData = res.fTableViewData;
@@ -248,7 +243,7 @@ export default {
                 fColumnDes: item.fColumnDes,
                 fColumn: item.fColumn,
                 fComputer: item.fComputer,
-                 fDataType: item.fDataType
+                fDataType: item.fDataType
               };
               arr.push(obj);
             }
@@ -289,6 +284,7 @@ export default {
     },
     //获取table表格内容数据
     async getTableData() {
+      this.pageNum = 1;
       this.searchWhere = [];
       if (JSON.stringify(this.asData) == "{}") {
         this.searchWhere = [];
@@ -308,7 +304,7 @@ export default {
       let res = await tableBodyData([
         {
           Columns: "",
-          OrderBy: "",
+          OrderBy: "order by fCreateDate desc",
           SqlConn: this.sqlConn,
           TableView: this.fTableViewData,
           Where: this.searchWhere
@@ -316,9 +312,7 @@ export default {
         { userDes: this.userDes, userId: this.userId }
       ]);
 
-      res = JSON.parse(
-        decryptDesCbc(res, String(this.userDes))
-      );
+      res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
 
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -329,16 +323,6 @@ export default {
         // this.$nextTick(() => {
         //   this.setSort();
         // });
-          this.tableData.forEach(element => {
-          for (const key in element) {
-            if (
-              (key.indexOf("Date") != -1 || key.indexOf("LifeDays") != -1) &&
-              element[key] != null
-            ) {
-              element[key] = element[key].replace(/T/, " ");
-            }
-          }
-        });
       }
     },
     //表格拖拽
@@ -386,14 +370,14 @@ export default {
     handleCurrentChange(val) {
       this.pageNum = val;
     },
-   
+
     //根据用户权限，查询按钮是否禁用
     userLimit(val) {
       let a = userLimit(val);
       // console.log(a)
       return a;
     },
-     //EXCEL导出
+    //EXCEL导出
     async handerExport() {
       // console.log(this.$route);
       this.searchWhere = [];

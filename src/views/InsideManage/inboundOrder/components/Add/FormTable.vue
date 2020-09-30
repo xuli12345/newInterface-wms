@@ -181,7 +181,7 @@ export default {
     //关闭字表新增弹窗
     async closeItemBox(value) {
       if (value) {
-        console.log(value,"22e3i")
+        // console.log(value, "22e3i");
         let where = [
           {
             Computer: "=",
@@ -204,6 +204,13 @@ export default {
         let Qtystr = 0;
         let num = 0;
         this.tableData.forEach(item => {
+          if ("fQtystr" in item) {
+          } else {
+            this.$set(item, "fQtystr", 0);
+          }
+          if (item.fQtystr == "") {
+            this.$set(item, "fQtystr", 0);
+          }
           Amount += Number(item.fAmount);
           Qtystr += Number(item.fQtystr);
           num += Number(item.fInboundNum);
@@ -265,6 +272,13 @@ export default {
         let num = 0;
 
         this.tableData.forEach(element => {
+          if ("fQtystr" in item) {
+          } else {
+            this.$set(item, "fQtystr", 0);
+          }
+          if (item.fQtystr == "") {
+            this.$set(item, "fQtystr", 0);
+          }
           Amount += Number(element.fAmount);
           Qtystr += Number(element.fQtystr);
           num += Number(element.fInboundNum);

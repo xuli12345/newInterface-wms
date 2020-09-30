@@ -44,7 +44,7 @@
 <script>
 import { decryptDesCbc } from "@/utils/cryptoJs.js"; //解密
 import { timeCycle } from "@/utils/updateTime"; //格式化时间
-import HomeTable from "./HomeTable";
+import HomeTable from "./BarCodeHomeTable";
 import CreatFrom from "@/components/CreatFrom";
 import editCreatFrom from "@/components/editCreatFrom";
 import { getTableBodyData } from "@/api/index";

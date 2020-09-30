@@ -22,6 +22,7 @@
       :rules="rules"
       ref="ruleForm"
       class="flex-wrap form-margin"
+      :show-message="false"
     >
       <template v-for="(item, index) in tableHead">
         <el-form-item
@@ -99,7 +100,8 @@ export default {
     "selectArr",
     "alertArr",
     "fCustomerID",
-    "Amount"
+    "Amount",
+    "StateObj"
   ],
   data() {
     return {
@@ -143,6 +145,10 @@ export default {
       if (res.State) {
         this.tableHead = res.lstRet.sort(compare);
         this.ruleForm = defaultForm(this.tableHead);
+        if (this.StateObj && this.StateObj.length > 0) {//设置状态默认值
+          this.$set(this.ruleForm, this.StateObj[0].key, this.StateObj[0].val);
+          this.$set(this.ruleForm, this.StateObj[1].key, this.StateObj[1].val);
+        }
         this.rules = creatRules(this.tableHead);
       } else {
         this.$message.error(res.Message);

@@ -228,6 +228,7 @@ export default {
 }
 .el-form-item {
   width: 100%;
+  margin-bottom: 20px !important;
 }
 /deep/ .el-input__inner {
   height: 40px !important;

@@ -26,6 +26,7 @@
         :rules="rules"
         ref="ruleForm"
         class="flex-wrap form-margin"
+        :show-message="false"
       >
         <template v-for="(item, index) in tableHead">
           <el-form-item
@@ -75,6 +76,7 @@
       class="table-wrapper"
       ref="singleTable"
       :data="tableDataPage"
+      :max-height="tableHeight"
       border
       style="width: 100%;"
       @current-change="handleSelectionChange"
@@ -173,6 +175,7 @@ export default {
   },
   data() {
     return {
+       tableHeight:document.body.clientHeight,
       userDes: this.$store.state.user.userInfo.userDes,
       //表单数据
       ruleForm: {},

@@ -70,9 +70,10 @@
       </div>
       <div class="right">
         <el-table
-        :header-cell-style="{ background: '#eef1f6'}"
+          :header-cell-style="{ background: '#eef1f6' }"
           class="table-wrapper"
           ref="singleTable"
+          :max-height="tableHeight"
           border
           style="width: 100%"
           :data="tableData | pagination(pageNum, pageSize)"
@@ -159,7 +160,8 @@ import {
   addformSaveData,
   ItemTableHeadData,
   getItemMenus,
-  getTableBodyData
+  getTableBodyData,
+  getHomeTableBody
 } from "@/api/index";
 
 export default {
@@ -167,6 +169,7 @@ export default {
   props: ["fTableView", "tableName", "isSaveSuccess", "searchParams"],
   data() {
     return {
+      tableHeight: document.body.clientHeight,
       activeName: "后台管理",
       tabPosition: "left",
       active: -1,
@@ -202,8 +205,6 @@ export default {
 
   methods: {
     clickTabs(tab, event) {
-      // console.log(tab.name);
-      // console.log(this.copyData);
       let filterData = this.copyData.filter(element => {
         return element.fType == 1;
       });
@@ -302,6 +303,7 @@ export default {
     //表格筛选
 
     async filterTagTable(filters) {
+      this.pageNum = 1;
       let column, value, arrLength;
       let obj = {};
       for (const key in filters) {
@@ -335,7 +337,7 @@ export default {
         searchData.push(objData);
       });
 
-      let res = await getTableBodyData(this.fTableViewData, searchData);
+      let res = await getHomeTableBody(this.fTableViewData, searchData);
       res = JSON.parse(decryptDesCbc(res, String(this.userDes)));
       if (res.State) {
         this.tableData = JSON.parse(res.Data);
@@ -379,7 +381,7 @@ export default {
               this.asData[element.fColumn] == "模块分类"
             ) {
               // this.$set(this.asData, element.fColumn, 1);
-            this.asData[element.fColumn] = 1;
+              this.asData[element.fColumn] = 1;
             } else if (
               element.fColumn === "fType" &&
               this.asData[element.fColumn] == "模块程序"
